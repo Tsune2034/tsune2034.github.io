@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Click Counter</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      margin-top: 100px;
+    }
+
+    button {
+      font-size: 20px;
+      padding: 10px 20px;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <h1>クリックカウンター</h1>
+
+  <p id="count">クリック回数：0</p>
+
+  <button onclick="countUp()">クリック</button>
+
+  <script>
+
+    let count = 0;
+
+    function countUp() {
+      count = count + 1;
+      document.getElementById("count").innerText = "クリック回数：" + count;
+    }
+
+  </script>
+
+</body>
+
+</html>
