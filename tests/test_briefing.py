@@ -161,13 +161,28 @@ class TestExtractJson:
         result = _extract_json(text)
         assert json.loads(result)["overall_risk_score"] == 72
 
-    def test_no_json_raises(self):
-        with pytest.raises(ValueError, match="No JSON object found"):
-            _extract_json("No JSON here at all.")
+    def test_no_json_falls_back_to_briefing_wrapper(self):
+        # Plain text with no JSON should return {"briefing": <text>} instead of raising.
+        result = json.loads(_extract_json("No JSON here at all."))
+        assert "briefing" in result
+        assert result["briefing"] == "No JSON here at all."
 
-    def test_malformed_json_raises(self):
-        with pytest.raises(ValueError, match="Malformed JSON"):
-            _extract_json("{unclosed")
+    def test_malformed_json_falls_back_to_briefing_wrapper(self):
+        # Malformed JSON (unclosed brace) cannot be decoded, so falls back gracefully.
+        result = json.loads(_extract_json("{unclosed"))
+        assert "briefing" in result
+
+    def test_empty_text_raises(self):
+        # Empty string is the only case that should still raise.
+        with pytest.raises(ValueError, match="Empty response"):
+            _extract_json("")
+
+    def test_braces_inside_strings_parsed_correctly(self):
+        # Old brace-counter broke on {"key": "value {with} braces"}.
+        text = '{"key": "value {with} braces", "num": 42}'
+        result = json.loads(_extract_json(text))
+        assert result["num"] == 42
+        assert "{with}" in result["key"]
 
 
 # ---------------------------------------------------------------------------

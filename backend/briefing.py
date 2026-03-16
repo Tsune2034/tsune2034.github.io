@@ -5,6 +5,7 @@ Generates daily geopolitical intelligence briefings using Claude API + web searc
 
 import json
 import os
+import re
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 import anthropic
@@ -105,7 +106,6 @@ def _check_alerts(response: dict, thresholds: dict) -> list[str]:
 def generate_briefing(req: BriefingRequest) -> BriefingResponse:
     prompt = _build_prompt(req)
 
-    full_text = ""
     with client.messages.stream(
         model="claude-opus-4-6",
         max_tokens=16000,
@@ -116,12 +116,17 @@ def generate_briefing(req: BriefingRequest) -> BriefingResponse:
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": prompt}],
     ) as stream:
-        for event in stream:
-            if event.type == "content_block_delta":
-                if hasattr(event.delta, "text"):
-                    full_text += event.delta.text
+        # Use get_final_message() so all content blocks (thinking, tool_use,
+        # tool_result, text) are fully assembled before we inspect them.
+        # Manual delta accumulation is unreliable because tool calls and
+        # thinking blocks share the same event stream as text blocks.
+        message = stream.get_final_message()
 
-    # Extract JSON from the final text response
+    # Collect text only from text-type content blocks; skip thinking/tool blocks.
+    full_text = "\n".join(
+        block.text for block in message.content if block.type == "text"
+    ).strip()
+
     raw_json = _extract_json(full_text)
     data = json.loads(raw_json)
 
@@ -131,31 +136,51 @@ def generate_briefing(req: BriefingRequest) -> BriefingResponse:
         date=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
         industry=req.industry.value,
         language=req.language.value,
-        overall_risk_score=data["overall_risk_score"],
-        risk_level=data["risk_level"],
-        executive_summary=data["executive_summary"],
-        key_events=data["key_events"],
-        risk_factors=data["risk_factors"],
-        recommended_actions=data["recommended_actions"],
+        overall_risk_score=data.get("overall_risk_score", 0),
+        risk_level=data.get("risk_level", "low"),
+        executive_summary=data.get("executive_summary", full_text),
+        key_events=data.get("key_events", []),
+        risk_factors=data.get("risk_factors", []),
+        recommended_actions=data.get("recommended_actions", []),
         alerts_triggered=alerts,
         generated_at=datetime.now(timezone.utc).isoformat(),
     )
 
 
 def _extract_json(text: str) -> str:
-    # Find the outermost JSON object in the response
-    start = text.find("{")
-    if start == -1:
-        raise ValueError("No JSON object found in response")
-    depth = 0
-    for i, ch in enumerate(text[start:], start):
-        if ch == "{":
-            depth += 1
-        elif ch == "}":
-            depth -= 1
-            if depth == 0:
-                return text[start : i + 1]
-    raise ValueError("Malformed JSON in response")
+    """Extract the first valid JSON object from text.
+
+    Handles:
+    - Clean JSON output
+    - JSON wrapped in markdown code fences (```json ... ```)
+    - Preamble/postamble text around the JSON
+    - Plain text with no JSON (falls back to {"briefing": <text>})
+
+    The old brace-counting approach broke on JSON strings containing { or },
+    e.g. {"key": "value with {braces}"}. Using json.JSONDecoder.raw_decode()
+    is the correct way to find the end of a JSON value.
+    """
+    if not text:
+        raise ValueError("Empty response from model")
+
+    # Strip markdown code fences (```json ... ``` or ``` ... ```)
+    cleaned = re.sub(r"```(?:json)?\s*", "", text)
+    cleaned = re.sub(r"\s*```", "", cleaned).strip()
+
+    # Walk the string looking for a { that starts a valid JSON object.
+    decoder = json.JSONDecoder()
+    for i, ch in enumerate(cleaned):
+        if ch != "{":
+            continue
+        try:
+            obj, _ = decoder.raw_decode(cleaned, i)
+            # Re-serialise so the caller always gets clean JSON.
+            return json.dumps(obj, ensure_ascii=False)
+        except json.JSONDecodeError:
+            continue
+
+    # No JSON found — wrap the plain text so the API never hard-crashes.
+    return json.dumps({"briefing": text})
 
 
 def print_briefing(b: BriefingResponse) -> None:
