@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KAIROX CEO会議 議事録 2026-03-19</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Hiragino Kaku Gothic Pro", "Meiryo", "Yu Gothic", sans-serif;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #1a1a1a;
+    background: #f8f8f8;
+  }
+  .page {
+    max-width: 860px;
+    margin: 40px auto;
+    background: #fff;
+    padding: 60px 72px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+  }
+  /* Header */
+  .doc-header {
+    border-bottom: 3px solid #1a1a1a;
+    padding-bottom: 20px;
+    margin-bottom: 32px;
+  }
+  .brand { font-size: 22px; font-weight: 900; letter-spacing: 4px; }
+  .doc-title { font-size: 18px; font-weight: 700; margin-top: 8px; }
+  .meta-table { margin-top: 14px; border-collapse: collapse; width: 100%; }
+  .meta-table td { padding: 3px 12px 3px 0; font-size: 12px; color: #444; }
+  .meta-table td:first-child { font-weight: 600; color: #1a1a1a; width: 90px; }
+
+  /* Sections */
+  h2 {
+    font-size: 14px;
+    font-weight: 800;
+    background: #1a1a1a;
+    color: #fff;
+    padding: 6px 14px;
+    margin: 36px 0 16px;
+    letter-spacing: 1px;
+  }
+  h3 {
+    font-size: 13px;
+    font-weight: 700;
+    border-left: 4px solid #f59e0b;
+    padding-left: 10px;
+    margin: 20px 0 10px;
+    color: #1a1a1a;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 20px;
+    font-size: 12px;
+  }
+  th {
+    background: #f0f0f0;
+    text-align: left;
+    padding: 7px 10px;
+    font-weight: 700;
+    border: 1px solid #ddd;
+  }
+  td {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #fafafa; }
+
+  /* Verdict boxes */
+  .verdict {
+    border-radius: 4px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    font-size: 12px;
+  }
+  .verdict.red    { background: #fff5f5; border: 2px solid #fc8181; }
+  .verdict.yellow { background: #fffbeb; border: 2px solid #f6ad55; }
+  .verdict.green  { background: #f0fff4; border: 2px solid #68d391; }
+  .verdict .label {
+    font-weight: 800;
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .verdict.red .label    { color: #c53030; }
+  .verdict.yellow .label { color: #b7791f; }
+  .verdict.green .label  { color: #276749; }
+
+  /* Decision / Action items */
+  .decision {
+    background: #fffbeb;
+    border: 1px solid #f6ad55;
+    border-radius: 4px;
+    padding: 10px 14px;
+    margin: 6px 0;
+    font-size: 12px;
+  }
+  .action-item {
+    display: flex;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 12px;
+  }
+  .action-item .num {
+    font-weight: 800;
+    color: #f59e0b;
+    min-width: 24px;
+  }
+  .action-item .who {
+    font-weight: 700;
+    min-width: 80px;
+    color: #444;
+  }
+
+  /* Numbers highlight */
+  .num-red    { color: #c53030; font-weight: 700; }
+  .num-green  { color: #276749; font-weight: 700; }
+  .num-amber  { color: #b7791f; font-weight: 700; }
+
+  /* Footer */
+  .doc-footer {
+    margin-top: 48px;
+    padding-top: 16px;
+    border-top: 1px solid #ccc;
+    font-size: 11px;
+    color: #888;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  @media print {
+    body { background: #fff; }
+    .page { box-shadow: none; margin: 0; padding: 40px 56px; }
+    .no-print { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="no-print" style="text-align:center; padding: 16px; background: #1a1a1a;">
+  <button onclick="window.print()" style="background:#f59e0b; color:#000; border:none; padding:10px 28px; font-size:14px; font-weight:700; border-radius:6px; cursor:pointer; letter-spacing:1px;">
+    印刷 / PDF保存
+  </button>
+  &nbsp;&nbsp;
+  <span style="color:#aaa; font-size:12px;">ブラウザの印刷ダイアログで「PDFに保存」を選択</span>
+</div>
+
+<div class="page">
+
+  <!-- ヘッダー -->
+  <div class="doc-header">
+    <div class="brand">KAIROX</div>
+    <div class="doc-title">CEO会議 議事録 ── 成田ルート採算性緊急審議</div>
+    <table class="meta-table">
+      <tr><td>会議日時</td><td>2026年3月19日</td></tr>
+      <tr><td>会議形式</td><td>経営判断会議（定例外）</td></tr>
+      <tr><td>議題</td><td>成田空港起点ルートにおける1名1件配送の採算性検証および事業モデル修正</td></tr>
+      <tr><td>作成者</td><td>KAIROX 事業企画</td></tr>
+      <tr><td>機密区分</td><td>社外秘</td></tr>
+    </table>
+  </div>
+
+  <!-- 1. 議題の背景 -->
+  <h2>1. 議題の背景・論点</h2>
+  <p>
+    当初の事業計画では「成田空港から20分以内を拠点」とし、空港またはホテルで荷物を受け取り、
+    観光客の代わりに届ける手ぶら配送モデルを想定。<br>
+    本会議では「1名・1件・成田起点」という最も基礎的な単位で採算が取れるかを数値検証し、
+    事業継続の可否・モデル修正の方向性を決議する。
+  </p>
+
+  <!-- 2. 数値検証 -->
+  <h2>2. ルート別コスト実測試算</h2>
+
+  <h3>前提条件</h3>
+  <table>
+    <tr><th>項目</th><th>設定値</th><th>根拠</th></tr>
+    <tr><td>車両</td><td>軽バン（自社保有・黒ナンバー）</td><td>開業コスト最小化</td></tr>
+    <tr><td>燃費</td><td>12km/L</td><td>軽バン平均</td></tr>
+    <tr><td>ガソリン単価</td><td>180円/L → <strong>15円/km</strong></td><td>2026年3月時点</td></tr>
+    <tr><td>高速料金</td><td>ETC料金（実測値）</td><td>NEXCO東日本</td></tr>
+    <tr><td>基本配送料</td><td>2,500円/件</td><td>現行設定（スーツケース1個）</td></tr>
+    <tr><td>変動費（決済手数料等）</td><td>280円/件</td><td>クレカ平均3.6% + その他</td></tr>
+    <tr><td>ドライバー人件費</td><td>オーナー稼働時：0円<br>雇用時：2,000円/h</td><td>オーナードライバー前提をベースに</td></tr>
+  </table>
+
+  <h3>ルート別変動費（片道・1回の配送あたり）</h3>
+  <table>
+    <tr><th>ルート</th><th>距離</th><th>所要時間</th><th>高速料金</th><th>燃料費</th><th>片道合計</th></tr>
+    <tr>
+      <td><strong>成田 → 成田市内ホテル</strong></td>
+      <td>〜5km</td><td>10〜15分</td>
+      <td>0円</td><td class="num-green">75円</td>
+      <td class="num-green"><strong>75円</strong></td>
+    </tr>
+    <tr>
+      <td>成田 → 千葉市内</td>
+      <td>約35km</td><td>40分</td>
+      <td>860円</td><td>525円</td>
+      <td><strong>1,385円</strong></td>
+    </tr>
+    <tr>
+      <td>成田 → 上野</td>
+      <td>約55km</td><td>60分</td>
+      <td>1,420円</td><td>825円</td>
+      <td><strong>2,245円</strong></td>
+    </tr>
+    <tr>
+      <td>成田 → 新宿</td>
+      <td>約65km</td><td>75分</td>
+      <td>2,040円</td><td>975円</td>
+      <td class="num-red"><strong>3,015円</strong></td>
+    </tr>
+    <tr>
+      <td>成田 → 横浜</td>
+      <td>約85km</td><td>90分</td>
+      <td>2,580円</td><td>1,275円</td>
+      <td class="num-red"><strong>3,855円</strong></td>
+    </tr>
+  </table>
+
+  <!-- 採算性 -->
+  <h3>採算性検証：1件2,500円での粗利（オーナードライバー・片道コストのみ）</h3>
+  <table>
+    <tr>
+      <th>ルート</th>
+      <th>1件粗利</th>
+      <th>2件粗利</th>
+      <th>3件粗利</th>
+      <th>損益分岐</th>
+      <th>判定</th>
+    </tr>
+    <tr>
+      <td>成田市内ホテル</td>
+      <td class="num-green">+2,145円</td>
+      <td class="num-green">+4,365円</td>
+      <td class="num-green">+6,585円</td>
+      <td><strong>1件〜</strong></td>
+      <td>✅ 採算OK</td>
+    </tr>
+    <tr>
+      <td>千葉市内</td>
+      <td class="num-amber">+835円</td>
+      <td class="num-green">+3,055円</td>
+      <td class="num-green">+5,275円</td>
+      <td><strong>1件〜</strong></td>
+      <td>✅ 採算OK</td>
+    </tr>
+    <tr>
+      <td>上野方面</td>
+      <td class="num-amber">+255円</td>
+      <td class="num-green">+2,475円</td>
+      <td class="num-green">+4,695円</td>
+      <td><strong>1件〜（薄い）</strong></td>
+      <td>⚠️ 要注意</td>
+    </tr>
+    <tr>
+      <td>新宿方面</td>
+      <td class="num-red">▲515円</td>
+      <td class="num-green">+1,425円</td>
+      <td class="num-green">+3,645円</td>
+      <td><strong>2件〜</strong></td>
+      <td>❌ 1件は赤字</td>
+    </tr>
+    <tr>
+      <td>横浜方面</td>
+      <td class="num-red">▲1,575円</td>
+      <td class="num-red">▲375円</td>
+      <td class="num-green">+1,845円</td>
+      <td><strong>3件〜</strong></td>
+      <td>❌ 1〜2件は赤字</td>
+    </tr>
+  </table>
+
+  <div class="verdict red">
+    <div class="label">❌ 結論①：1人1件・新宿/横浜方面は現行単価では赤字</div>
+    成田→新宿の片道コスト（高速＋燃料）だけで3,015円。2,500円の収入を上回る。
+    オーナードライバーでも単体では持続不可能。
+  </div>
+  <div class="verdict green">
+    <div class="label">✅ 結論②：成田市内・千葉圏なら1件から黒字</div>
+    成田空港から20分圏内（市内ホテル）への配送は変動費75〜1,385円。利益率は44〜97%。
+    このゾーンへの特化が最優先事業戦略。
+  </div>
+
+  <h3>雇用ドライバー使用時：損益分岐（新宿ルート・時給2,000円・2時間）</h3>
+  <table>
+    <tr><th>件数</th><th>収入</th><th>変動費</th><th>ルートコスト</th><th>人件費</th><th>営業利益</th></tr>
+    <tr><td>1件</td><td>2,500円</td><td>280円</td><td>3,015円</td><td>4,000円</td><td class="num-red">▲4,795円</td></tr>
+    <tr><td>2件</td><td>5,000円</td><td>560円</td><td>3,015円</td><td>4,000円</td><td class="num-red">▲2,575円</td></tr>
+    <tr><td>3件</td><td>7,500円</td><td>840円</td><td>3,015円</td><td>4,000円</td><td class="num-red">▲355円</td></tr>
+    <tr><td>4件</td><td>10,000円</td><td>1,120円</td><td>3,015円</td><td>4,000円</td><td class="num-green">+1,865円</td></tr>
+    <tr><td>5件</td><td>12,500円</td><td>1,400円</td><td>3,015円</td><td>4,000円</td><td class="num-green">+4,085円</td></tr>
+  </table>
+  <div class="verdict yellow">
+    <div class="label">⚠️ 雇用ドライバーは新宿方面・最低4件/便 で採算ライン</div>
+    Phase 1はオーナードライバー（自分が運転）前提。雇用は月商100万円超えてから。
+  </div>
+
+  <!-- 3. 料金改定 -->
+  <h2>3. 適正料金の再設定</h2>
+
+  <h3>距離帯別・推奨最低料金（オーナードライバー・利益率30%確保）</h3>
+  <table>
+    <tr><th>配送ゾーン</th><th>目安エリア</th><th>現行料金</th><th>推奨最低料金</th><th>根拠</th></tr>
+    <tr>
+      <td><strong>成田周辺（〜20km）</strong></td>
+      <td>成田市内・印西市</td>
+      <td>2,500円</td>
+      <td class="num-green"><strong>2,000円〜</strong></td>
+      <td>変動費が低く現行でも十分利益</td>
+    </tr>
+    <tr>
+      <td><strong>千葉・柏圏（〜50km）</strong></td>
+      <td>千葉市・柏・船橋</td>
+      <td>2,500円</td>
+      <td class="num-amber"><strong>2,500円</strong></td>
+      <td>1件で黒字。現行OK</td>
+    </tr>
+    <tr>
+      <td><strong>東京都心（50〜70km）</strong></td>
+      <td>上野・新宿・渋谷</td>
+      <td>2,500円</td>
+      <td class="num-red"><strong>4,000円〜</strong></td>
+      <td>1件¥3,015コスト。¥4,000で利益率25%</td>
+    </tr>
+    <tr>
+      <td><strong>遠距離（70km〜）</strong></td>
+      <td>横浜・さいたま</td>
+      <td>2,500円</td>
+      <td class="num-red"><strong>5,500円〜 or 複数件のみ受付</strong></td>
+      <td>単体では持続不可能</td>
+    </tr>
+  </table>
+
+  <!-- 4. 修正ビジネスモデル -->
+  <h2>4. 修正ビジネスモデル（決議案）</h2>
+
+  <h3>モデルA：成田周辺ホテル特化型（推奨）</h3>
+  <p>
+    成田空港〜成田市内・印西市・佐倉市のホテルに限定してサービス提供。
+    観光客が翌朝に成田から出発する際、前日に荷物を空港近隣ホテルへ届ける需要を狙う。
+  </p>
+  <table>
+    <tr><th>指標</th><th>数値</th></tr>
+    <tr><td>1件の変動費</td><td class="num-green">75〜500円</td></tr>
+    <tr><td>料金</td><td>2,000〜2,500円（現行維持）</td></tr>
+    <tr><td>1件の粗利</td><td class="num-green">1,500〜2,425円</td></tr>
+    <tr><td>利益率</td><td class="num-green">68〜97%</td></tr>
+    <tr><td>1日10件達成時の日商</td><td class="num-green">25,000円 → 月商75万円（25日稼働）</td></tr>
+    <tr><td>損益分岐（月固定費15.8万円）</td><td>約71件/月 → 1日3件</td></tr>
+  </table>
+
+  <h3>モデルB：バッチング型（成田→都心・複数件まとめ配送）</h3>
+  <p>
+    同日・同方面の予約を2〜3件まとめて1便で配送。ルートコストを件数で割ることで採算化。
+    前日予約制（当日朝までに申し込み）で実現可能。
+  </p>
+  <table>
+    <tr><th>指標</th><th>数値</th></tr>
+    <tr><td>1便あたり件数</td><td>最低2件〜（理想3〜4件）</td></tr>
+    <tr><td>料金（新宿方面）</td><td>3,500〜4,000円/件（距離帯料金）</td></tr>
+    <tr><td>2件まとめ時の利益（新宿）</td><td>2×3,500 − 2×280 − 3,015 = <span class="num-green">+3,945円</span></td></tr>
+    <tr><td>必要条件</td><td>前日予約制・同方面マッチング機能</td></tr>
+  </table>
+
+  <h3>モデルC：空港→空港（成田↔羽田）トランジット客向け</h3>
+  <p>
+    成田着・羽田発（またはその逆）の旅行者の荷物を先行輸送。
+    移動手段として新幹線/電車を使う観光客に代わって空港間を配送。
+  </p>
+  <table>
+    <tr><th>指標</th><th>数値</th></tr>
+    <tr><td>距離（成田↔羽田）</td><td>約80km・高速代約2,500円</td></tr>
+    <tr><td>適正料金</td><td>5,000〜8,000円/件</td></tr>
+    <tr><td>競合</td><td>ほぼなし（高付加価値市場）</td></tr>
+    <tr><td>ターゲット</td><td>乗り継ぎ・長期周遊旅行者</td></tr>
+  </table>
+
+  <!-- 5. 決議事項 -->
+  <h2>5. 決議事項</h2>
+
+  <div class="decision">
+    <strong>決議 01：</strong> 「1名1件・現行2,500円・新宿/横浜方面」はPhase 1では受付を停止する。
+    東京都心方面への配送は距離帯料金（4,000円〜）または2件バッチングの場合のみ受付とする。
+  </div>
+  <div class="decision">
+    <strong>決議 02：</strong> Phase 1のメインサービスエリアを「成田空港〜成田市内・印西市・佐倉市（半径20km圏）」に設定する。
+    アプリの配送先入力画面に対応エリアの明示・入力制限を追加する。
+  </div>
+  <div class="decision">
+    <strong>決議 03：</strong> 料金体系を以下のゾーン制に改定する。
+    ① 成田周辺20km圏：2,000〜2,500円
+    ② 千葉・柏圏（〜50km）：2,500〜3,000円
+    ③ 東京都心（50〜70km）：4,000〜5,000円
+    ④ 遠距離（70km〜）：要見積もり・バッチング必須
+  </div>
+  <div class="decision">
+    <strong>決議 04：</strong> USDC決済はPhase 1の差別化ポイントとして維持するが、
+    初期収益確保のためクレジットカード・現金を主軸とする。
+  </div>
+  <div class="decision">
+    <strong>決議 05：</strong> 採算モデルをモデルAとモデルBのハイブリッドで運用する。
+    成田周辺ホテルを即時開始し、バッチング機能（前日予約制）をPhase 1後半に実装する。
+  </div>
+
+  <!-- 6. アクションアイテム -->
+  <h2>6. アクションアイテム</h2>
+
+  <div class="action-item">
+    <div class="num">01</div>
+    <div class="who">事業企画</div>
+    <div>アプリの配送先に「対応エリア表示」と距離帯別料金を追加実装する。期限：2週間以内</div>
+  </div>
+  <div class="action-item">
+    <div class="num">02</div>
+    <div class="who">事業企画</div>
+    <div>仕様書・要件定義書のエリア・料金体系をゾーン制に更新する。期限：今週中</div>
+  </div>
+  <div class="action-item">
+    <div class="num">03</div>
+    <div class="who">営業</div>
+    <div>成田市内の主要インバウンドホテル（東横INN成田・ヒルトン成田等）に対してパートナー交渉を開始する。期限：1ヶ月以内</div>
+  </div>
+  <div class="action-item">
+    <div class="num">04</div>
+    <div class="who">営業</div>
+    <div>KKday・Klookへの掲載申請。サービスエリアを「成田空港周辺」として登録。期限：1ヶ月以内</div>
+  </div>
+  <div class="action-item">
+    <div class="num">05</div>
+    <div class="who">CEO</div>
+    <div>月商目標を修正：「1日10件・成田周辺特化」で月商25万円（Phase 1）→ 3ヶ月で黒字化を目指す</div>
+  </div>
+  <div class="action-item">
+    <div class="num">06</div>
+    <div class="who">CEO</div>
+    <div>東京都心方面は個人ではなく「ホテルとの法人契約（月次バッチ）」での収益化を検討する</div>
+  </div>
+
+  <!-- 7. 次回会議 -->
+  <h2>7. 次回確認事項</h2>
+  <table>
+    <tr><th>確認項目</th><th>目標値</th><th>確認時期</th></tr>
+    <tr><td>成田周辺ホテルパートナー数</td><td>3件以上</td><td>1ヶ月後</td></tr>
+    <tr><td>KKday/Klook掲載完了</td><td>掲載済み</td><td>1ヶ月後</td></tr>
+    <tr><td>月間受注件数</td><td>50件以上</td><td>2ヶ月後</td></tr>
+    <tr><td>月商</td><td>10万円以上</td><td>2ヶ月後</td></tr>
+    <tr><td>損益分岐達成</td><td>月71件</td><td>3ヶ月後</td></tr>
+  </table>
+
+  <!-- フッター -->
+  <div class="doc-footer">
+    <span>KAIROX 社外秘 ── 無断転載・共有禁止</span>
+    <span>議事録作成日：2026年3月19日 ／ 次回会議：2026年4月</span>
+  </div>
+
+</div>
+</body>
+</html>

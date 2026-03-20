@@ -3,10 +3,9 @@ Kairox — Daily Briefing Scheduler
 Automatically generates briefings for all target markets every morning.
 """
 
-import schedule
-import time
 import logging
 from datetime import datetime, timezone
+from typing import Optional
 
 from .models import BriefingRequest, Industry, Language
 from .briefing import generate_briefing
@@ -53,13 +52,17 @@ TARGET_JOBS = [
 ]
 
 
-def run_daily_briefings():
+def run_daily_briefings(db=None):
+    """Generate briefings for all target markets. Pass a DB session to persist results."""
     log.info(f"Starting daily briefing run — {datetime.now(timezone.utc).isoformat()}")
     for req in TARGET_JOBS:
         label = f"{req.industry.value}/{req.language.value}"
         try:
             log.info(f"Generating: {label}")
             result = generate_briefing(req)
+            if db is not None:
+                from .database import save_briefing
+                save_briefing(db, result)
             log.info(f"Done: {label} — risk={result.overall_risk_score} ({result.risk_level})")
             if result.alerts_triggered:
                 for alert in result.alerts_triggered:
@@ -67,19 +70,3 @@ def run_daily_briefings():
         except Exception as e:
             log.error(f"Failed: {label} — {e}")
     log.info("Daily briefing run complete.")
-
-
-def main():
-    log.info("Kairox Scheduler started. Briefings run daily at 06:00 UTC.")
-    schedule.every().day.at("06:00").do(run_daily_briefings)
-
-    # Uncomment to run immediately on startup:
-    # run_daily_briefings()
-
-    while True:
-        schedule.run_pending()
-        time.sleep(60)
-
-
-if __name__ == "__main__":
-    main()

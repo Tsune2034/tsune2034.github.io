@@ -109,7 +109,7 @@ def generate_briefing(req: BriefingRequest) -> BriefingResponse:
     with client.messages.stream(
         model="claude-opus-4-6",
         max_tokens=16000,
-        thinking={"type": "adaptive"},
+        thinking={"type": "enabled", "budget_tokens": 5000},
         tools=[
             {"type": "web_search_20260209", "name": "web_search"},
         ],
@@ -129,6 +129,9 @@ def generate_briefing(req: BriefingRequest) -> BriefingResponse:
 
     raw_json = _extract_json(full_text)
     data = json.loads(raw_json)
+
+    if "briefing" in data and len(data) == 1:
+        raise ValueError(f"Model returned plain text instead of JSON: {full_text[:200]}")
 
     alerts = _check_alerts(data, req.alert_thresholds or {})
 

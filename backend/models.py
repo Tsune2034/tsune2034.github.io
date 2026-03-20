@@ -3,6 +3,53 @@ from typing import List, Optional
 from enum import Enum
 
 
+# ───────────────────────── Booking ─────────────────────────
+
+class BookingCreate(BaseModel):
+    name: str
+    email: str
+    phone: str = ""
+    plan: str                         # solo | pair | family
+    extra_bags: int = 0
+    pickup_location: str = ""
+    pickup_date: str = ""
+    destination: str                  # hotel | narita | haneda
+    zone: str = "chitose"             # chitose | sapporo | otaru
+    hotel_name: str = ""
+    room_number: str = ""
+    pay_method: str                   # credit | usdc
+    total_amount: int
+    share_ride: bool = True
+    preferred_slot: Optional[int] = None   # 1〜4
+    flight_number: str = ""
+
+
+class MatchResult(BaseModel):
+    match_count: int = 0
+    group_id: Optional[str] = None
+    route_order: Optional[List[int]] = None
+    estimated_minutes: Optional[int] = None
+    route_reason: Optional[str] = None
+
+
+class DriverLocationUpdate(BaseModel):
+    lat: float
+    lng: float
+    driver_status: str = "heading"   # "heading" | "nearby" | "arrived"
+
+
+class BookingResponse(BaseModel):
+    booking_id: str
+    status: str
+    match: MatchResult
+    created_at: str
+    driver_lat: Optional[float] = None
+    driver_lng: Optional[float] = None
+    driver_status: Optional[str] = None
+    driver_updated_at: Optional[str] = None
+
+
+
 class Industry(str, Enum):
     manufacturing = "manufacturing"
     trading = "trading"
@@ -32,7 +79,7 @@ class KeyEvent(BaseModel):
     severity: str       # "critical" | "high" | "medium" | "low"
     summary: str
     industry_impact: str
-    source_hint: str
+    source_hint: Optional[str] = None
 
 
 class BriefingRequest(BaseModel):
