@@ -25,6 +25,7 @@ from .briefing import generate_briefing
 from .database import SessionLocal, init_db, save_briefing, get_latest_briefing, BookingRecord, get_booking, save_booking
 from .matching import find_and_match
 from .scheduler import TARGET_JOBS, run_daily_briefings
+from .email import send_booking_confirmation
 
 load_dotenv()
 log = logging.getLogger(__name__)
@@ -169,6 +170,23 @@ def create_booking(req: BookingCreate, db: Session = Depends(get_db)):
 
     # AI相乗りマッチング
     match = find_and_match(db, booking_id)
+
+    # 予約確認メール送信（失敗しても予約は成立）
+    send_booking_confirmation(
+        booking_id=booking_id,
+        name=req.name,
+        email=req.email,
+        plan=req.plan,
+        pickup_location=req.pickup_location,
+        pickup_date=req.pickup_date,
+        hotel_name=req.hotel_name,
+        room_number=req.room_number,
+        zone=req.zone,
+        pay_method=req.pay_method,
+        total_amount=req.total_amount,
+        extra_bags=req.extra_bags,
+        flight_number=req.flight_number,
+    )
 
     return BookingResponse(
         booking_id=booking_id,
