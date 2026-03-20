@@ -5,8 +5,9 @@ import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
 import { t, LOCALES, type Locale, type Translation } from "./i18n";
 import TrackingView from "./TrackingView";
 import ChatWidget from "./ChatWidget";
-import BusinessView from "./BusinessView";
+import BusinessView, { DriverSection } from "./BusinessView";
 import DriverView from "./DriverView";
+import AdminView from "./AdminView";
 
 // ───────────────────────── Types ─────────────────────────
 type Step = "contact" | "luggage" | "delivery" | "payment" | "confirm";
@@ -90,50 +91,56 @@ interface Spot {
 }
 
 // 集荷クイックスポット（ゾーン別）
-const PICKUP_SPOTS: Record<Zone, Spot[]> = {
-  chitose: [
-    { id: "cts_intl_arrival",  icon: "✈️", label: "新千歳 国際線 到着ロビー",    hint: "インフォメーション前",        floor: "1F" },
-    { id: "cts_intl_baggage",  icon: "🛄", label: "新千歳 国際線 手荷物受取",    hint: "ターンテーブル出口付近",      floor: "1F" },
-    { id: "cts_dom_muji",      icon: "🏪", label: "新千歳 国内線 無印良品前",    hint: "2F 中央エリア",              floor: "2F" },
-    { id: "cts_lera",          icon: "🛍️", label: "三井アウトレット レラ",        hint: "正面入口 案内所前",          floor: "1F" },
-    { id: "cts_hotel_front",   icon: "🏨", label: "ホテルフロント前",            hint: "「KAIROX」とスタッフへ"              },
-  ],
-  sapporo: [
-    { id: "sap_stella",        icon: "🏬", label: "ステラプレイス 正面入口",      hint: "JR札幌駅 南口すぐ",         floor: "1F" },
-    { id: "sap_odori",         icon: "🌳", label: "大通公園 観光案内所前",        hint: "西2丁目出口付近"                    },
-    { id: "sap_tanuki",        icon: "🦝", label: "狸小路 4丁目アーケード入口",   hint: "中央付近"                           },
-    { id: "sap_hotel_front",   icon: "🏨", label: "ホテルフロント前",            hint: "「KAIROX」とスタッフへ"              },
-  ],
-  otaru: [
-    { id: "ota_canal",         icon: "🚢", label: "小樽運河 観光案内所前",        hint: "中央橋横"                           },
-    { id: "ota_sakaimachi",    icon: "🏮", label: "堺町通り メルヘン交差点",      hint: "オルゴール堂前"                     },
-    { id: "ota_hotel_front",   icon: "🏨", label: "ホテルフロント前",            hint: "「KAIROX」とスタッフへ"              },
-  ],
-  furano: [
-    { id: "akj_arrival",       icon: "✈️", label: "旭川空港 到着ロビー",          hint: "インフォメーション前",               floor: "1F" },
-    { id: "asahikawa_st",      icon: "🚃", label: "旭川駅 観光案内所前",          hint: "北口すぐ"                           },
-    { id: "furano_st",         icon: "🚃", label: "富良野駅 観光協会前",          hint: "駅舎すぐ隣"                         },
-    { id: "fur_hotel_front",   icon: "🏨", label: "ホテルフロント前",            hint: "「KAIROX」とスタッフへ"              },
-  ],
-};
+function getPickupSpots(tr: Translation): Record<Zone, Spot[]> {
+  return {
+    chitose: [
+      { id: "cts_intl_arrival",  icon: "✈️", label: tr.spot_cts_intl_arrival,  hint: tr.spot_hint_info_desk,    floor: "1F" },
+      { id: "cts_intl_baggage",  icon: "🛄", label: tr.spot_cts_intl_baggage,  hint: tr.spot_hint_baggage_exit, floor: "1F" },
+      { id: "cts_dom_muji",      icon: "🏪", label: tr.spot_cts_dom_muji,      hint: tr.spot_hint_2f_central,   floor: "2F" },
+      { id: "cts_lera",          icon: "🛍️", label: tr.spot_cts_lera,           hint: tr.spot_hint_entrance_info, floor: "1F" },
+      { id: "cts_hotel_front",   icon: "🏨", label: tr.spot_hotel_front,       hint: tr.spot_hint_tell_staff             },
+    ],
+    sapporo: [
+      { id: "sap_stella",        icon: "🏬", label: tr.spot_sap_stella,        hint: tr.spot_hint_jr_south,     floor: "1F" },
+      { id: "sap_odori",         icon: "🌳", label: tr.spot_sap_odori,         hint: tr.spot_hint_nishi2                  },
+      { id: "sap_tanuki",        icon: "🦝", label: tr.spot_sap_tanuki,        hint: tr.spot_hint_center                  },
+      { id: "sap_hotel_front",   icon: "🏨", label: tr.spot_hotel_front,       hint: tr.spot_hint_tell_staff             },
+    ],
+    otaru: [
+      { id: "ota_canal",         icon: "🚢", label: tr.spot_ota_canal,         hint: tr.spot_hint_chuo_bridge            },
+      { id: "ota_sakaimachi",    icon: "🏮", label: tr.spot_ota_sakaimachi,    hint: tr.spot_hint_music_box              },
+      { id: "ota_hotel_front",   icon: "🏨", label: tr.spot_hotel_front,       hint: tr.spot_hint_tell_staff             },
+    ],
+    furano: [
+      { id: "akj_arrival",       icon: "✈️", label: tr.spot_akj_arrival,       hint: tr.spot_hint_info_desk,    floor: "1F" },
+      { id: "asahikawa_st",      icon: "🚃", label: tr.spot_asahikawa_st,      hint: tr.spot_hint_north_exit             },
+      { id: "furano_st",         icon: "🚃", label: tr.spot_furano_st,         hint: tr.spot_hint_station_side           },
+      { id: "fur_hotel_front",   icon: "🏨", label: tr.spot_hotel_front,       hint: tr.spot_hint_tell_staff             },
+    ],
+  };
+}
 
 // 受け取りスポット — ホテル内
-const HOTEL_DELIVERY_SPOTS: Spot[] = [
-  { id: "hotel_front",   icon: "🏨", label: "フロントカウンター前", hint: "ベルサービスにお預けします" },
-  { id: "hotel_bell",    icon: "🔔", label: "ベルデスク",           hint: "荷物一時預かりカウンター"   },
-  { id: "hotel_entrance",icon: "🚪", label: "ホテル正面玄関",       hint: "エントランスでお受け取り"   },
-  { id: "hotel_room",    icon: "🛏️", label: "客室前",               hint: "部屋番号を事前にご連絡"     },
-];
+function getHotelDeliverySpots(tr: Translation): Spot[] {
+  return [
+    { id: "hotel_front",    icon: "🏨", label: tr.spot_hotel_front_label,    hint: tr.spot_hotel_front_hint    },
+    { id: "hotel_bell",     icon: "🔔", label: tr.spot_hotel_bell_label,     hint: tr.spot_hotel_bell_hint     },
+    { id: "hotel_entrance", icon: "🚪", label: tr.spot_hotel_entrance_label, hint: tr.spot_hotel_entrance_hint },
+    { id: "hotel_room",     icon: "🛏️", label: tr.spot_hotel_room_label,     hint: tr.spot_hotel_room_hint     },
+  ];
+}
 
 // 受け取りスポット — 新千歳空港
-const AIRPORT_DELIVERY_SPOTS: Spot[] = [
-  { id: "cts_intl_ck",   icon: "✈️", label: "国際線 チェックインカウンター前", hint: "KAL・CI・CX 付近",       floor: "2F" },
-  { id: "cts_intl_muji", icon: "🏪", label: "国際線 無印良品前",              hint: "待合エリア中央",          floor: "2F" },
-  { id: "cts_intl_sbx",  icon: "☕", label: "国際線 スターバックス前",        hint: "出発ゲート手前",          floor: "2F" },
-  { id: "cts_dom_ana",   icon: "🛫", label: "国内線 ANAカウンター前",         hint: "北ウィング側",            floor: "2F" },
-  { id: "cts_dom_jal",   icon: "🛬", label: "国内線 JALカウンター前",         hint: "南ウィング側",            floor: "2F" },
-  { id: "cts_arrival_info",icon:"🛒",label: "到着ロビー インフォメーション前",hint: "カートエリア横",          floor: "1F" },
-];
+function getAirportDeliverySpots(tr: Translation): Spot[] {
+  return [
+    { id: "cts_intl_ck",      icon: "✈️", label: tr.spot_cts_intl_ck_label,      hint: tr.spot_cts_intl_ck_hint,      floor: "2F" },
+    { id: "cts_intl_muji",    icon: "🏪", label: tr.spot_cts_intl_muji_label,    hint: tr.spot_cts_intl_muji_hint,    floor: "2F" },
+    { id: "cts_intl_sbx",     icon: "☕", label: tr.spot_cts_intl_sbx_label,     hint: tr.spot_cts_intl_sbx_hint,     floor: "2F" },
+    { id: "cts_dom_ana",      icon: "🛫", label: tr.spot_cts_dom_ana_label,      hint: tr.spot_cts_dom_ana_hint,      floor: "2F" },
+    { id: "cts_dom_jal",      icon: "🛬", label: tr.spot_cts_dom_jal_label,      hint: tr.spot_cts_dom_jal_hint,      floor: "2F" },
+    { id: "cts_arrival_info", icon: "🛒", label: tr.spot_cts_arrival_info_label, hint: tr.spot_cts_arrival_info_hint, floor: "1F" },
+  ];
+}
 
 // ───────────────────────── Hotel list per zone ─────────────────────────
 const HOTELS_BY_ZONE: Record<Zone, string[]> = {
@@ -247,12 +254,14 @@ function genTrackingNumber() {
 }
 
 // ───────────────────────── Flight slots ─────────────────────────
-const FLIGHT_SLOTS = [
-  { slot: 1, label: "便① 6:00〜7:00集荷 → 8:00着",  flights: ["仁川 KE 09:35", "仁川 OZ 10:00"] },
-  { slot: 2, label: "便② 9:00〜11:00集荷 → 13:00着", flights: ["香港 CX 14:45", "香港 UO 15:20"] },
-  { slot: 3, label: "便③ 11:00〜13:00集荷 → 15:00着",flights: ["台北 BR 15:45", "台北 CI 16:30", "仁川 KE 15:40"] },
-  { slot: 4, label: "便④ 14:00〜16:00集荷 → 18:00着", flights: ["夜間便・翌日フライト前泊"] },
-] as const;
+function getFlightSlots(tr: Translation) {
+  return [
+    { slot: 1, label: tr.slot_1_label, flights: tr.slot_1_flights },
+    { slot: 2, label: tr.slot_2_label, flights: tr.slot_2_flights },
+    { slot: 3, label: tr.slot_3_label, flights: tr.slot_3_flights },
+    { slot: 4, label: tr.slot_4_label, flights: tr.slot_4_flights },
+  ];
+}
 
 // フライト番号→推奨slotを返す
 function suggestSlot(flightTime: string): number | null {
@@ -272,11 +281,13 @@ function SpotPicker({
   selected,
   onSelect,
   label,
+  selectedLabel,
 }: {
   spots: Spot[];
   selected: string;
   onSelect: (spot: Spot) => void;
   label: string;
+  selectedLabel: string;
 }) {
   return (
     <div className="space-y-2">
@@ -310,7 +321,7 @@ function SpotPicker({
               </p>
               <p className="text-[10px] text-gray-500 leading-tight">{spot.hint}</p>
               {active && (
-                <span className="text-[10px] text-amber-500 font-bold">✓ 選択中</span>
+                <span className="text-[10px] text-amber-500 font-bold">{selectedLabel}</span>
               )}
             </button>
           );
@@ -668,7 +679,7 @@ function StepDelivery({
       {/* 便選択 */}
       <div className="space-y-1.5">
         <label className="text-xs text-gray-400">{tr.slot_title}</label>
-        {FLIGHT_SLOTS.map(({ slot, label, flights }) => {
+        {getFlightSlots(tr).map(({ slot, label, flights }) => {
           const isSelected = form.preferredSlot === slot;
           const isSuggested = suggestedSlot === slot;
           return (
@@ -692,7 +703,7 @@ function StepDelivery({
                   </span>
                 )}
               </div>
-              <p className="text-xs text-gray-600 mt-0.5">{flights.join(" / ")}</p>
+              <p className="text-xs text-gray-600 mt-0.5">{flights}</p>
             </button>
           );
         })}
@@ -701,13 +712,14 @@ function StepDelivery({
       {/* 集荷スポット */}
       <div className="space-y-3">
         <SpotPicker
-          spots={PICKUP_SPOTS[form.zone]}
+          spots={getPickupSpots(tr)[form.zone]}
           selected={form.pickupSpot}
           onSelect={(spot) => {
             set("pickupSpot", spot.id);
             set("pickupLocation", spot.label + (spot.hint ? `（${spot.hint}）` : ""));
           }}
           label={tr.pickup_spot_label}
+          selectedLabel={tr.spot_selected}
         />
         <Input
           label={tr.pickup_location}
@@ -737,7 +749,7 @@ function StepDelivery({
                 {d === "narita" ? tr.dest_narita : tr.dest_haneda}
               </button>
               <span className="absolute -top-2 -right-1 text-[9px] font-bold bg-amber-500 text-gray-950 px-1.5 py-0.5 rounded-full leading-none whitespace-nowrap">
-                近日公開
+                {tr.coming_soon}
               </span>
             </div>
           ))}
@@ -757,18 +769,28 @@ function StepDelivery({
                   otaru:   tr.zone_otaru,
                   furano:  tr.zone_furano,
                 };
+                const etas: Record<Zone, string> = {
+                  chitose: tr.zone_eta_chitose,
+                  sapporo: tr.zone_eta_sapporo,
+                  otaru:   tr.zone_eta_otaru,
+                  furano:  tr.zone_eta_furano,
+                };
+                const active = form.zone === z;
                 return (
                   <button
                     key={z}
                     type="button"
                     onClick={() => { set("zone", z); set("hotelName", ""); set("deliverySpot", ""); }}
                     className={`px-3 py-2.5 rounded-xl border text-sm transition-all text-left ${
-                      form.zone === z
+                      active
                         ? "border-amber-500 bg-amber-950/40 text-amber-300 font-semibold"
                         : "border-gray-700 text-gray-400 hover:border-gray-600"
                     }`}
                   >
-                    {labels[z]}
+                    <p className="leading-snug">{labels[z]}</p>
+                    <p className={`text-[10px] mt-0.5 font-normal ${active ? "text-amber-500/80" : "text-gray-600"}`}>
+                      🕐 {etas[z]}
+                    </p>
                   </button>
                 );
               })}
@@ -785,10 +807,11 @@ function StepDelivery({
 
           {/* ホテル内受け取りスポット */}
           <SpotPicker
-            spots={HOTEL_DELIVERY_SPOTS}
+            spots={getHotelDeliverySpots(tr)}
             selected={form.deliverySpot}
             onSelect={(spot) => set("deliverySpot", spot.id)}
             label={tr.delivery_spot_label}
+            selectedLabel={tr.spot_selected}
           />
 
           <Input
@@ -804,10 +827,11 @@ function StepDelivery({
       {form.destination === "new_chitose" && (
         <div className="pt-1">
           <SpotPicker
-            spots={AIRPORT_DELIVERY_SPOTS}
+            spots={getAirportDeliverySpots(tr)}
             selected={form.deliverySpot}
             onSelect={(spot) => set("deliverySpot", spot.id)}
             label={tr.delivery_spot_label}
+            selectedLabel={tr.spot_selected}
           />
         </div>
       )}
@@ -874,7 +898,7 @@ function StepPayment({
   const total = afterDiscount + cardFee;
   const usdcAmount = toUsdc(afterDiscount); // USDC/JPYCは割引後・手数料なし
 
-  const selectedSlot = FLIGHT_SLOTS.find((s) => s.slot === form.preferredSlot);
+  const selectedSlot = getFlightSlots(tr).find((s) => s.slot === form.preferredSlot);
 
   return (
     <div className="space-y-5">
@@ -968,10 +992,10 @@ function StepPayment({
             <div className="flex items-start justify-between gap-2">
               <div>
                 <p className="text-red-400 font-semibold flex items-center gap-1">
-                  💳 カード決済手数料
+                  {tr.card_surcharge}
                 </p>
                 <p className="text-[10px] text-gray-500 mt-0.5">
-                  JPYC / USDC なら手数料 0円
+                  {tr.card_surcharge_note}
                 </p>
               </div>
               <span className="text-red-400 font-bold whitespace-nowrap">
@@ -1016,8 +1040,8 @@ function StepPayment({
       {form.shareRide && (
         <div className="flex items-center gap-3 bg-green-950/30 border border-green-800/60 rounded-xl px-4 py-3">
           <div className="relative flex-shrink-0">
-            <div className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse" />
-            <div className="absolute inset-0 w-2.5 h-2.5 rounded-full bg-green-400 animate-ping opacity-50" />
+            <div className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
+            <div className="absolute inset-0 w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping opacity-50" />
           </div>
           <div className="flex-1">
             <p className="text-xs font-semibold text-green-400">{tr.price_matching}</p>
@@ -1099,7 +1123,7 @@ function StepPayment({
             <p className="text-xs text-red-400 mt-1">{stripeError}</p>
           )}
           <p className="text-[10px] text-gray-600">
-            🔒 Powered by Stripe — PCI DSS準拠・カード番号は当社サーバーに保存されません
+            {tr.stripe_secure}
           </p>
         </div>
       )}
@@ -1116,7 +1140,7 @@ function StepPayment({
               <span className="text-xs bg-green-950 border border-green-800 text-green-400 px-2 py-0.5 rounded-full font-semibold">
                 0% fee
               </span>
-              <span className="text-xs bg-violet-950 border border-violet-700 text-violet-300 px-2 py-0.5 rounded-full font-semibold">
+              <span className="text-xs bg-emerald-950 border border-emerald-600 text-emerald-300 px-2 py-0.5 rounded-full font-semibold">
                 {tr.jpyc_badge}
               </span>
             </div>
@@ -1250,8 +1274,16 @@ function StepConfirm({
             <span className="text-gray-400">{tr.cancel_policy_partial}</span>
           </div>
           <div className="flex items-start gap-2">
+            <span className="text-orange-400 font-bold flex-shrink-0">△</span>
+            <span className="text-gray-400">{tr.cancel_policy_near}</span>
+          </div>
+          <div className="flex items-start gap-2">
             <span className="text-red-400 font-bold flex-shrink-0">✗</span>
             <span className="text-gray-400">{tr.cancel_policy_none}</span>
+          </div>
+          <div className="flex items-start gap-2 pt-1 border-t border-gray-800">
+            <span className="text-sky-400 font-bold flex-shrink-0">✈️</span>
+            <span className="text-sky-400/80">{tr.cancel_policy_flight}</span>
           </div>
         </div>
       </div>
@@ -1346,20 +1378,20 @@ function DriverNearbyTicker({ discount, locale }: { discount: number; locale: Lo
   const doubled = msg + msg; // marquee 折り返し用
 
   return (
-    <div className="bg-green-950 border border-green-700/60 rounded-2xl px-4 py-2.5 flex items-center gap-3 overflow-hidden">
+    <div className="bg-amber-950/60 border border-amber-500/50 rounded-2xl px-4 py-2.5 flex items-center gap-3 overflow-hidden">
       <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
       </span>
       <div className="overflow-hidden flex-1">
         <p
-          className="text-xs font-bold text-green-300 whitespace-nowrap"
+          className="text-xs font-bold text-amber-200 whitespace-nowrap"
           style={{ animation: "marquee 20s linear infinite", display: "inline-block" }}
         >
           {doubled}
         </p>
       </div>
-      <span className="flex-shrink-0 text-[10px] font-bold bg-green-700 text-green-100 px-2 py-0.5 rounded-full">
+      <span className="flex-shrink-0 text-[10px] font-bold bg-amber-500 text-gray-950 px-2 py-0.5 rounded-full">
         LIVE
       </span>
     </div>
@@ -1367,7 +1399,7 @@ function DriverNearbyTicker({ discount, locale }: { discount: number; locale: Lo
 }
 
 // ───────────────────────── Main Component ─────────────────────────
-type View = "book" | "track" | "business" | "driver";
+type View = "book" | "track" | "business" | "driver_register" | "driver" | "admin";
 
 export default function Dashboard() {
   const stripe = useStripe();
@@ -1381,6 +1413,7 @@ export default function Dashboard() {
   const [trackingForView, setTrackingForView] = useState<string | undefined>();
   const [gpsDiscount, setGpsDiscount] = useState(0);
   const [driverNearby, setDriverNearby] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [matchResult, setMatchResult] = useState<MatchResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [stripeError, setStripeError] = useState("");
@@ -1388,22 +1421,39 @@ export default function Dashboard() {
   const tr = t[locale];
   const nearbyDiscount = driverNearby ? DRIVER_NEARBY_DISCOUNT : 0;
 
-  // GPS: 新千歳空港15km圏内 → 空港割引 / サービスゾーン30km圏内 → 近接ドライバー割引
+  // GPS: 新千歳空港15km圏内 → 空港割引 / 実稼働ドライバー30km圏内 → 近接ドライバー割引
   useEffect(() => {
     if (!navigator.geolocation) return;
     const now = new Date().getHours();
     const inOperatingHours = now >= 6 && now <= 22;
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      async (pos) => {
         const { latitude: lat, longitude: lng } = pos.coords;
         // 新千歳空港割引
         if (haversineKm(lat, lng, CHITOSE_AIRPORT.lat, CHITOSE_AIRPORT.lng) <= GPS_RADIUS_KM) {
           setGpsDiscount(GPS_AIRPORT_DISCOUNT);
         }
-        // ゾーン近接 → ドライバー即時割引
+        // サービスゾーン圏内チェック（回送防止テロップ — 常に判定）
         if (inOperatingHours) {
-          const nearZone = ZONE_CENTERS.some((z) => haversineKm(lat, lng, z.lat, z.lng) <= DRIVER_NEARBY_RADIUS_KM);
+          const nearZone = ZONE_CENTERS.some(
+            (z) => haversineKm(lat, lng, z.lat, z.lng) <= DRIVER_NEARBY_RADIUS_KM,
+          );
           if (nearZone) setDriverNearby(true);
+        }
+        // 実稼働ドライバー近接チェック（APIで補強）
+        if (inOperatingHours) {
+          try {
+            const res = await fetch("/api/drivers-active");
+            if (res.ok) {
+              const drivers: { lat: number; lng: number }[] = await res.json();
+              const isNear = drivers.some(
+                (d) => haversineKm(lat, lng, d.lat, d.lng) <= DRIVER_NEARBY_RADIUS_KM,
+              );
+              if (isNear) setDriverNearby(true);
+            }
+          } catch {
+            // ignore — ゾーン判定で既にカバー済み
+          }
         }
       },
       () => {},
@@ -1463,13 +1513,13 @@ export default function Dashboard() {
         if (form.payMethod === "credit") {
           // Stripe: PaymentIntent作成 → カード決済確定
           if (!stripe || !elements) {
-            setStripeError("決済システムの初期化中です。しばらくお待ちください。");
+            setStripeError(tr.stripe_loading);
             setSubmitting(false);
             return;
           }
           const cardElement = elements.getElement(CardElement);
           if (!cardElement) {
-            setStripeError("カード情報を入力してください。");
+            setStripeError(tr.stripe_no_card);
             setSubmitting(false);
             return;
           }
@@ -1488,7 +1538,7 @@ export default function Dashboard() {
           });
 
           if (error) {
-            setStripeError(error.message ?? "決済に失敗しました。カード情報を確認してください。");
+            setStripeError(error.message ?? tr.stripe_failed);
             setSubmitting(false);
             return;
           }
@@ -1532,76 +1582,133 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col">
       {/* Header */}
-      <header className="border-b border-gray-800 bg-gray-900 sticky top-0 z-10">
-        <div className="max-w-lg mx-auto px-4 py-3 space-y-2">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-base font-bold tracking-wider text-white">{tr.brand}</span>
-                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-violet-500/20 border border-violet-500/40 text-violet-400">
-                  {tr.domestic_badge}
-                </span>
-              </div>
-              <p className="text-[11px] text-amber-500/80 mt-0.5">{tr.tagline}</p>
+      <header className="bg-[#0A0F1C] border-b border-white/10 sticky top-0 z-20" style={{ boxShadow: "0 1px 12px rgba(0,0,0,0.4)" }}>
+        <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between gap-2">
+
+          {/* Logo — always visible */}
+          <div className="flex-shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold tracking-wider text-white">{tr.brand}</span>
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-300 hidden sm:inline">
+                {tr.domestic_badge}
+              </span>
             </div>
-            <div className="flex items-center gap-1">
-              {LOCALES.map((l) => (
+            <p className="text-[10px] text-amber-400/80 leading-none mt-0.5 hidden sm:block">{tr.tagline}</p>
+          </div>
+
+          {/* PC: inline nav tabs (sm以上で表示) */}
+          <nav className="hidden sm:flex items-center gap-0.5 flex-1 justify-center">
+            {(
+              [
+                { id: "book",            label: `📦 ${tr.nav_book}`,       accent: "amber"   },
+                { id: "track",           label: `📍 ${tr.nav_track}`,      accent: "amber"   },
+                { id: "business",        label: `🏢 ${tr.nav_business}`,   accent: "amber"   },
+                { id: "driver_register", label: `🙋 ${tr.nav_driver_reg}`, accent: "emerald" },
+              ] as { id: View; label: string; accent: string }[]
+            ).map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => {
+                  if (item.id === "track") setTrackingForView(undefined);
+                  setView(item.id);
+                }}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+                  view === item.id
+                    ? item.accent === "emerald"
+                      ? "bg-emerald-500/20 text-emerald-300"
+                      : "bg-amber-500/20 text-amber-300"
+                    : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
+
+          {/* PC: language switcher (sm以上で表示) */}
+          <div className="hidden sm:flex items-center gap-0.5 flex-shrink-0">
+            {LOCALES.map((l) => (
+              <button
+                key={l.value}
+                type="button"
+                onClick={() => setLocale(l.value)}
+                className={`px-2 py-1 rounded-md text-xs transition-all ${
+                  locale === l.value
+                    ? "bg-amber-500 text-gray-950 font-semibold"
+                    : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
+                }`}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Mobile: ハンバーガー (sm未満のみ表示) */}
+          <button
+            type="button"
+            onClick={() => setMenuOpen((o) => !o)}
+            className="sm:hidden w-9 h-9 flex flex-col items-center justify-center gap-[5px] rounded-lg hover:bg-white/10 transition-colors flex-shrink-0"
+            aria-label="menu"
+          >
+            <span className={`block w-5 h-0.5 bg-white/80 transition-all duration-200 origin-center ${menuOpen ? "rotate-45 translate-y-[7px]" : ""}`} />
+            <span className={`block w-5 h-0.5 bg-white/80 transition-all duration-200 ${menuOpen ? "opacity-0 scale-x-0" : ""}`} />
+            <span className={`block w-5 h-0.5 bg-white/80 transition-all duration-200 origin-center ${menuOpen ? "-rotate-45 -translate-y-[7px]" : ""}`} />
+          </button>
+
+        </div>
+
+        {/* Mobile: ドロップダウン (sm未満のみ) — スライドアニメーション */}
+        <div
+          className="sm:hidden overflow-hidden"
+          style={{ maxHeight: menuOpen ? "320px" : "0px", opacity: menuOpen ? 1 : 0, transition: "max-height 0.22s ease, opacity 0.18s ease" }}
+        >
+          <div className="border-t border-white/10 bg-[#0D1424]">
+            <div className="max-w-lg mx-auto px-4 py-3 space-y-0.5">
+              {(
+                [
+                  { id: "book",            label: `📦 ${tr.nav_book}`,       accent: "amber"   },
+                  { id: "track",           label: `📍 ${tr.nav_track}`,      accent: "amber"   },
+                  { id: "business",        label: `🏢 ${tr.nav_business}`,   accent: "amber"   },
+                  { id: "driver_register", label: `🙋 ${tr.nav_driver_reg}`, accent: "emerald" },
+                ] as { id: View; label: string; accent: string }[]
+              ).map((item) => (
                 <button
-                  key={l.value}
-                  onClick={() => setLocale(l.value)}
-                  className={`px-2 py-1 rounded-md text-xs transition-all ${
-                    locale === l.value
-                      ? "bg-amber-500 text-gray-950 font-semibold"
-                      : "text-gray-500 hover:text-gray-300"
+                  key={item.id}
+                  type="button"
+                  onClick={() => {
+                    if (item.id === "track") setTrackingForView(undefined);
+                    setView(item.id);
+                    setMenuOpen(false);
+                  }}
+                  className={`w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                    view === item.id
+                      ? item.accent === "emerald"
+                        ? "bg-emerald-500/15 text-emerald-300 border-l-2 border-emerald-500"
+                        : "bg-amber-500/15 text-amber-300 border-l-2 border-amber-500"
+                      : "text-gray-400 hover:bg-white/5 hover:text-gray-200"
                   }`}
                 >
-                  {l.label}
+                  {item.label}
                 </button>
               ))}
+              <div className="flex gap-1 pt-2.5 mt-1 border-t border-white/10">
+                {LOCALES.map((l) => (
+                  <button
+                    key={l.value}
+                    type="button"
+                    onClick={() => setLocale(l.value)}
+                    className={`px-2.5 py-1 rounded-md text-xs transition-all ${
+                      locale === l.value
+                        ? "bg-amber-500 text-gray-950 font-semibold"
+                        : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
+                    }`}
+                  >
+                    {l.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-          {/* Nav tabs */}
-          <div className="flex gap-1">
-            <button
-              onClick={() => setView("book")}
-              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                view === "book"
-                  ? "bg-gray-700 text-white"
-                  : "text-gray-500 hover:text-gray-300"
-              }`}
-            >
-              {tr.nav_book}
-            </button>
-            <button
-              onClick={() => { setTrackingForView(undefined); setView("track"); }}
-              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                view === "track"
-                  ? "bg-gray-700 text-white"
-                  : "text-gray-500 hover:text-gray-300"
-              }`}
-            >
-              {tr.nav_track}
-            </button>
-            <button
-              onClick={() => setView("business")}
-              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                view === "business"
-                  ? "bg-amber-500 text-gray-950"
-                  : "text-gray-500 hover:text-gray-300"
-              }`}
-            >
-              {tr.nav_business}
-            </button>
-            <button
-              onClick={() => setView("driver")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                view === "driver"
-                  ? "bg-sky-500 text-white"
-                  : "text-gray-600 hover:text-gray-400"
-              }`}
-            >
-              🚐
-            </button>
           </div>
         </div>
       </header>
@@ -1610,9 +1717,17 @@ export default function Dashboard() {
 
       {/* Main */}
       <main className="flex-1 max-w-lg mx-auto w-full px-4 py-6 space-y-6">
-        {view === "driver" ? (
+        {view === "admin" ? (
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+            <AdminView />
+          </div>
+        ) : view === "driver" ? (
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
             <DriverView tr={tr} />
+          </div>
+        ) : view === "driver_register" ? (
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+            <DriverSection tr={tr} />
           </div>
         ) : view === "business" ? (
           <BusinessView tr={tr} />
@@ -1689,6 +1804,24 @@ export default function Dashboard() {
           </>
         )}
       </main>
+
+      {/* Hidden links — driver & admin */}
+      <div className="flex justify-center gap-4 pb-6">
+        <button
+          type="button"
+          onClick={() => setView("driver")}
+          className="text-[10px] text-gray-800 hover:text-gray-600 transition-colors"
+        >
+          🚐
+        </button>
+        <button
+          type="button"
+          onClick={() => setView("admin")}
+          className="text-[10px] text-gray-800 hover:text-gray-600 transition-colors"
+        >
+          ⚙️
+        </button>
+      </div>
     </div>
   );
 }

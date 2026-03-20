@@ -6,16 +6,40 @@ API calls to Claude are mocked to avoid real costs.
 
 import json
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, PropertyMock
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
 from backend.models import (
     BriefingRequest, BriefingResponse, Industry, Language,
     RiskFactor, KeyEvent,
 )
 from backend.briefing import _extract_json, _check_alerts, _build_prompt
-from backend.main import app
+from backend.database import Base, get_latest_briefing, save_briefing
+from backend.main import app, get_db
 
+# StaticPool forces all sessions to share a single connection,
+# which is required for SQLite :memory: (each connection gets its own DB).
+_test_engine = create_engine(
+    "sqlite:///:memory:",
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
+_TestSession = sessionmaker(bind=_test_engine)
+Base.metadata.create_all(bind=_test_engine)
+
+
+def _override_get_db():
+    db = _TestSession()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+app.dependency_overrides[get_db] = _override_get_db
 client = TestClient(app)
 
 # ---------------------------------------------------------------------------
@@ -184,6 +208,40 @@ class TestExtractJson:
         assert result["num"] == 42
         assert "{with}" in result["key"]
 
+    def test_source_hint_optional_in_key_event(self):
+        # source_hint should be Optional — Claude sometimes omits it.
+        from backend.models import KeyEvent
+        ev = KeyEvent(
+            title="Test",
+            region="Asia",
+            severity="low",
+            summary="Summary.",
+            industry_impact="Minimal.",
+        )
+        assert ev.source_hint is None
+
+    def test_plain_text_response_raises_in_generate_briefing(self):
+        # When _extract_json falls back to {"briefing": text}, generate_briefing must raise.
+        from backend.briefing import generate_briefing
+        from backend.models import BriefingRequest, Industry, Language
+
+        plain_text_block = MagicMock()
+        plain_text_block.type = "text"
+        plain_text_block.text = "Sorry, I cannot produce a briefing right now."
+
+        mock_message = MagicMock()
+        mock_message.content = [plain_text_block]
+
+        mock_stream = MagicMock()
+        mock_stream.__enter__ = MagicMock(return_value=mock_stream)
+        mock_stream.__exit__ = MagicMock(return_value=False)
+        mock_stream.get_final_message.return_value = mock_message
+
+        req = BriefingRequest(industry=Industry.general, language=Language.en)
+        with patch("backend.briefing.client.messages.stream", return_value=mock_stream):
+            with pytest.raises(ValueError, match="plain text"):
+                generate_briefing(req)
+
 
 # ---------------------------------------------------------------------------
 # Alert logic tests
@@ -309,3 +367,34 @@ class TestAPI:
         resp = client.post("/briefing", json={"industry": "general", "language": "en"})
         assert resp.status_code == 500
         assert "Claude API timeout" in resp.json()["detail"]
+
+    @patch("backend.main.generate_briefing")
+    def test_api_key_required_when_set(self, mock_gen, sample_response):
+        mock_gen.return_value = sample_response
+        with patch.dict("os.environ", {"API_KEY": "secret-key"}):
+            # キーなし → 401
+            resp = client.post("/briefing", json={"industry": "general", "language": "en"})
+            assert resp.status_code == 401
+
+            # 間違ったキー → 401
+            resp = client.post(
+                "/briefing",
+                json={"industry": "general", "language": "en"},
+                headers={"X-API-Key": "wrong-key"},
+            )
+            assert resp.status_code == 401
+
+            # 正しいキー → 200
+            resp = client.post(
+                "/briefing",
+                json={"industry": "general", "language": "en"},
+                headers={"X-API-Key": "secret-key"},
+            )
+            assert resp.status_code == 200
+
+    def test_api_key_not_required_when_unset(self):
+        # API_KEY未設定時はキーなしでもアクセス可能（ローカル開発）
+        import os
+        os.environ.pop("API_KEY", None)
+        resp = client.get("/health")
+        assert resp.status_code == 200

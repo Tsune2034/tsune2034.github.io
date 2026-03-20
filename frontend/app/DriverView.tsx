@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { Translation } from "./i18n";
+import type { FlightInfo } from "./api/flights/route";
 
 // ───────────────────────── 定数 ─────────────────────────
 const DRIVER_PIN = "1234"; // 本番前に変更すること
 const GPS_INTERVAL_MS = 30_000; // 30秒ごとに送信
+const FLIGHT_REFRESH_MS = 60_000; // フライト情報60秒ごと更新
 
 type DriverStatus = "heading" | "nearby" | "arrived" | "done";
 
@@ -46,6 +48,195 @@ async function pushStatus(bookingId: string, driverStatus: string) {
   } catch {
     // 失敗は無視
   }
+}
+
+// ───────────────────────── Flight Board ─────────────────────────
+function formatTime(iso: string | null): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return d.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
+}
+
+function etaLabel(f: FlightInfo): { text: string; color: string; urgent: boolean } {
+  if (f.status === "landed") return { text: "着陸済み", color: "text-green-400", urgent: true };
+  const target = f.estimatedArrival ?? f.scheduledArrival;
+  const diffMin = Math.round((new Date(target).getTime() - Date.now()) / 60_000);
+  if (diffMin <= 0) return { text: "まもなく着陸", color: "text-amber-400", urgent: true };
+  if (diffMin <= 20) return { text: `約${diffMin}分後`, color: "text-amber-300", urgent: true };
+  return { text: `約${diffMin}分後`, color: "text-gray-400", urgent: false };
+}
+
+function FlightBoard() {
+  const [flights, setFlights] = useState<FlightInfo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [searchResult, setSearchResult] = useState<FlightInfo | null | "notfound">(null);
+  const [searching, setSearching] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const fetchArrivals = useCallback(async () => {
+    try {
+      const res = await fetch("/api/flights?airport=NRT&status=active");
+      if (res.ok) {
+        const data: FlightInfo[] = await res.json();
+        // landed便を先頭に、次いでETAが近い順
+        data.sort((a, b) => {
+          if (a.status === "landed" && b.status !== "landed") return -1;
+          if (b.status === "landed" && a.status !== "landed") return 1;
+          const ta = new Date(a.estimatedArrival ?? a.scheduledArrival).getTime();
+          const tb = new Date(b.estimatedArrival ?? b.scheduledArrival).getTime();
+          return ta - tb;
+        });
+        setFlights(data);
+        setLastUpdated(new Date());
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchArrivals();
+    const iv = setInterval(fetchArrivals, FLIGHT_REFRESH_MS);
+    return () => clearInterval(iv);
+  }, [fetchArrivals]);
+
+  async function searchFlight() {
+    const q = search.trim().toUpperCase();
+    if (!q) return;
+    setSearching(true);
+    setSearchResult(null);
+    try {
+      const res = await fetch(`/api/flights?flight=${encodeURIComponent(q)}`);
+      if (res.ok) {
+        const data: FlightInfo[] = await res.json();
+        setSearchResult(data.length > 0 ? data[0] : "notfound");
+      }
+    } catch {
+      setSearchResult("notfound");
+    } finally {
+      setSearching(false);
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-bold text-white flex items-center gap-2">
+          ✈️ 成田空港 到着便
+          <span className="text-[9px] bg-sky-950 border border-sky-700 text-sky-400 px-1.5 py-0.5 rounded-full font-bold">LIVE</span>
+        </h3>
+        {lastUpdated && (
+          <button type="button" onClick={fetchArrivals} className="text-[10px] text-gray-600 hover:text-gray-400 transition-colors">
+            更新 {lastUpdated.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}
+          </button>
+        )}
+      </div>
+
+      {/* フライト番号検索 */}
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && searchFlight()}
+          placeholder="フライト番号 例: NH847"
+          className="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-gray-100 placeholder-gray-600 font-mono focus:outline-none focus:border-sky-500 transition-colors"
+        />
+        <button
+          type="button"
+          onClick={searchFlight}
+          disabled={searching}
+          className="px-3 py-2 rounded-xl bg-sky-600 text-white font-semibold text-xs hover:bg-sky-500 transition-colors disabled:opacity-50"
+        >
+          {searching ? "…" : "検索"}
+        </button>
+      </div>
+
+      {/* 検索結果 */}
+      {searchResult && searchResult !== "notfound" && (
+        <FlightRow f={searchResult} highlight />
+      )}
+      {searchResult === "notfound" && (
+        <p className="text-xs text-red-400 px-1">フライトが見つかりません</p>
+      )}
+
+      {/* 到着一覧 */}
+      {loading ? (
+        <div className="text-center py-6 text-gray-600 text-sm">フライト情報を取得中…</div>
+      ) : (
+        <div className="space-y-1.5 max-h-80 overflow-y-auto pr-1">
+          {flights.slice(0, 12).map((f) => (
+            <FlightRow key={f.flightIata} f={f} />
+          ))}
+        </div>
+      )}
+
+      <p className="text-[10px] text-gray-700 text-center">
+        Powered by Aviationstack · {process.env.NEXT_PUBLIC_AVIATIONSTACK_MOCK === "1" ? "モックデータ" : "リアルタイム"}
+      </p>
+    </div>
+  );
+}
+
+function FlightRow({ f, highlight = false }: { f: FlightInfo; highlight?: boolean }) {
+  const eta = etaLabel(f);
+  const isLanded = f.status === "landed";
+
+  return (
+    <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border text-xs transition-all ${
+      highlight ? "border-sky-600 bg-sky-950/30" :
+      isLanded ? "border-green-800/60 bg-green-950/20" :
+      eta.urgent ? "border-amber-800/50 bg-amber-950/10" :
+      "border-gray-800 bg-gray-800/30"
+    }`}>
+      {/* 到着状態インジケーター */}
+      <div className="flex-shrink-0">
+        {isLanded ? (
+          <span className="text-green-400 text-sm">✅</span>
+        ) : eta.urgent ? (
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+          </span>
+        ) : (
+          <span className="w-2 h-2 rounded-full bg-gray-700 inline-block flex-shrink-0" />
+        )}
+      </div>
+
+      {/* フライト番号・航空会社 */}
+      <div className="w-16 flex-shrink-0">
+        <p className="font-bold text-white font-mono">{f.flightIata}</p>
+        <p className="text-[9px] text-gray-600 truncate">{f.airline}</p>
+      </div>
+
+      {/* 出発地 */}
+      <div className="flex-1 min-w-0">
+        <p className="text-gray-300 truncate">{f.origin}</p>
+        <p className="text-[9px] text-gray-600">{f.originIata}</p>
+      </div>
+
+      {/* ターミナル・ゲート */}
+      <div className="flex-shrink-0 text-right space-y-0.5">
+        {f.terminal && (
+          <span className="inline-block bg-gray-700 text-gray-300 px-1.5 py-0.5 rounded text-[9px] font-bold">T{f.terminal}</span>
+        )}
+        {f.gate && (
+          <p className="text-[9px] text-gray-600">G{f.gate}</p>
+        )}
+      </div>
+
+      {/* ETA */}
+      <div className="flex-shrink-0 text-right w-16">
+        <p className={`font-bold ${eta.color}`}>{eta.text}</p>
+        <p className="text-[9px] text-gray-600">
+          {isLanded ? formatTime(f.actualArrival) : formatTime(f.estimatedArrival ?? f.scheduledArrival)}
+        </p>
+      </div>
+    </div>
+  );
 }
 
 // ───────────────────────── PIN Gate ─────────────────────────
@@ -298,7 +489,7 @@ export default function DriverView({ tr }: { tr: Translation }) {
 
       {/* 配送一覧 */}
       {deliveries.length === 0 ? (
-        <div className="text-center py-12 text-gray-700">
+        <div className="text-center py-8 text-gray-700">
           <p className="text-4xl mb-3">📭</p>
           <p className="text-sm">追跡番号を入力してください</p>
         </div>
@@ -322,6 +513,11 @@ export default function DriverView({ tr }: { tr: Translation }) {
           ))}
         </div>
       )}
+
+      {/* ─── フライト情報ボード ─── */}
+      <div className="border-t border-gray-800 pt-5">
+        <FlightBoard />
+      </div>
 
     </div>
   );

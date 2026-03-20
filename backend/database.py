@@ -8,7 +8,7 @@ Production: PostgreSQL via DATABASE_URL env var (set automatically by Railway)
 
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Boolean, Float
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
@@ -104,6 +104,50 @@ def save_booking(db: Session, record: BookingRecord) -> None:
 
 def get_booking(db: Session, booking_id: str) -> BookingRecord | None:
     return db.query(BookingRecord).filter_by(booking_id=booking_id).first()
+
+
+def list_bookings(db: Session, limit: int = 200) -> list[BookingRecord]:
+    return db.query(BookingRecord).order_by(BookingRecord.created_at.desc()).limit(limit).all()
+
+
+def get_active_drivers(db: Session) -> list[BookingRecord]:
+    """現在稼働中のドライバー位置情報を返す（直近2時間以内に更新・done以外）"""
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=2)
+    return (
+        db.query(BookingRecord)
+        .filter(
+            BookingRecord.driver_lat.isnot(None),
+            BookingRecord.driver_lng.isnot(None),
+            BookingRecord.driver_updated_at.isnot(None),
+            BookingRecord.driver_updated_at >= cutoff,
+            BookingRecord.driver_status.notin_(["done", "delivered"]),
+        )
+        .all()
+    )
+
+
+# ───────────────────────── Driver Registration ─────────────────────────
+
+class DriverRegistrationRecord(Base):
+    __tablename__ = "driver_registrations"
+
+    id         = Column(Integer, primary_key=True, autoincrement=True)
+    name       = Column(String(128), nullable=False)
+    phone      = Column(String(32), nullable=False)
+    vehicle    = Column(String(32), default="")
+    area       = Column(String(64), default="")
+    style      = Column(String(16), default="")
+    created_at = Column(DateTime(timezone=True), nullable=False)
+
+
+def save_driver_registration(db: Session, record: "DriverRegistrationRecord") -> None:
+    db.add(record)
+    db.commit()
+    db.refresh(record)
+
+
+def list_driver_registrations(db: Session) -> list["DriverRegistrationRecord"]:
+    return db.query(DriverRegistrationRecord).order_by(DriverRegistrationRecord.created_at.desc()).all()
 
 
 def get_unmatched_shareride(

@@ -69,15 +69,24 @@ function DriverRegisterForm({ tr }: { tr: Translation }) {
     setForm((p) => ({ ...p, [k]: v }));
   }
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
+    try {
+      await fetch("/api/driver-register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+    } catch {
+      // 送信失敗しても画面は完了表示
+    }
     setSubmitted(true);
   }
 
   if (submitted) {
     return (
       <div className="text-center py-10 space-y-3">
-        <div className="text-5xl">🚐</div>
+        <div className="text-5xl">🪪</div>
         <h3 className="text-lg font-bold text-white">{tr.drv_thanks_title}</h3>
         <p className="text-sm text-gray-400">{tr.drv_thanks_desc}</p>
       </div>
@@ -171,8 +180,8 @@ function DriverRegisterForm({ tr }: { tr: Translation }) {
   );
 }
 
-// ───────────────────────── Driver View ─────────────────────────
-function DriverSection({ tr }: { tr: Translation }) {
+// ───────────────────────── Driver Section (exported for nav) ─────────────────────────
+export function DriverSection({ tr }: { tr: Translation }) {
   // 1日3件 × ¥5,000 × 20日
   const dailyJobs = 3;
   const avgFare = 5000;
@@ -409,38 +418,12 @@ function InquiryForm({ tr }: { tr: Translation }) {
 
 // ───────────────────────── Main ─────────────────────────
 export default function BusinessView({ tr }: { tr: Translation }) {
-  const [tab, setTab] = useState<"corporate" | "driver">("corporate");
+  const [showDriver, setShowDriver] = useState(false);
 
   return (
     <div className="space-y-6">
 
-      {/* Tab selector */}
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={() => setTab("corporate")}
-          className={`flex-1 py-2.5 rounded-xl border text-sm font-semibold transition-all ${
-            tab === "corporate"
-              ? "border-amber-500 bg-amber-950/40 text-amber-300"
-              : "border-gray-700 text-gray-400 hover:border-gray-600"
-          }`}
-        >
-          🏢 {tr.biz_tab_corporate}
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("driver")}
-          className={`flex-1 py-2.5 rounded-xl border text-sm font-semibold transition-all ${
-            tab === "driver"
-              ? "border-sky-500 bg-sky-950/40 text-sky-300"
-              : "border-gray-700 text-gray-400 hover:border-gray-600"
-          }`}
-        >
-          🚐 {tr.biz_tab_driver}
-        </button>
-      </div>
-
-      {tab === "driver" ? (
+      {showDriver ? (
         <DriverSection tr={tr} />
       ) : (
       <div className="space-y-8">

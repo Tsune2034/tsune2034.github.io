@@ -3,28 +3,48 @@ import { NextRequest, NextResponse } from "next/server";
 
 const client = new Anthropic();
 
-const SYSTEM_PROMPT = `You are a helpful customer support agent for KAIROX, a hands-free luggage delivery service for tourists in Hokkaido, Japan.
+// ─── Rate limiter: 20 requests per IP per minute ───
+const rlMap = new Map<string, { count: number; reset: number }>();
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const rec = rlMap.get(ip);
+  if (!rec || now > rec.reset) { rlMap.set(ip, { count: 1, reset: now + 60_000 }); return true; }
+  if (rec.count >= 20) return false;
+  rec.count++;
+  return true;
+}
 
-Always respond in the same language the user writes in (English, Japanese, Traditional Chinese, or Korean).
-Be concise, friendly, and accurate. Keep responses under 3 sentences when possible.
+const SYSTEM_PROMPT = `You are a helpful customer support agent for KAIROX, a hands-free luggage delivery service for tourists in Japan.
 
-Service details:
-- Service area: Hokkaido MVP — Chitose / Tomakomai / Kitahiroshima, Sapporo / Higashi-Sapporo, Otaru. More areas in Phase 2.
-- Pricing: Solo ¥3,500 / Pair ¥6,000 / Family ¥10,000 (Chitose zone). Sapporo and Otaru are higher.
-- Express surcharge: +¥1,000 when selecting an express time slot (guaranteed 2 hrs before departure).
-- Carpool (share ride): −15% discount when matched with travelers going the same direction.
-- GPS discount: −¥500 if booking from within New Chitose Airport.
-- Payment: Credit card, JPYC (Japanese Yen Coin on Polygon, 1 JPYC = ¥1, 0% fee), or USDC (Solana, 0% fee). No cash.
-- JPYC is a JPY-pegged stablecoin — no exchange rate risk. Ideal for domestic Japanese users and Rapidus engineers.
-- Pickup spots: Common landmarks available for quick selection (airport arrival lobby, Muji in terminal, hotel front desk, etc.).
-- Delivery spots: Specify exact handoff point — hotel front desk, bell desk, entrance, or room.
-- Tracking: Use your KRX-XXXXXX tracking number on the Track page.
-- Business plans available for semiconductor companies (Rapidus, ASML, Applied Materials, etc.) visiting Chitose.
+Always respond in the same language the user writes in (English, Japanese, Simplified Chinese, or Korean).
+Be concise, friendly, and accurate. Keep responses under 4 sentences when possible.
+
+== NARITA SERVICE (current beta) ==
+- Pickup: Narita Airport Terminal 1, 2, or 3 — user selects exact spot (Arrivals Hall, Starbucks, 7-Eleven, Bus Terminal, Taxi Stand, etc.)
+- Destinations: Ginza/Tokyo Sta. ¥5,500 · Shinjuku/Shibuya ¥6,000 · Asakusa/Ueno ¥5,000 · Akihabara ¥5,200 · Yokohama ¥7,500 · Saitama ¥7,000 · Chiba ¥3,500 · Haneda Airport ¥7,500
+- Extra bag: +¥1,500 per piece beyond the first
+- Payment: Credit card (+10% fee) / JPYC stablecoin (−5% discount) / USDC stablecoin (−5% discount)
+- How it works: GPS-based on-demand pickup — driver comes to your location, no counter, no cut-off time
+- Driver arrives in ~5–10 min after matching. Luggage delivered before you arrive by train.
+- 24h service. Late-night and delayed flights fully supported.
+
+== HOKKAIDO SERVICE (coming soon) ==
+- Service area: New Chitose Airport, Sapporo, Otaru (Phase 2)
+- Pricing: from ¥3,500 (Chitose zone)
+
+== GENERAL ==
 - Cancel policy: Full refund within 10 min of booking. 90% refund after 10 min. No refund after pickup.
+- Tracking: Booking ID shown after match (format: NRT-XXXXXX)
+- No app download needed — fully web-based
 
-If asked about something outside this scope, politely say you can only help with KAIROX delivery questions.`;
+If asked about something outside KAIROX service, politely say you can only help with luggage delivery questions.`;
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? "unknown";
+  if (!checkRateLimit(ip)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   try {
     const { messages } = await req.json();
 
@@ -32,11 +52,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "messages required" }, { status: 400 });
     }
 
+    // Limit history to last 10 messages to control token usage
+    const trimmed = messages.slice(-10);
+
     const response = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
       max_tokens: 512,
       system: SYSTEM_PROMPT,
-      messages,
+      messages: trimmed,
     });
 
     const text =
