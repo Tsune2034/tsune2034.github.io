@@ -33,9 +33,9 @@ class MatchResult(BaseModel):
 
 
 class DriverLocationUpdate(BaseModel):
-    lat: float
-    lng: float
-    driver_status: str = "heading"   # "heading" | "nearby" | "arrived"
+    lat: Optional[float] = None
+    lng: Optional[float] = None
+    driver_status: str = "heading"   # "heading" | "nearby" | "arrived" | "done"
 
 
 class BookingResponse(BaseModel):

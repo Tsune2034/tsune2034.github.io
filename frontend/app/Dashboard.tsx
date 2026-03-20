@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
 import { t, LOCALES, type Locale, type Translation } from "./i18n";
 import TrackingView from "./TrackingView";
 import ChatWidget from "./ChatWidget";
@@ -36,6 +37,7 @@ const PLAN_PRICES: Record<Plan, Record<Zone, number>> = {
 const EXTRA_BAG_PRICE = 1500;
 const EXPRESS_FEE = 1000;        // 急行保証料（スロット選択時のみ）
 const SHARE_RIDE_RATE = 0.15;    // 相乗り割引率
+const CARD_SURCHARGE_RATE = 0.10; // クレジットカード手数料率
 const GPS_AIRPORT_DISCOUNT = 500; // 新千歳空港周辺割引
 const GPS_RADIUS_KM = 15;
 const CHITOSE_AIRPORT = { lat: 42.7753, lng: 141.6922 };
@@ -73,7 +75,9 @@ function calcTotal(form: FormData, gpsDiscount: number): number {
   const extra    = form.extraBags * EXTRA_BAG_PRICE;
   const subtotal = base + express + extra;
   const share    = form.shareRide ? Math.floor(subtotal * SHARE_RIDE_RATE) : 0;
-  return subtotal - share - gpsDiscount;
+  const afterDiscount = subtotal - share - gpsDiscount;
+  const cardFee  = form.payMethod === "credit" ? Math.floor(afterDiscount * CARD_SURCHARGE_RATE) : 0;
+  return afterDiscount + cardFee;
 }
 
 // ───────────────────────── Spot data ─────────────────────────
@@ -208,9 +212,6 @@ interface FormData {
   hotelName: string;
   roomNumber: string;
   payMethod: PayMethod;
-  cardNumber: string;
-  cardExpiry: string;
-  cardCvc: string;
   shareRide: boolean;
   flightNumber: string;
   preferredSlot: number | null;
@@ -234,9 +235,6 @@ const DEFAULT_FORM: FormData = {
   hotelName: "",
   roomNumber: "",
   payMethod: "credit",
-  cardNumber: "",
-  cardExpiry: "",
-  cardCvc: "",
   shareRide: true,
   flightNumber: "",
   preferredSlot: null,
@@ -857,20 +855,24 @@ function StepPayment({
   tr,
   gpsDiscount,
   nearbyDiscount,
+  stripeError,
 }: {
   form: FormData;
   set: (k: keyof FormData, v: string | number | boolean | null) => void;
   tr: Translation;
   gpsDiscount: number;
   nearbyDiscount: number;
+  stripeError: string;
 }) {
   const basePrice = calcPrice(form.plan, form.zone, form.destination);
   const expressFee = form.preferredSlot !== null ? EXPRESS_FEE : 0;
   const extraCost = form.extraBags * EXTRA_BAG_PRICE;
   const subtotal = basePrice + expressFee + extraCost;
   const shareDiscount = form.shareRide ? Math.floor(subtotal * SHARE_RIDE_RATE) : 0;
-  const total = subtotal - shareDiscount - gpsDiscount - nearbyDiscount;
-  const usdcAmount = toUsdc(total);
+  const afterDiscount = subtotal - shareDiscount - gpsDiscount - nearbyDiscount;
+  const cardFee = form.payMethod === "credit" ? Math.floor(afterDiscount * CARD_SURCHARGE_RATE) : 0;
+  const total = afterDiscount + cardFee;
+  const usdcAmount = toUsdc(afterDiscount); // USDC/JPYCは割引後・手数料なし
 
   const selectedSlot = FLIGHT_SLOTS.find((s) => s.slot === form.preferredSlot);
 
@@ -960,6 +962,23 @@ function StepPayment({
               </span>
             </div>
           )}
+
+          {/* クレジットカード手数料 */}
+          {cardFee > 0 && (
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className="text-red-400 font-semibold flex items-center gap-1">
+                  💳 カード決済手数料
+                </p>
+                <p className="text-[10px] text-gray-500 mt-0.5">
+                  JPYC / USDC なら手数料 0円
+                </p>
+              </div>
+              <span className="text-red-400 font-bold whitespace-nowrap">
+                +¥{cardFee.toLocaleString()}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* 合計 */}
@@ -1012,42 +1031,76 @@ function StepPayment({
 
       {/* Payment method — 3択 */}
       <div className="grid grid-cols-3 gap-2">
-        <TabBtn selected={form.payMethod === "credit"} onClick={() => set("payMethod", "credit")}>
+        <button
+          type="button"
+          onClick={() => set("payMethod", "credit")}
+          className={`relative py-2.5 text-sm font-medium rounded-lg transition-all ${
+            form.payMethod === "credit"
+              ? "bg-amber-500 text-gray-950"
+              : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+          }`}
+        >
           {tr.pay_credit}
-        </TabBtn>
+          <span className="absolute -top-2 -right-1 text-[8px] font-bold bg-red-500 text-white px-1 py-0.5 rounded-full leading-none">
+            +10%
+          </span>
+        </button>
         <button
           type="button"
           onClick={() => set("payMethod", "jpyc")}
-          className={`py-2.5 text-sm font-medium rounded-lg transition-all ${
+          className={`relative py-2.5 text-sm font-medium rounded-lg transition-all ${
             form.payMethod === "jpyc"
               ? "bg-violet-500 text-white"
               : "bg-gray-800 text-gray-400 hover:bg-gray-700"
           }`}
         >
           {tr.pay_jpyc}
+          <span className="absolute -top-2 -right-1 text-[8px] font-bold bg-green-500 text-white px-1 py-0.5 rounded-full leading-none">
+            0%
+          </span>
         </button>
-        <TabBtn selected={form.payMethod === "usdc"} onClick={() => set("payMethod", "usdc")}>
+        <button
+          type="button"
+          onClick={() => set("payMethod", "usdc")}
+          className={`relative py-2.5 text-sm font-medium rounded-lg transition-all ${
+            form.payMethod === "usdc"
+              ? "bg-amber-500 text-gray-950"
+              : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+          }`}
+        >
           {tr.pay_usdc}
-        </TabBtn>
+          <span className="absolute -top-2 -right-1 text-[8px] font-bold bg-green-500 text-white px-1 py-0.5 rounded-full leading-none">
+            0%
+          </span>
+        </button>
       </div>
 
-      {/* クレジットカード */}
+      {/* クレジットカード — Stripe CardElement */}
       {form.payMethod === "credit" && (
         <div className="space-y-3">
-          <Input
-            label={tr.card_number}
-            placeholder="4242 4242 4242 4242"
-            value={form.cardNumber}
-            onChange={(v) => set("cardNumber", v)}
-          />
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <Input label={tr.card_expiry} placeholder="MM / YY" value={form.cardExpiry} onChange={(v) => set("cardExpiry", v)} />
-            </div>
-            <div className="w-28">
-              <Input label={tr.card_cvc} placeholder="123" value={form.cardCvc} onChange={(v) => set("cardCvc", v)} />
-            </div>
+          <label className="text-xs text-gray-400">{tr.card_number}</label>
+          <div className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-3 focus-within:border-amber-500 transition-colors">
+            <CardElement
+              options={{
+                style: {
+                  base: {
+                    color: "#f3f4f6",
+                    fontFamily: "ui-sans-serif, system-ui, sans-serif",
+                    fontSize: "14px",
+                    "::placeholder": { color: "#4b5563" },
+                  },
+                  invalid: { color: "#f87171" },
+                },
+                hidePostalCode: true,
+              }}
+            />
           </div>
+          {stripeError && (
+            <p className="text-xs text-red-400 mt-1">{stripeError}</p>
+          )}
+          <p className="text-[10px] text-gray-600">
+            🔒 Powered by Stripe — PCI DSS準拠・カード番号は当社サーバーに保存されません
+          </p>
         </div>
       )}
 
@@ -1317,6 +1370,9 @@ function DriverNearbyTicker({ discount, locale }: { discount: number; locale: Lo
 type View = "book" | "track" | "business" | "driver";
 
 export default function Dashboard() {
+  const stripe = useStripe();
+  const elements = useElements();
+
   const [locale, setLocale] = useState<Locale>("en");
   const [view, setView] = useState<View>("book");
   const [step, setStep] = useState<Step>("contact");
@@ -1327,6 +1383,7 @@ export default function Dashboard() {
   const [driverNearby, setDriverNearby] = useState(false);
   const [matchResult, setMatchResult] = useState<MatchResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [stripeError, setStripeError] = useState("");
 
   const tr = t[locale];
   const nearbyDiscount = driverNearby ? DRIVER_NEARBY_DISCOUNT : 0;
@@ -1358,45 +1415,88 @@ export default function Dashboard() {
     setForm((prev) => ({ ...prev, [k]: v }));
   }
 
+  async function submitBooking(paymentIntentId?: string) {
+    const total = calcTotal(form, gpsDiscount + nearbyDiscount);
+    const res = await fetch("/api/booking", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name:               form.name,
+        email:              form.email,
+        phone:              form.phone,
+        plan:               form.plan,
+        extra_bags:         form.extraBags,
+        pickup_location:    form.pickupLocation,
+        pickup_date:        form.pickupDate,
+        destination:        form.destination,
+        zone:               form.zone,
+        hotel_name:         form.hotelName,
+        room_number:        form.roomNumber,
+        pay_method:         form.payMethod,
+        total_amount:       total,
+        share_ride:         form.shareRide,
+        preferred_slot:     form.preferredSlot,
+        flight_number:      form.flightNumber,
+        payment_intent_id:  paymentIntentId ?? null,
+      }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setTrackingNumber(data.booking_id);
+      setMatchResult(data.match ?? null);
+    } else {
+      setTrackingNumber(genTrackingNumber());
+      setMatchResult(null);
+    }
+  }
+
   async function next() {
     const idx = STEPS.indexOf(step);
     if (idx >= STEPS.length - 1) return;
 
-    // 支払いステップ → APIで予約確定
     if (step === "payment") {
       setSubmitting(true);
+      setStripeError("");
       try {
         const total = calcTotal(form, gpsDiscount + nearbyDiscount);
-        const res = await fetch("/api/booking", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name:             form.name,
-            email:            form.email,
-            phone:            form.phone,
-            plan:             form.plan,
-            extra_bags:       form.extraBags,
-            pickup_location:  form.pickupLocation,
-            pickup_date:      form.pickupDate,
-            destination:      form.destination,
-            zone:             form.zone,
-            hotel_name:       form.hotelName,
-            room_number:      form.roomNumber,
-            pay_method:       form.payMethod,
-            total_amount:     total,
-            share_ride:       form.shareRide,
-            preferred_slot:   form.preferredSlot,
-            flight_number:    form.flightNumber,
-          }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setTrackingNumber(data.booking_id);
-          setMatchResult(data.match ?? null);
+
+        if (form.payMethod === "credit") {
+          // Stripe: PaymentIntent作成 → カード決済確定
+          if (!stripe || !elements) {
+            setStripeError("決済システムの初期化中です。しばらくお待ちください。");
+            setSubmitting(false);
+            return;
+          }
+          const cardElement = elements.getElement(CardElement);
+          if (!cardElement) {
+            setStripeError("カード情報を入力してください。");
+            setSubmitting(false);
+            return;
+          }
+
+          // バックエンドでPaymentIntentを作成
+          const intentRes = await fetch("/api/payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ amount: total }),
+          });
+          const { client_secret } = await intentRes.json();
+
+          // Stripeでカード決済を確定
+          const { error, paymentIntent } = await stripe.confirmCardPayment(client_secret, {
+            payment_method: { card: cardElement },
+          });
+
+          if (error) {
+            setStripeError(error.message ?? "決済に失敗しました。カード情報を確認してください。");
+            setSubmitting(false);
+            return;
+          }
+
+          await submitBooking(paymentIntent?.id);
         } else {
-          // APIエラー → クライアント側で番号生成してフォールバック
-          setTrackingNumber(genTrackingNumber());
-          setMatchResult(null);
+          // JPYC / USDC は送金確認後に予約記録のみ作成
+          await submitBooking();
         }
       } catch {
         setTrackingNumber(genTrackingNumber());
@@ -1544,7 +1644,7 @@ export default function Dashboard() {
                 <StepDelivery form={form} set={setField} tr={tr} />
               )}
               {step === "payment" && (
-                <StepPayment form={form} set={setField} tr={tr} gpsDiscount={gpsDiscount} nearbyDiscount={nearbyDiscount} />
+                <StepPayment form={form} set={setField} tr={tr} gpsDiscount={gpsDiscount} nearbyDiscount={nearbyDiscount} stripeError={stripeError} />
               )}
               {step === "confirm" && (
                 <StepConfirm

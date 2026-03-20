@@ -11,9 +11,10 @@ import string
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
+import stripe
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
-from fastapi import FastAPI, HTTPException, Depends, Security
+from fastapi import FastAPI, HTTPException, Depends, Security, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import APIKeyHeader
 from dotenv import load_dotenv
@@ -27,6 +28,8 @@ from .scheduler import TARGET_JOBS, run_daily_briefings
 
 load_dotenv()
 log = logging.getLogger(__name__)
+
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "")
 
 
 @asynccontextmanager
@@ -96,6 +99,31 @@ def get_db():
 @app.get("/health")
 def health():
     return {"status": "ok", "time": datetime.now(timezone.utc).isoformat()}
+
+
+# ───────────────────────── Payment endpoints ─────────────────────────
+
+@app.post("/payments/create-intent")
+async def create_payment_intent(request: Request):
+    """Stripe PaymentIntent を作成してクライアントシークレットを返す"""
+    body = await request.json()
+    amount = int(body.get("amount", 0))
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="amount must be positive")
+
+    if not stripe.api_key:
+        # Stripe未設定時はモックレスポンス（テスト用）
+        return {"client_secret": f"pi_mock_{amount}_secret_test"}
+
+    try:
+        intent = stripe.PaymentIntent.create(
+            amount=amount,
+            currency="jpy",
+            automatic_payment_methods={"enabled": True},
+        )
+        return {"client_secret": intent.client_secret}
+    except stripe.StripeError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 # ───────────────────────── Booking endpoints ─────────────────────────
@@ -195,16 +223,22 @@ def update_driver_location(
     if not record:
         raise HTTPException(status_code=404, detail="Booking not found")
 
-    record.driver_lat        = req.lat
-    record.driver_lng        = req.lng
+    if req.lat is not None:
+        record.driver_lat = req.lat
+    if req.lng is not None:
+        record.driver_lng = req.lng
     record.driver_status     = req.driver_status
     record.driver_updated_at = datetime.now(timezone.utc)
 
-    # ステータスも連動更新
+    # ドライバーステータス → 予約ステータスの連動更新
     if req.driver_status == "heading" and record.status == "confirmed":
         record.status = "pickup"
-    elif req.driver_status == "arrived" and record.status in ("confirmed", "pickup"):
+    elif req.driver_status == "nearby" and record.status in ("confirmed", "pickup"):
         record.status = "transit"
+    elif req.driver_status == "arrived" and record.status in ("confirmed", "pickup", "transit"):
+        record.status = "transit"
+    elif req.driver_status == "done":
+        record.status = "delivered"
 
     db.commit()
     return {"ok": True, "booking_id": booking_id, "driver_status": req.driver_status}

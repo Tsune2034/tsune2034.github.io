@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KAIROX — システム動作確認書 / SOP v1.0</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+    background: #0a0a0f;
+    color: #e5e7eb;
+    line-height: 1.7;
+    font-size: 14px;
+  }
+  .container { max-width: 800px; margin: 0 auto; padding: 40px 20px 80px; }
+
+  /* Header */
+  .header {
+    border-bottom: 2px solid #f59e0b;
+    padding-bottom: 24px;
+    margin-bottom: 40px;
+  }
+  .brand { font-size: 28px; font-weight: 900; letter-spacing: 0.1em; color: #fff; }
+  .brand span { color: #f59e0b; }
+  .doc-title { font-size: 18px; font-weight: 700; color: #f59e0b; margin-top: 8px; }
+  .meta { display: flex; gap: 24px; margin-top: 12px; flex-wrap: wrap; }
+  .meta-item { font-size: 12px; color: #6b7280; }
+  .meta-item strong { color: #9ca3af; }
+  .badge {
+    display: inline-block;
+    font-size: 10px; font-weight: 700;
+    padding: 2px 8px; border-radius: 999px;
+    border: 1px solid;
+  }
+  .badge-live { background: #052e16; border-color: #166534; color: #4ade80; }
+  .badge-test { background: #1e1b4b; border-color: #4338ca; color: #818cf8; }
+  .badge-caution { background: #431407; border-color: #92400e; color: #fbbf24; }
+
+  /* Sections */
+  h2 {
+    font-size: 16px; font-weight: 800;
+    color: #f59e0b;
+    border-left: 4px solid #f59e0b;
+    padding-left: 12px;
+    margin: 40px 0 16px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  h3 {
+    font-size: 14px; font-weight: 700;
+    color: #e5e7eb;
+    margin: 24px 0 10px;
+  }
+  h3::before { content: "▶ "; color: #f59e0b; }
+
+  p { color: #9ca3af; margin: 6px 0; }
+
+  /* URL box */
+  .url-box {
+    background: #111827;
+    border: 1px solid #374151;
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-family: "SF Mono", "Fira Code", monospace;
+    font-size: 13px;
+    color: #60a5fa;
+    word-break: break-all;
+    margin: 12px 0;
+  }
+  .url-box span { color: #6b7280; font-size: 11px; display: block; margin-bottom: 4px; }
+
+  /* Steps */
+  .steps { list-style: none; counter-reset: step; margin: 12px 0; }
+  .steps li {
+    counter-increment: step;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid #1f2937;
+  }
+  .steps li:last-child { border-bottom: none; }
+  .step-num {
+    flex-shrink: 0;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: #f59e0b;
+    color: #111;
+    font-weight: 900;
+    font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-body { flex: 1; }
+  .step-body strong { color: #e5e7eb; display: block; margin-bottom: 2px; }
+  .step-body p { font-size: 12px; color: #6b7280; margin: 0; }
+  .step-body .hint {
+    display: inline-block;
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-family: monospace;
+    color: #fbbf24;
+    margin-top: 4px;
+  }
+
+  /* Check table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 13px;
+  }
+  th {
+    background: #1f2937;
+    color: #9ca3af;
+    font-weight: 700;
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #1f2937;
+    color: #d1d5db;
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  .check { color: #4ade80; font-weight: 700; }
+  .warn  { color: #fbbf24; font-weight: 700; }
+  .fail  { color: #f87171; font-weight: 700; }
+
+  /* Card blocks */
+  .card {
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 12px 0;
+  }
+  .card-title {
+    font-size: 13px; font-weight: 700; color: #fff;
+    display: flex; align-items: center; gap-8px;
+    margin-bottom: 12px;
+  }
+  .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media(max-width: 480px) { .card-grid { grid-template-columns: 1fr; } }
+
+  .info-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #1f2937; }
+  .info-row:last-child { border-bottom: none; }
+  .info-label { font-size: 11px; color: #6b7280; }
+  .info-value { font-size: 13px; color: #e5e7eb; font-weight: 600; }
+  .info-value.mono { font-family: monospace; color: #60a5fa; }
+  .info-value.green { color: #4ade80; }
+  .info-value.amber { color: #fbbf24; }
+
+  /* Flow diagram */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 16px 0;
+  }
+  .flow-box {
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #e5e7eb;
+    white-space: nowrap;
+  }
+  .flow-arrow { color: #4b5563; font-size: 16px; }
+
+  /* PIN box */
+  .pin-box {
+    background: #0c1a2e;
+    border: 2px solid #0ea5e9;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .pin-display {
+    font-family: monospace;
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: 0.5em;
+    color: #38bdf8;
+  }
+  .pin-label { font-size: 11px; color: #0ea5e9; font-weight: 700; text-transform: uppercase; }
+
+  /* Notice */
+  .notice {
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 12px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .notice-icon { font-size: 16px; flex-shrink: 0; }
+  .notice.info { background: #0c1a2e; border: 1px solid #1e40af; color: #93c5fd; }
+  .notice.warn { background: #1c1008; border: 1px solid #92400e; color: #fcd34d; }
+  .notice.success { background: #052e16; border: 1px solid #166534; color: #86efac; }
+
+  /* QR placeholder */
+  .qr-placeholder {
+    width: 100px; height: 100px;
+    background: #fff;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: #374151; text-align: center;
+    padding: 8px;
+    flex-shrink: 0;
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 60px;
+    padding-top: 24px;
+    border-top: 1px solid #1f2937;
+    font-size: 11px;
+    color: #374151;
+    text-align: center;
+  }
+
+  /* Print */
+  @media print {
+    body { background: #fff; color: #111; }
+    .card, .pin-box, .url-box { background: #f9fafb; border-color: #e5e7eb; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="brand">KAIROX</div>
+    <div class="doc-title">システム動作確認書 / 標準操作手順書（SOP）</div>
+    <div class="meta">
+      <div class="meta-item"><strong>文書番号</strong>　KRX-SOP-001</div>
+      <div class="meta-item"><strong>バージョン</strong>　v1.0</div>
+      <div class="meta-item"><strong>作成日</strong>　2026-03-20</div>
+      <div class="meta-item"><strong>対象</strong>　社内・提携パートナー</div>
+    </div>
+    <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap;">
+      <span class="badge badge-live">● 本番稼働中</span>
+      <span class="badge badge-test">Stripe テストモード</span>
+      <span class="badge badge-caution">機密：社外秘</span>
+    </div>
+  </div>
+
+  <!-- システム概要 -->
+  <h2>1. システム概要</h2>
+  <div class="card">
+    <div class="info-row">
+      <span class="info-label">フロントエンド（本番URL）</span>
+      <span class="info-value mono">https://frontend-psi-seven-15.vercel.app</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">バックエンドAPI</span>
+      <span class="info-value mono">https://considerate-nurturing-production.up.railway.app</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">対応言語</span>
+      <span class="info-value">EN / 日本語 / 繁體中文 / 한국어</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">対応ゾーン</span>
+      <span class="info-value">千歳 / 札幌 / 小樽 / 富良野（旭川空港経由）</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">決済方法</span>
+      <span class="info-value">クレジットカード（Stripe）/ JPYC / USDC</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">バックエンド</span>
+      <span class="info-value green">● 稼働中</span>
+    </div>
+  </div>
+
+  <div class="flow">
+    <div class="flow-box">旅行者がアプリで予約</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">KRX-XXXXXX 発行</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">ドライバーがGPS送信</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">顧客がリアルタイム追跡</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">配達完了</div>
+  </div>
+
+  <!-- テスト用情報 -->
+  <h2>2. 動作確認用データ</h2>
+
+  <h3>テスト追跡番号</h3>
+  <div class="card">
+    <div class="info-row">
+      <span class="info-label">追跡番号（デモ用・DB登録済み）</span>
+      <span class="info-value mono amber">KRX-RJM328</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">プラン</span>
+      <span class="info-value">Pair（スーツケース2個）</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">集荷場所</span>
+      <span class="info-value">新千歳 国際線 到着ロビー</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">配送先</span>
+      <span class="info-value">JWマリオット・ホテル札幌 801号室</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">金額</span>
+      <span class="info-value">¥8,000</span>
+    </div>
+  </div>
+
+  <h3>ドライバーPIN（現行）</h3>
+  <div class="pin-box">
+    <div>
+      <div class="pin-label">Driver PIN</div>
+      <div class="pin-display">1234</div>
+    </div>
+    <div style="font-size:12px; color:#64748b;">
+      外部ドライバー採用時に変更予定。<br>
+      現フェーズはCEO自身が使用。
+    </div>
+  </div>
+
+  <h3>テスト用クレジットカード（Stripeテストモード）</h3>
+  <div class="card">
+    <div class="info-row">
+      <span class="info-label">カード番号（決済成功）</span>
+      <span class="info-value mono">4242 4242 4242 4242</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">カード番号（決済失敗テスト）</span>
+      <span class="info-value mono">4000 0000 0000 0002</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">有効期限</span>
+      <span class="info-value">将来日付なら何でもOK（例：12/30）</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">CVC</span>
+      <span class="info-value">3桁なら何でもOK（例：123）</span>
+    </div>
+  </div>
+
+  <!-- 旅行者フロー -->
+  <h2>3. 旅行者向け予約フロー（SOP）</h2>
+  <div class="notice info">
+    <div class="notice-icon">ℹ️</div>
+    <div>このフローは旅行者が自分のスマホで操作する手順です。ホテルロビーや空港での案内時の説明にご活用ください。</div>
+  </div>
+
+  <ul class="steps">
+    <li>
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <strong>URLにアクセス</strong>
+        <p>スマホブラウザで以下URLを開く。右上の言語ボタンで言語を切替（EN / JA / ZH / KO）</p>
+        <div class="hint">https://frontend-psi-seven-15.vercel.app</div>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <strong>GPS許可（自動）</strong>
+        <p>ブラウザが位置情報の使用を確認。許可すると新千歳空港圏内なら ¥500 OFF、サービスゾーン内なら ¥300 OFF が自動適用される</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <strong>Step 1｜連絡先入力</strong>
+        <p>名前・メール・電話番号を入力。「次へ」をタップ</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <strong>Step 2｜荷物情報</strong>
+        <p>プランを選択：Solo（1個）/ Pair（2個）/ Family（4個）。追加荷物（土産袋）は +¥1,500/個。相乗りONで最大15%割引</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <strong>Step 3｜配送詳細</strong>
+        <p>集荷スポットをタップ選択 → 配送先（ホテル or 新千歳空港）を選択 → ホテル名を検索・選択 → 部屋番号を入力</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">6</div>
+      <div class="step-body">
+        <strong>Step 4｜お支払い</strong>
+        <p>料金内訳を確認。支払い方法を選択：クレジットカード（+10%手数料）/ JPYC（0%）/ USDC（0%）</p>
+        <p style="color:#fbbf24; font-size:11px; margin-top:4px;">※ 現在はStripeテストモード。本番カードは請求されません</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">7</div>
+      <div class="step-body">
+        <strong>Step 5｜確定・追跡番号発行</strong>
+        <p>「予約を確定する」ボタン → <strong style="color:#fbbf24;">KRX-XXXXXX</strong> 形式の追跡番号が即時発行される。スクリーンショットまたはメモを依頼</p>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ドライバーフロー -->
+  <h2>4. ドライバー操作フロー（SOP）</h2>
+  <div class="notice warn">
+    <div class="notice-icon">⚠️</div>
+    <div>ドライバー画面はPIN認証が必要です。旅行者には見せないでください。スマホのブラウザで操作します。</div>
+  </div>
+
+  <ul class="steps">
+    <li>
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <strong>ドライバー画面を開く</strong>
+        <p>ヘッダー右端の <strong style="color:#38bdf8;">🚐 ボタン</strong> をタップ</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <strong>PIN入力でログイン</strong>
+        <p>数字4桁のPINを入力 → 「ログイン」ボタン</p>
+        <div class="hint">現行PIN: 1234</div>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <strong>追跡番号を登録</strong>
+        <p>顧客から受け取った KRX-XXXXXX を入力 → 「追加」ボタン。複数件を同時管理可能</p>
+        <div class="hint">デモ用: KRX-RJM328</div>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <strong>GPS追跡を開始</strong>
+        <p>「GPS追跡を開始」ボタンをタップ → スマホのGPS許可を承認 → <strong style="color:#38bdf8;">「GPS送信中（30秒ごと）」</strong> と表示されれば成功</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <strong>ステータスを更新</strong>
+        <p>進捗に合わせてボタンをタップ：</p>
+        <p style="margin-top:4px;">🚐 向かっています → 📍 近くにいます → 📦 荷物を受け取り中 → ✅ 配達完了</p>
+        <p style="font-size:11px; color:#6b7280; margin-top:4px;">ステータス変更時にGPS位置も即時送信される</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">6</div>
+      <div class="step-body">
+        <strong>GPS追跡を停止</strong>
+        <p>「GPS送信中」ボタンをタップで停止。配達完了後は必ず停止する</p>
+      </div>
+    </li>
+  </ul>
+
+  <!-- 顧客追跡フロー -->
+  <h2>5. リアルタイム追跡フロー（SOP）</h2>
+
+  <ul class="steps">
+    <li>
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <strong>「配送を追跡」タブをタップ</strong>
+        <p>ヘッダーの「配送を追跡」ナビゲーションを選択</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <strong>追跡番号を入力</strong>
+        <p>予約時に発行された KRX-XXXXXX を入力 → 「追跡する」ボタン</p>
+        <div class="hint">デモ用: KRX-RJM328</div>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <strong>ステータスタイムラインを確認</strong>
+        <p>予約確認 → 集荷中 → 配送中 → 配達完了 の各フェーズが表示される</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <strong>ドライバーGPSカードを確認（ドライバーGPS送信中のみ）</strong>
+        <p>ドライバーの現在地・距離（km）・到着予測時間（ETA）・ステータスがリアルタイム表示される。<strong style="color:#38bdf8;">LIVE</strong> バッジが点滅していれば10秒ごとに自動更新中</p>
+      </div>
+    </li>
+  </ul>
+
+  <!-- 動作確認チェックリスト -->
+  <h2>6. 動作確認チェックリスト</h2>
+  <div class="notice success">
+    <div class="notice-icon">✅</div>
+    <div>パートナー企業への実演前に以下を確認してください。スマホ2台（ドライバー用・顧客用）があると効果的です。</div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>確認項目</th>
+        <th>期待動作</th>
+        <th>確認</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>バックエンドAPI疎通</td>
+        <td><code>/health</code> が <code>{"status":"ok"}</code> を返す</td>
+        <td class="check">□</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>アプリ表示</td>
+        <td>スマホブラウザでトップページが表示される</td>
+        <td class="check">□</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>言語切替</td>
+        <td>EN / 日本語 / 繁中 / 한국어 が正常に切替わる</td>
+        <td class="check">□</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>GPS許可ダイアログ</td>
+        <td>スマホでブラウザのGPS許可ダイアログが表示される</td>
+        <td class="check">□</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>予約フロー完走</td>
+        <td>Step 1〜5 を通過し KRX-XXXXXX が発行される</td>
+        <td class="check">□</td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td>カード手数料表示</td>
+        <td>クレジット選択時に「+10% 手数料」が内訳に表示される</td>
+        <td class="check">□</td>
+      </tr>
+      <tr>
+        <td>7</td>
+        <td>ドライバーPINログイン</td>
+        <td>🚐ボタン → PIN「1234」でログインできる</td>
+        <td class="check">□</td>
+      </tr>
+      <tr>
+        <td>8</td>
+        <td>追跡番号登録</td>
+        <td>KRX-RJM328 を入力→追加でカードが表示される</td>
+        <td class="check">□</td>
+      </tr>
+      <tr>
+        <td>9</td>
+        <td>GPS追跡開始</td>
+        <td>「GPS送信中（30秒ごと）」が表示される</td>
+        <td class="check">□</td>
+      </tr>
+      <tr>
+        <td>10</td>
+        <td>ステータス更新</td>
+        <td>「📍 近くにいます に更新」ボタンが動作する</td>
+        <td class="check">□</td>
+      </tr>
+      <tr>
+        <td>11</td>
+        <td>顧客追跡画面</td>
+        <td>KRX-RJM328 を追跡→タイムラインが表示される</td>
+        <td class="check">□</td>
+      </tr>
+      <tr>
+        <td>12</td>
+        <td>DriverGPSカード表示</td>
+        <td>ドライバーGPS送信中に距離・ETAカードが表示される</td>
+        <td class="check">□</td>
+      </tr>
+      <tr>
+        <td>13</td>
+        <td>LIVE更新</td>
+        <td>「LIVE」バッジが点滅し10秒ごとに位置が更新される</td>
+        <td class="check">□</td>
+      </tr>
+      <tr>
+        <td>14</td>
+        <td>AIチャット</td>
+        <td>右下の💬ボタン → 荷物の質問に多言語で回答する</td>
+        <td class="check">□</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- よくある問題 -->
+  <h2>7. よくあるトラブルと対処</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>症状</th>
+        <th>原因</th>
+        <th>対処</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>GPS送信中にならない</td>
+        <td>ブラウザのGPS許可がブロックされている</td>
+        <td>スマホの設定 → ブラウザの位置情報を「許可」に変更 → ページリロード</td>
+      </tr>
+      <tr>
+        <td>DriverCardが表示されない</td>
+        <td>ドライバーがGPS送信していない</td>
+        <td>ドライバー側でGPS送信を開始してから10秒後に顧客側をリロード</td>
+      </tr>
+      <tr>
+        <td>追跡番号が見つからない</td>
+        <td>番号の入力ミス</td>
+        <td>デモ用: <strong>KRX-RJM328</strong>（大文字・ハイフンあり）</td>
+      </tr>
+      <tr>
+        <td>PINエラー</td>
+        <td>入力ミス</td>
+        <td>現行PIN: <strong>1234</strong>（4桁）</td>
+      </tr>
+      <tr>
+        <td>バックエンドエラー</td>
+        <td>Railway スリープ（無料プランで稀に発生）</td>
+        <td>30秒待って再試行。または予約番号はフロントエンドでフォールバック発行される</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- パートナー向け説明トーク -->
+  <h2>8. パートナー向け説明トーク例</h2>
+  <div class="card">
+    <div style="font-size:13px; color:#d1d5db; line-height:2;">
+      「これが KAIROX です。外国人旅行者の荷物を当日中にホテルへお届けするサービスです。<br><br>
+      まず旅行者側を見てください。4言語対応で、空港に着いたらすぐこの画面から予約できます。<br>
+      追跡番号が発行されて、ホテルにチェックインしながらスマホで荷物の位置を確認できます。<br><br>
+      次にドライバー側です。このボタンを押してPINを入力するとドライバー画面になります。<br>
+      追跡番号を入れてGPSをONにすると、顧客側の画面にドライバーの位置がリアルタイムで表示されます。<br>
+      距離と到着予測時間も自動計算されます。<br><br>
+      旭川空港から富良野エリアへの当日配送は現在競合ゼロのエリアです。<br>
+      御社のホテル・宿泊施設のお客様への案内に、ぜひご協力をお願いできればと思います。」
+    </div>
+  </div>
+
+  <!-- システム構成 -->
+  <h2>9. システム構成（技術参考）</h2>
+  <div class="card-grid">
+    <div class="card">
+      <div class="info-row"><span class="info-label">フロントエンド</span><span class="info-value">Next.js 16 / Vercel</span></div>
+      <div class="info-row"><span class="info-label">バックエンド</span><span class="info-value">FastAPI / Railway</span></div>
+      <div class="info-row"><span class="info-label">DB</span><span class="info-value">PostgreSQL</span></div>
+    </div>
+    <div class="card">
+      <div class="info-row"><span class="info-label">AIマッチング</span><span class="info-value">Claude haiku-4-5</span></div>
+      <div class="info-row"><span class="info-label">GPS</span><span class="info-value">Geolocation API + Haversine</span></div>
+      <div class="info-row"><span class="info-label">決済</span><span class="info-value">Stripe / JPYC / USDC</span></div>
+    </div>
+  </div>
+
+  <!-- 改訂履歴 -->
+  <h2>10. 改訂履歴</h2>
+  <table>
+    <thead>
+      <tr><th>バージョン</th><th>日付</th><th>変更内容</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>v1.0</td>
+        <td>2026-03-20</td>
+        <td>初版作成。v0.6.0対応（富良野・ドライバーページ・GPS近接割引・Stripe接続）</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="footer">
+    KAIROX — KRX-SOP-001 v1.0 / 2026-03-20 / 社外秘<br>
+    Powered by Claude Sonnet 4.6
+  </div>
+
+</div>
+</body>
+</html>

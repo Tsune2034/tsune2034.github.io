@@ -22,7 +22,7 @@ interface ActiveDelivery {
   gpsActive: boolean;
 }
 
-// ───────────────────────── GPS送信 ─────────────────────────
+// ───────────────────────── GPS・ステータス送信 ─────────────────────────
 async function pushLocation(bookingId: string, lat: number, lng: number, driverStatus: string) {
   try {
     await fetch(`/api/booking?id=${encodeURIComponent(bookingId)}`, {
@@ -32,6 +32,19 @@ async function pushLocation(bookingId: string, lat: number, lng: number, driverS
     });
   } catch {
     // GPS送信失敗は無視（次回リトライ）
+  }
+}
+
+// ステータスのみ送信（GPS OFF時も必ず呼ぶ）
+async function pushStatus(bookingId: string, driverStatus: string) {
+  try {
+    await fetch(`/api/booking?id=${encodeURIComponent(bookingId)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ driver_status: driverStatus }),
+    });
+  } catch {
+    // 失敗は無視
   }
 }
 
@@ -221,11 +234,15 @@ export default function DriverView({ tr }: { tr: Translation }) {
       if (d.bookingId !== bookingId) return d;
       const next = STATUS_CONFIG[d.status].next;
       if (!next) return d;
-      // GPS送信中なら即時ステータスも送る
       if (d.gpsActive) {
-        navigator.geolocation?.getCurrentPosition((pos) => {
-          pushLocation(bookingId, pos.coords.latitude, pos.coords.longitude, next);
-        });
+        // GPS ON: 位置情報つきで送信
+        navigator.geolocation?.getCurrentPosition(
+          (pos) => pushLocation(bookingId, pos.coords.latitude, pos.coords.longitude, next),
+          () => pushStatus(bookingId, next), // GPS取得失敗時はステータスのみ
+        );
+      } else {
+        // GPS OFF でもステータスは必ず送信
+        pushStatus(bookingId, next);
       }
       return { ...d, status: next };
     }));
@@ -306,9 +323,6 @@ export default function DriverView({ tr }: { tr: Translation }) {
         </div>
       )}
 
-      <p className="text-[10px] text-gray-700 text-center">
-        PIN: {DRIVER_PIN} — 本番前に変更すること
-      </p>
     </div>
   );
 }
