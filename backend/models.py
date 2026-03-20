@@ -9,6 +9,7 @@ class BookingCreate(BaseModel):
     name: str
     email: str
     phone: str = ""
+    locale: str = "en"                # en | ja | zh | ko
     plan: str                         # solo | pair | family
     extra_bags: int = 0
     pickup_location: str = ""
@@ -32,6 +33,14 @@ class MatchResult(BaseModel):
     route_reason: Optional[str] = None
 
 
+class DriverRegistrationCreate(BaseModel):
+    name: str
+    phone: str
+    vehicle: str = ""
+    area: str = ""
+    style: str = ""
+
+
 class DriverLocationUpdate(BaseModel):
     lat: Optional[float] = None
     lng: Optional[float] = None
@@ -43,6 +52,7 @@ class BookingResponse(BaseModel):
     status: str
     match: MatchResult
     created_at: str
+    ai_message: Optional[str] = None
     driver_lat: Optional[float] = None
     driver_lng: Optional[float] = None
     driver_status: Optional[str] = None

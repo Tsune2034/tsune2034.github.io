@@ -12,6 +12,8 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
 import stripe
+import anthropic
+import httpx
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from fastapi import FastAPI, HTTPException, Depends, Security, Request
@@ -20,9 +22,9 @@ from fastapi.security import APIKeyHeader
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 
-from .models import BriefingRequest, BriefingResponse, Industry, Language, BookingCreate, BookingResponse, MatchResult, DriverLocationUpdate
+from .models import BriefingRequest, BriefingResponse, Industry, Language, BookingCreate, BookingResponse, MatchResult, DriverLocationUpdate, DriverRegistrationCreate
 from .briefing import generate_briefing
-from .database import SessionLocal, init_db, save_briefing, get_latest_briefing, BookingRecord, get_booking, save_booking
+from .database import SessionLocal, init_db, save_briefing, get_latest_briefing, BookingRecord, get_booking, save_booking, list_bookings, get_active_drivers, DriverRegistrationRecord, save_driver_registration, list_driver_registrations
 from .matching import find_and_match
 from .scheduler import TARGET_JOBS, run_daily_briefings
 from .email import send_booking_confirmation
@@ -31,6 +33,55 @@ load_dotenv()
 log = logging.getLogger(__name__)
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "")
+_anthropic = anthropic.Anthropic()
+
+
+# ─── AI confirmation message generator ───
+async def generate_ai_message(name: str, booking_id: str, pickup: str, destination: str,
+                               total: int, locale: str) -> str:
+    locale_map = {"en": "English", "ja": "Japanese", "zh": "Simplified Chinese", "ko": "Korean"}
+    lang = locale_map.get(locale, "English")
+    status_url = f"https://frontend-psi-seven-15.vercel.app/narita/status/{booking_id}"
+    try:
+        resp = _anthropic.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=200,
+            messages=[{"role": "user", "content":
+                f"Write a warm, brief booking confirmation in {lang} (2 sentences max). "
+                f"Include: booking confirmed for {name}, pickup at {pickup}, delivering to {destination}, "
+                f"total ¥{total:,}. End with: track at {status_url}"}]
+        )
+        return resp.content[0].text if resp.content else ""
+    except Exception as e:
+        log.warning(f"AI message generation failed: {e}")
+        return ""
+
+
+# ─── LINE Notify ───
+async def notify_line(booking_id: str, name: str, phone: str, pickup: str,
+                      destination: str, total: int, pay_method: str) -> None:
+    token = os.getenv("LINE_NOTIFY_TOKEN", "")
+    if not token:
+        log.info("LINE_NOTIFY_TOKEN not set — skipping LINE notification")
+        return
+    cancel_url = f"https://frontend-psi-seven-15.vercel.app/driver/approve/{booking_id}"
+    msg = (
+        f"\n🔔 新規予約 {booking_id}"
+        f"\n👤 {name}  📞 {phone}"
+        f"\n📍 集荷：{pickup}"
+        f"\n🏨 配達先：{destination}"
+        f"\n💰 ¥{total:,}（{pay_method}）"
+        f"\n✅ 管理：{cancel_url}"
+    )
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            await client.post(
+                "https://notify-api.line.me/api/notify",
+                headers={"Authorization": f"Bearer {token}"},
+                data={"message": msg},
+            )
+    except Exception as e:
+        log.warning(f"LINE notify failed: {e}")
 
 
 @asynccontextmanager
@@ -135,12 +186,9 @@ def _gen_booking_id() -> str:
 
 
 @app.post("/bookings", response_model=BookingResponse)
-def create_booking(req: BookingCreate, db: Session = Depends(get_db)):
+async def create_booking(req: BookingCreate, db: Session = Depends(get_db)):
     """
-    予約を作成し、相乗りマッチングを実行する。
-    - share_ride=True かつ preferred_slot が設定されている場合、
-      同スロット・同ゾーンの未マッチ予約と自動的にグルーピング。
-    - グループが成立すると Claude haiku が最適集荷順とETAを計算。
+    予約を作成し、相乗りマッチング・AI確認メッセージ生成・LINE通知を実行する。
     """
     booking_id = _gen_booking_id()
     now = datetime.now(timezone.utc)
@@ -171,6 +219,27 @@ def create_booking(req: BookingCreate, db: Session = Depends(get_db)):
     # AI相乗りマッチング
     match = find_and_match(db, booking_id)
 
+    # AI確認メッセージ生成（顧客の言語で）
+    ai_message = await generate_ai_message(
+        name=req.name,
+        booking_id=booking_id,
+        pickup=req.pickup_location,
+        destination=req.hotel_name or req.destination,
+        total=req.total_amount,
+        locale=req.locale,
+    )
+
+    # LINE通知（オペレーターへ）
+    await notify_line(
+        booking_id=booking_id,
+        name=req.name,
+        phone=req.phone,
+        pickup=req.pickup_location,
+        destination=req.hotel_name or req.destination,
+        total=req.total_amount,
+        pay_method=req.pay_method,
+    )
+
     # 予約確認メール送信（失敗しても予約は成立）
     send_booking_confirmation(
         booking_id=booking_id,
@@ -193,6 +262,7 @@ def create_booking(req: BookingCreate, db: Session = Depends(get_db)):
         status="confirmed",
         match=match,
         created_at=now.isoformat(),
+        ai_message=ai_message,
     )
 
 
@@ -260,6 +330,73 @@ def update_driver_location(
 
     db.commit()
     return {"ok": True, "booking_id": booking_id, "driver_status": req.driver_status}
+
+
+@app.get("/drivers/active")
+def list_active_drivers(db: Session = Depends(get_db)):
+    """現在稼働中のドライバー位置一覧（GPSテロップ用・認証不要）"""
+    drivers = get_active_drivers(db)
+    return [
+        {
+            "lat": d.driver_lat,
+            "lng": d.driver_lng,
+            "status": d.driver_status,
+            "zone": d.zone,
+        }
+        for d in drivers
+    ]
+
+
+@app.post("/drivers/register")
+def register_driver(req: DriverRegistrationCreate, db: Session = Depends(get_db)):
+    """ドライバー登録フォームの送信を保存する"""
+    record = DriverRegistrationRecord(
+        name=req.name,
+        phone=req.phone,
+        vehicle=req.vehicle,
+        area=req.area,
+        style=req.style,
+        created_at=datetime.now(timezone.utc),
+    )
+    save_driver_registration(db, record)
+    return {"ok": True}
+
+
+@app.get("/admin/bookings")
+def admin_list_bookings(db: Session = Depends(get_db), _: None = Depends(require_api_key)):
+    """全予約一覧（管理者用・APIキー認証必須）"""
+    records = list_bookings(db)
+    return [
+        {
+            "booking_id": r.booking_id,
+            "status": r.status,
+            "name": r.name,
+            "zone": r.zone,
+            "plan": r.plan,
+            "total_amount": r.total_amount,
+            "pay_method": r.pay_method,
+            "created_at": r.created_at.isoformat(),
+        }
+        for r in records
+    ]
+
+
+@app.get("/admin/drivers")
+def admin_list_drivers(db: Session = Depends(get_db), _: None = Depends(require_api_key)):
+    """ドライバー登録一覧（管理者用・APIキー認証必須）"""
+    records = list_driver_registrations(db)
+    return [
+        {
+            "id": r.id,
+            "name": r.name,
+            "phone": r.phone,
+            "vehicle": r.vehicle,
+            "area": r.area,
+            "style": r.style,
+            "created_at": r.created_at.isoformat(),
+        }
+        for r in records
+    ]
 
 
 @app.post("/briefing", response_model=BriefingResponse)
