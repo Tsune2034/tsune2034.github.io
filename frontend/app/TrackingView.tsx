@@ -30,6 +30,7 @@ const ZONE_COORDS: Record<string, { lat: number; lng: number }> = {
   chitose: { lat: 42.8193, lng: 141.6488 },
   sapporo: { lat: 43.0621, lng: 141.3544 },
   otaru:   { lat: 43.1907, lng: 140.9947 },
+  furano:  { lat: 43.3499, lng: 142.3834 }, // 新富良野プリンスホテル付近
 };
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -58,6 +59,20 @@ function mockTrack(num: string): TrackingInfo | null {
   const now = new Date();
   const eta = new Date(now.getTime() + 3 * 60 * 60 * 1000);
 
+  // transit / pickup 状態ならモックドライバーを表示
+  const driverStatuses = ["heading", "nearby", "arrived"] as const;
+  const driver: DriverInfo | undefined =
+    status === "transit" || status === "pickup"
+      ? {
+          lat: 42.85,
+          lng: 141.60,
+          status: driverStatuses[charSum % 3],
+          updatedAt: now.toLocaleString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
+          distanceKm: 2 + (charSum % 8),
+          etaMin: Math.round(((2 + (charSum % 8)) / 30) * 60),
+        }
+      : undefined;
+
   return {
     trackingNumber: clean,
     status,
@@ -65,6 +80,7 @@ function mockTrack(num: string): TrackingInfo | null {
     to: destinations[charSum % 3],
     eta: eta.toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }),
     updatedAt: now.toLocaleString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
+    driver,
   };
 }
 

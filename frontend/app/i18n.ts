@@ -55,6 +55,7 @@ export const t = {
     pickup_date: "Pickup Date & Time",
     deliver_to: "Deliver To",
     dest_hotel: "Hotel",
+    dest_new_chitose: "New Chitose Airport",
     dest_narita: "Narita Airport",
     dest_haneda: "Haneda Airport",
     hotel_name: "Hotel Name",
@@ -102,6 +103,7 @@ export const t = {
     zone_chitose: "Chitose / Tomakomai / Kitahiroshima",
     zone_sapporo: "Sapporo / Higashi-Sapporo",
     zone_otaru: "Otaru",
+    zone_furano: "Furano / Biei (via AKJ)",
 
     // Hotel search
     hotel_search_placeholder: "Search hotel name…",
@@ -200,6 +202,44 @@ export const t = {
     biz_thanks_title: "Inquiry Received",
     biz_thanks_desc: "We'll get back to you within 1 business day.",
 
+    // Business view tabs
+    biz_tab_corporate: "For Companies",
+    biz_tab_driver: "Join as Driver",
+
+    // Driver section
+    drv_hero_title: "Stop Being Exploited by Big Logistics",
+    drv_hero_desc: "KAIROX gives independent light-cargo drivers a direct channel to inbound tourists — no middlemen, no corporate cut. Keep 85–90% of every delivery.",
+    drv_return_label: "Your Cut",
+    drv_return_rate: "85–90%",
+    drv_vs_major: "vs 50–70% with major platforms",
+    drv_feat_1: "No language skills needed — KAIROX AI handles all multilingual communication",
+    drv_feat_2: "GPS-powered demand — pick up jobs on your way back, zero empty runs",
+    drv_feat_3: "JPYC / USDC payment — collect from foreign tourists instantly, no cash hassle",
+    drv_feat_4: "Flexible hours — work when you want, zero quota",
+    drv_feat_5: "Inbound premium pricing — tourists pay more; you earn more",
+    drv_how_title: "How to Start",
+    drv_step_1: "Register below (free)",
+    drv_step_2: "Download KAIROX Driver app",
+    drv_step_3: "Accept jobs via GPS matching",
+    drv_step_4: "Payment next business day",
+    drv_earn_title: "Earnings Estimate",
+    drv_earn_desc: "20 working days / month, avg ¥5,000 per delivery",
+    drv_earn_kairox: "KAIROX (90% return)",
+    drv_earn_major: "Major platform (60% return)",
+    drv_earn_diff: "Extra per month with KAIROX",
+    drv_register_title: "Driver Registration (Free)",
+    drv_vehicle: "Vehicle Type",
+    drv_vehicle_van: "Light Van (軽バン)",
+    drv_vehicle_truck: "Light Truck (軽トラ)",
+    drv_vehicle_car: "Regular Car",
+    drv_area: "Operating Area",
+    drv_style: "Work Style",
+    drv_style_full: "Full-time",
+    drv_style_side: "Side job",
+    drv_register_btn: "Register for Free",
+    drv_thanks_title: "Registration Received!",
+    drv_thanks_desc: "We'll contact you within 1 business day to complete onboarding.",
+
     // Flight & slot
     flight_number: "Flight Number (optional)",
     flight_placeholder: "e.g. KE717 land 10:30",
@@ -214,6 +254,8 @@ export const t = {
     // GPS & matching
     price_gps_discount: "Airport Booking Discount",
     price_gps_desc: "Detected near New Chitose Airport — book now for best rate",
+    price_nearby_discount: "Driver Nearby Discount",
+    price_nearby_desc: "A driver is available in your area right now",
     price_matching: "Carpool matching in progress…",
     price_matching_candidates: "2 travelers heading the same direction",
 
@@ -267,6 +309,7 @@ export const t = {
     pickup_date: "集荷日時",
     deliver_to: "配送先",
     dest_hotel: "ホテル",
+    dest_new_chitose: "新千歳空港",
     dest_narita: "成田空港",
     dest_haneda: "羽田空港",
     hotel_name: "ホテル名",
@@ -312,6 +355,7 @@ export const t = {
     zone_chitose: "千歳・苫小牧・北広島",
     zone_sapporo: "札幌・東札幌",
     zone_otaru: "小樽",
+    zone_furano: "富良野・美瑛（旭川空港経由）",
 
     // Hotel search
     hotel_search_placeholder: "ホテル名で検索…",
@@ -408,6 +452,44 @@ export const t = {
     biz_thanks_title: "お問い合わせを受け付けました",
     biz_thanks_desc: "1営業日以内にご連絡いたします。",
 
+    // Business view tabs
+    biz_tab_corporate: "法人向け",
+    biz_tab_driver: "ドライバー登録",
+
+    // Driver section
+    drv_hero_title: "大手に搾取されない配送プラットフォーム",
+    drv_hero_desc: "KAIROX は軽貨物ドライバーが外国人旅行者と直接つながれるプラットフォームです。中間マージンなし。売上の85〜90%があなたの手元に残ります。",
+    drv_return_label: "あなたの取り分",
+    drv_return_rate: "85〜90%",
+    drv_vs_major: "大手プラットフォームの1.5〜2倍",
+    drv_feat_1: "語学力不要 — 外国人対応はKAIROX AIが全担当。あなたは荷物を運ぶだけ",
+    drv_feat_2: "GPS近接需要 — 帰り道にリアルタイムで案件が入る。空走ゼロ",
+    drv_feat_3: "JPYC・USDC決済対応 — 外国人旅行者からの集金が瞬時に完了",
+    drv_feat_4: "完全フレキシブル稼働 — ノルマなし。自分のペースで働ける",
+    drv_feat_5: "インバウンド割増単価 — 外国人旅行者は高単価。1件あたりの収益が高い",
+    drv_how_title: "始め方",
+    drv_step_1: "下記フォームで無料登録",
+    drv_step_2: "KAIROXドライバーアプリをDL",
+    drv_step_3: "GPSマッチングで案件を受注",
+    drv_step_4: "翌営業日に売上入金",
+    drv_earn_title: "収入シミュレーション",
+    drv_earn_desc: "月稼働20日・1件平均¥5,000の場合",
+    drv_earn_kairox: "KAIROX（還元率90%）",
+    drv_earn_major: "大手プラットフォーム（還元率60%）",
+    drv_earn_diff: "KAIROXで増える月収",
+    drv_register_title: "ドライバー無料登録",
+    drv_vehicle: "車両タイプ",
+    drv_vehicle_van: "軽バン",
+    drv_vehicle_truck: "軽トラック",
+    drv_vehicle_car: "普通乗用車",
+    drv_area: "稼働エリア",
+    drv_style: "稼働スタイル",
+    drv_style_full: "専業",
+    drv_style_side: "副業",
+    drv_register_btn: "無料で登録する",
+    drv_thanks_title: "登録を受け付けました！",
+    drv_thanks_desc: "1営業日以内にご連絡いたします。一緒に北海道のインバウンド物流を変えましょう。",
+
     // Flight & slot
     flight_number: "フライト番号（任意）",
     flight_placeholder: "例：KE717 着陸 10:30",
@@ -422,6 +504,8 @@ export const t = {
     // GPS & matching
     price_gps_discount: "空港直予約割引",
     price_gps_desc: "新千歳空港周辺を検出 — 今予約でお得",
+    price_nearby_discount: "近接ドライバー即時割引",
+    price_nearby_desc: "今この瞬間、近くにドライバーが対応可能です",
     price_matching: "相乗りマッチング中…",
     price_matching_candidates: "2名が同方向に予約中",
 
@@ -475,6 +559,7 @@ export const t = {
     pickup_date: "取件日期與時間",
     deliver_to: "配送目的地",
     dest_hotel: "飯店",
+    dest_new_chitose: "新千歲機場",
     dest_narita: "成田機場",
     dest_haneda: "羽田機場",
     hotel_name: "飯店名稱",
@@ -520,6 +605,7 @@ export const t = {
     zone_chitose: "千歲・苫小牧・北廣島",
     zone_sapporo: "札幌・東札幌",
     zone_otaru: "小樽",
+    zone_furano: "富良野・美瑛（旭川機場）",
 
     // Hotel search
     hotel_search_placeholder: "搜尋飯店名稱…",
@@ -616,6 +702,44 @@ export const t = {
     biz_thanks_title: "已收到您的詢問",
     biz_thanks_desc: "我們將於 1 個工作日內與您聯繫。",
 
+    // Business view tabs
+    biz_tab_corporate: "企業方案",
+    biz_tab_driver: "司機加入",
+
+    // Driver section
+    drv_hero_title: "不被大型物流公司剝削的配送平台",
+    drv_hero_desc: "KAIROX 讓輕貨運司機直接對接外國旅客，無中間抽成，收入的85〜90%歸您所有。",
+    drv_return_label: "您的分潤",
+    drv_return_rate: "85〜90%",
+    drv_vs_major: "大型平台的1.5〜2倍",
+    drv_feat_1: "無需語言能力 — 外國人溝通由 KAIROX AI 全程處理",
+    drv_feat_2: "GPS 即時配單 — 回程路上接單，零空車",
+    drv_feat_3: "JPYC・USDC 支付 — 向外國旅客即時收款",
+    drv_feat_4: "彈性排班 — 無配額，隨時上下線",
+    drv_feat_5: "入境旅客溢價 — 單價高，每單收益更多",
+    drv_how_title: "如何開始",
+    drv_step_1: "填寫下方表單免費註冊",
+    drv_step_2: "下載 KAIROX 司機 App",
+    drv_step_3: "透過 GPS 配對接單",
+    drv_step_4: "次個工作日入帳",
+    drv_earn_title: "收入試算",
+    drv_earn_desc: "每月工作20天・每單平均¥5,000",
+    drv_earn_kairox: "KAIROX（分潤90%）",
+    drv_earn_major: "大型平台（分潤60%）",
+    drv_earn_diff: "使用 KAIROX 每月多賺",
+    drv_register_title: "司機免費註冊",
+    drv_vehicle: "車輛類型",
+    drv_vehicle_van: "輕型廂型車",
+    drv_vehicle_truck: "輕型貨卡",
+    drv_vehicle_car: "一般乘用車",
+    drv_area: "服務區域",
+    drv_style: "工作型態",
+    drv_style_full: "專職",
+    drv_style_side: "兼職",
+    drv_register_btn: "免費註冊",
+    drv_thanks_title: "已收到您的註冊！",
+    drv_thanks_desc: "我們將於 1 個工作日內與您聯繫，完成加入流程。",
+
     // Flight & slot
     flight_number: "航班號碼（選填）",
     flight_placeholder: "例：KE717 降落 10:30",
@@ -630,6 +754,8 @@ export const t = {
     // GPS & matching
     price_gps_discount: "機場即訂折扣",
     price_gps_desc: "偵測到新千歲機場附近 — 立即預約享優惠",
+    price_nearby_discount: "司機在附近折扣",
+    price_nearby_desc: "現在附近有司機可以立即出發",
     price_matching: "共乘配對中…",
     price_matching_candidates: "2 名旅客同方向預約中",
 
@@ -683,6 +809,7 @@ export const t = {
     pickup_date: "수거 날짜 및 시간",
     deliver_to: "배송지",
     dest_hotel: "호텔",
+    dest_new_chitose: "신치토세 공항",
     dest_narita: "나리타 공항",
     dest_haneda: "하네다 공항",
     hotel_name: "호텔 이름",
@@ -728,6 +855,7 @@ export const t = {
     zone_chitose: "치토세・토마코마이・키타히로시마",
     zone_sapporo: "삿포로・히가시삿포로",
     zone_otaru: "오타루",
+    zone_furano: "후라노・비에이（아사히카와 공항）",
 
     // Hotel search
     hotel_search_placeholder: "호텔 이름 검색…",
@@ -824,6 +952,44 @@ export const t = {
     biz_thanks_title: "문의가 접수되었습니다",
     biz_thanks_desc: "1 영업일 이내에 연락드리겠습니다.",
 
+    // Business view tabs
+    biz_tab_corporate: "기업 고객",
+    biz_tab_driver: "드라이버 등록",
+
+    // Driver section
+    drv_hero_title: "대형 물류회사에 착취당하지 않는 배송 플랫폼",
+    drv_hero_desc: "KAIROX는 경화물 드라이버가 외국인 여행객과 직접 연결되는 플랫폼입니다. 중간 수수료 없이 매출의 85〜90%가 당신의 수익이 됩니다.",
+    drv_return_label: "당신의 수익",
+    drv_return_rate: "85〜90%",
+    drv_vs_major: "대형 플랫폼의 1.5〜2배",
+    drv_feat_1: "언어 능력 불필요 — 외국인 대응은 KAIROX AI가 전담",
+    drv_feat_2: "GPS 실시간 배차 — 귀로에 실시간으로 주문 접수, 공차 제로",
+    drv_feat_3: "JPYC・USDC 결제 — 외국인 여행객으로부터 즉시 수금",
+    drv_feat_4: "완전 자유 근무 — 할당량 없음, 내 페이스대로",
+    drv_feat_5: "인바운드 고단가 — 외국인 여행객은 단가가 높아 건당 수익 증가",
+    drv_how_title: "시작 방법",
+    drv_step_1: "아래 양식으로 무료 등록",
+    drv_step_2: "KAIROX 드라이버 앱 다운로드",
+    drv_step_3: "GPS 매칭으로 주문 수락",
+    drv_step_4: "다음 영업일 입금",
+    drv_earn_title: "수입 시뮬레이션",
+    drv_earn_desc: "월 20일 근무・건당 평균 ¥5,000 기준",
+    drv_earn_kairox: "KAIROX（환원율 90%）",
+    drv_earn_major: "대형 플랫폼（환원율 60%）",
+    drv_earn_diff: "KAIROX로 늘어나는 월수입",
+    drv_register_title: "드라이버 무료 등록",
+    drv_vehicle: "차량 유형",
+    drv_vehicle_van: "경 밴",
+    drv_vehicle_truck: "경 트럭",
+    drv_vehicle_car: "일반 승용차",
+    drv_area: "운행 지역",
+    drv_style: "근무 형태",
+    drv_style_full: "전업",
+    drv_style_side: "부업",
+    drv_register_btn: "무료로 등록하기",
+    drv_thanks_title: "등록이 접수되었습니다！",
+    drv_thanks_desc: "1 영업일 이내에 연락드려 온보딩을 완료하겠습니다.",
+
     // Flight & slot
     flight_number: "항공편 번호 (선택)",
     flight_placeholder: "예: KE717 착륙 10:30",
@@ -838,6 +1004,8 @@ export const t = {
     // GPS & matching
     price_gps_discount: "공항 즉시예약 할인",
     price_gps_desc: "신치토세 공항 근처 감지 — 지금 예약하면 할인",
+    price_nearby_discount: "근처 드라이버 즉시 할인",
+    price_nearby_desc: "지금 근처에 드라이버가 대기 중입니다",
     price_matching: "합승 매칭 중…",
     price_matching_candidates: "2명이 같은 방향으로 예약 중",
 

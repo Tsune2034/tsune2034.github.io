@@ -21,18 +21,17 @@ const STEPS: Step[] = ["contact", "luggage", "delivery", "payment", "confirm"];
 
 type LuggageType = "bag" | "suitcase" | "box";
 type LuggageSize = "s" | "m" | "l";
-type Destination = "hotel" | "narita" | "haneda";
+type Destination = "hotel" | "new_chitose" | "narita" | "haneda";
 type PayMethod = "credit" | "jpyc" | "usdc";
 type Plan = "solo" | "pair" | "family";
-// MVP エリア（千歳・札幌近郊・小樽）
-// 富良野・ニセコは Phase 2（ドライバー増員後）
-type Zone = "chitose" | "sapporo" | "otaru";
+// MVP エリア（千歳・札幌近郊・小樽・富良野）
+type Zone = "chitose" | "sapporo" | "otaru" | "furano";
 
 // ───────────────────────── Pricing（MVP版） ─────────────────────────
 const PLAN_PRICES: Record<Plan, Record<Zone, number>> = {
-  solo:   { chitose: 3500, sapporo: 5000, otaru: 6500  },
-  pair:   { chitose: 6000, sapporo: 8000, otaru: 11000 },
-  family: { chitose: 10000, sapporo: 14000, otaru: 18000 },
+  solo:   { chitose: 3500, sapporo: 5000, otaru: 6500,  furano: 5500  },
+  pair:   { chitose: 6000, sapporo: 8000, otaru: 11000, furano: 9000  },
+  family: { chitose: 10000, sapporo: 14000, otaru: 18000, furano: 15000 },
 };
 const EXTRA_BAG_PRICE = 1500;
 const EXPRESS_FEE = 1000;        // 急行保証料（スロット選択時のみ）
@@ -41,6 +40,14 @@ const GPS_AIRPORT_DISCOUNT = 500; // 新千歳空港周辺割引
 const GPS_RADIUS_KM = 15;
 const CHITOSE_AIRPORT = { lat: 42.7753, lng: 141.6922 };
 const USDC_RATE = 153; // JPY per USDC
+const DRIVER_NEARBY_DISCOUNT = 300; // 近接ドライバー即時予約割引
+const DRIVER_NEARBY_RADIUS_KM = 30; // サービスゾーン30km圏内
+const ZONE_CENTERS = [
+  { lat: 42.8193, lng: 141.6488 }, // chitose
+  { lat: 43.0621, lng: 141.3544 }, // sapporo
+  { lat: 43.1907, lng: 140.9947 }, // otaru
+  { lat: 43.3499, lng: 142.3834 }, // furano
+];
 const KAIROX_JPYC_WALLET = "0x742d35Cc6634C0532925a3b8D4C9F2E71c9B3456"; // Polygon — 要変更
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -55,7 +62,8 @@ function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): nu
 const KAIROX_WALLET = "7xKsD4mVnPqR8wYjB2cFhT9eNbLuA3GiZoC6pW5sE1X";
 
 function calcPrice(plan: Plan, zone: Zone, destination: Destination): number {
-  const z: Zone = destination !== "hotel" ? "chitose" : zone;
+  // 空港配送は新千歳ゾーン料金。ホテル配送はゾーン料金
+  const z: Zone = destination === "hotel" ? zone : "chitose";
   return PLAN_PRICES[plan][z];
 }
 
@@ -96,6 +104,12 @@ const PICKUP_SPOTS: Record<Zone, Spot[]> = {
     { id: "ota_canal",         icon: "🚢", label: "小樽運河 観光案内所前",        hint: "中央橋横"                           },
     { id: "ota_sakaimachi",    icon: "🏮", label: "堺町通り メルヘン交差点",      hint: "オルゴール堂前"                     },
     { id: "ota_hotel_front",   icon: "🏨", label: "ホテルフロント前",            hint: "「KAIROX」とスタッフへ"              },
+  ],
+  furano: [
+    { id: "akj_arrival",       icon: "✈️", label: "旭川空港 到着ロビー",          hint: "インフォメーション前",               floor: "1F" },
+    { id: "asahikawa_st",      icon: "🚃", label: "旭川駅 観光案内所前",          hint: "北口すぐ"                           },
+    { id: "furano_st",         icon: "🚃", label: "富良野駅 観光協会前",          hint: "駅舎すぐ隣"                         },
+    { id: "fur_hotel_front",   icon: "🏨", label: "ホテルフロント前",            hint: "「KAIROX」とスタッフへ"              },
   ],
 };
 
@@ -155,6 +169,22 @@ const HOTELS_BY_ZONE: Record<Zone, string[]> = {
     "ホテルノイシュロス小樽",
     "銀鱗荘",
     "小樽ふる川",
+    "OMO5小樽（星野リゾート）",
+  ],
+  furano: [
+    "新富良野プリンスホテル",
+    "フラノ寶亭留",
+    "ラ・テール富良野",
+    "ホテルナトゥールヴァルト富良野",
+    "ぱれっとの丘リゾート",
+    "フラノ寶亭留",
+    "ホテル日航旭川",
+    "OMO7旭川（星野リゾート）",
+    "旭川グランドホテル",
+    "ホテルWBFグランデ旭川",
+    // 美瑛
+    "ホテルパークヒルズ（美瑛）",
+    "びえい白金温泉ホテル（美瑛）",
   ],
 };
 
@@ -692,15 +722,26 @@ function StepDelivery({
 
       <div className="space-y-2">
         <label className="text-xs text-gray-400">{tr.deliver_to}</label>
-        <div className="flex gap-2">
-          {(["hotel", "narita", "haneda"] as Destination[]).map((d) => (
-            <TabBtn
-              key={d}
-              selected={form.destination === d}
-              onClick={() => set("destination", d)}
-            >
-              {d === "hotel" ? tr.dest_hotel : d === "narita" ? tr.dest_narita : tr.dest_haneda}
-            </TabBtn>
+        <div className="flex gap-2 flex-wrap">
+          <TabBtn selected={form.destination === "hotel"} onClick={() => set("destination", "hotel")}>
+            {tr.dest_hotel}
+          </TabBtn>
+          <TabBtn selected={form.destination === "new_chitose"} onClick={() => set("destination", "new_chitose")}>
+            {tr.dest_new_chitose}
+          </TabBtn>
+          {(["narita", "haneda"] as Destination[]).map((d) => (
+            <div key={d} className="relative">
+              <button
+                type="button"
+                disabled
+                className="px-4 py-2 rounded-xl border border-gray-800 text-gray-600 text-sm cursor-not-allowed opacity-60"
+              >
+                {d === "narita" ? tr.dest_narita : tr.dest_haneda}
+              </button>
+              <span className="absolute -top-2 -right-1 text-[9px] font-bold bg-amber-500 text-gray-950 px-1.5 py-0.5 rounded-full leading-none whitespace-nowrap">
+                近日公開
+              </span>
+            </div>
           ))}
         </div>
       </div>
@@ -710,12 +751,13 @@ function StepDelivery({
           {/* Zone selector */}
           <div className="space-y-1">
             <label className="text-xs text-gray-400">{tr.zone_title}</label>
-            <div className="grid grid-cols-3 gap-1.5">
-              {(["chitose","sapporo","otaru"] as Zone[]).map((z) => {
+            <div className="grid grid-cols-2 gap-1.5">
+              {(["chitose","sapporo","otaru","furano"] as Zone[]).map((z) => {
                 const labels: Record<Zone, string> = {
                   chitose: tr.zone_chitose,
                   sapporo: tr.zone_sapporo,
                   otaru:   tr.zone_otaru,
+                  furano:  tr.zone_furano,
                 };
                 return (
                   <button
@@ -760,8 +802,8 @@ function StepDelivery({
         </div>
       )}
 
-      {/* 空港配送スポット（narita/haneda は Phase 2 のため新千歳のみ表示） */}
-      {(form.destination === "narita" || form.destination === "haneda") && (
+      {/* 新千歳空港配送スポット */}
+      {form.destination === "new_chitose" && (
         <div className="pt-1">
           <SpotPicker
             spots={AIRPORT_DELIVERY_SPOTS}
@@ -814,18 +856,20 @@ function StepPayment({
   set,
   tr,
   gpsDiscount,
+  nearbyDiscount,
 }: {
   form: FormData;
   set: (k: keyof FormData, v: string | number | boolean | null) => void;
   tr: Translation;
   gpsDiscount: number;
+  nearbyDiscount: number;
 }) {
   const basePrice = calcPrice(form.plan, form.zone, form.destination);
   const expressFee = form.preferredSlot !== null ? EXPRESS_FEE : 0;
   const extraCost = form.extraBags * EXTRA_BAG_PRICE;
   const subtotal = basePrice + expressFee + extraCost;
   const shareDiscount = form.shareRide ? Math.floor(subtotal * SHARE_RIDE_RATE) : 0;
-  const total = subtotal - shareDiscount - gpsDiscount;
+  const total = subtotal - shareDiscount - gpsDiscount - nearbyDiscount;
   const usdcAmount = toUsdc(total);
 
   const selectedSlot = FLIGHT_SLOTS.find((s) => s.slot === form.preferredSlot);
@@ -901,6 +945,21 @@ function StepPayment({
               </span>
             </div>
           )}
+
+          {/* 近接ドライバー即時割引 */}
+          {nearbyDiscount > 0 && (
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className="text-green-400 font-semibold flex items-center gap-1">
+                  🚐 {tr.price_nearby_discount}
+                </p>
+                <p className="text-[10px] text-gray-500 mt-0.5">{tr.price_nearby_desc}</p>
+              </div>
+              <span className="text-green-400 font-bold whitespace-nowrap">
+                −¥{nearbyDiscount.toLocaleString()}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* 合計 */}
@@ -913,9 +972,9 @@ function StepPayment({
               <p className="text-3xl font-bold text-white mt-0.5">
                 ¥{total.toLocaleString()}
               </p>
-              {(shareDiscount + gpsDiscount) > 0 && (
+              {(shareDiscount + gpsDiscount + nearbyDiscount) > 0 && (
                 <p className="text-xs text-green-400 mt-0.5">
-                  {tr.price_saved} ¥{(shareDiscount + gpsDiscount).toLocaleString()}
+                  {tr.price_saved} ¥{(shareDiscount + gpsDiscount + nearbyDiscount).toLocaleString()}
                 </p>
               )}
             </div>
@@ -1222,6 +1281,38 @@ function ProgressBar({
   );
 }
 
+// ───────────────────────── Driver Nearby Ticker ─────────────────────────
+function DriverNearbyTicker({ discount, locale }: { discount: number; locale: Locale }) {
+  const messages: Record<Locale, string> = {
+    en: `🚐 A driver is nearby! Book now for ¥${discount.toLocaleString()} OFF  ·  Limited time offer  ·  `,
+    ja: `🚐 近くにドライバーがいます！今すぐ予約で ¥${discount.toLocaleString()} OFF  ·  空き時間に対応可能  ·  `,
+    zh: `🚐 附近有司機！立即預訂享 ¥${discount.toLocaleString()} 折扣  ·  限時優惠  ·  `,
+    ko: `🚐 근처에 드라이버가 있습니다！지금 예약 시 ¥${discount.toLocaleString()} 할인  ·  한정 혜택  ·  `,
+  };
+  const msg = messages[locale];
+  const doubled = msg + msg; // marquee 折り返し用
+
+  return (
+    <div className="bg-green-950 border border-green-700/60 rounded-2xl px-4 py-2.5 flex items-center gap-3 overflow-hidden">
+      <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
+      </span>
+      <div className="overflow-hidden flex-1">
+        <p
+          className="text-xs font-bold text-green-300 whitespace-nowrap"
+          style={{ animation: "marquee 20s linear infinite", display: "inline-block" }}
+        >
+          {doubled}
+        </p>
+      </div>
+      <span className="flex-shrink-0 text-[10px] font-bold bg-green-700 text-green-100 px-2 py-0.5 rounded-full">
+        LIVE
+      </span>
+    </div>
+  );
+}
+
 // ───────────────────────── Main Component ─────────────────────────
 type View = "book" | "track" | "business" | "driver";
 
@@ -1233,23 +1324,32 @@ export default function Dashboard() {
   const [trackingNumber, setTrackingNumber] = useState("");
   const [trackingForView, setTrackingForView] = useState<string | undefined>();
   const [gpsDiscount, setGpsDiscount] = useState(0);
+  const [driverNearby, setDriverNearby] = useState(false);
   const [matchResult, setMatchResult] = useState<MatchResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const tr = t[locale];
+  const nearbyDiscount = driverNearby ? DRIVER_NEARBY_DISCOUNT : 0;
 
-  // GPS: 新千歳空港15km圏内なら空港直予約割引を適用
+  // GPS: 新千歳空港15km圏内 → 空港割引 / サービスゾーン30km圏内 → 近接ドライバー割引
   useEffect(() => {
     if (!navigator.geolocation) return;
+    const now = new Date().getHours();
+    const inOperatingHours = now >= 6 && now <= 22;
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const km = haversineKm(
-          pos.coords.latitude, pos.coords.longitude,
-          CHITOSE_AIRPORT.lat, CHITOSE_AIRPORT.lng,
-        );
-        if (km <= GPS_RADIUS_KM) setGpsDiscount(GPS_AIRPORT_DISCOUNT);
+        const { latitude: lat, longitude: lng } = pos.coords;
+        // 新千歳空港割引
+        if (haversineKm(lat, lng, CHITOSE_AIRPORT.lat, CHITOSE_AIRPORT.lng) <= GPS_RADIUS_KM) {
+          setGpsDiscount(GPS_AIRPORT_DISCOUNT);
+        }
+        // ゾーン近接 → ドライバー即時割引
+        if (inOperatingHours) {
+          const nearZone = ZONE_CENTERS.some((z) => haversineKm(lat, lng, z.lat, z.lng) <= DRIVER_NEARBY_RADIUS_KM);
+          if (nearZone) setDriverNearby(true);
+        }
       },
-      () => {}, // 拒否・失敗は無視
+      () => {},
       { timeout: 5000 },
     );
   }, []);
@@ -1266,7 +1366,7 @@ export default function Dashboard() {
     if (step === "payment") {
       setSubmitting(true);
       try {
-        const total = calcTotal(form, gpsDiscount);
+        const total = calcTotal(form, gpsDiscount + nearbyDiscount);
         const res = await fetch("/api/booking", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1422,6 +1522,11 @@ export default function Dashboard() {
           </div>
         ) : (
           <>
+            {/* ドライバー近接テロップ */}
+            {driverNearby && !isConfirm && (
+              <DriverNearbyTicker discount={DRIVER_NEARBY_DISCOUNT} locale={locale} />
+            )}
+
             {/* Progress */}
             {!isConfirm && (
               <ProgressBar currentStep={step} tr={tr} />
@@ -1439,7 +1544,7 @@ export default function Dashboard() {
                 <StepDelivery form={form} set={setField} tr={tr} />
               )}
               {step === "payment" && (
-                <StepPayment form={form} set={setField} tr={tr} gpsDiscount={gpsDiscount} />
+                <StepPayment form={form} set={setField} tr={tr} gpsDiscount={gpsDiscount} nearbyDiscount={nearbyDiscount} />
               )}
               {step === "confirm" && (
                 <StepConfirm
