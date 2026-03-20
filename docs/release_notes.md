@@ -2,6 +2,90 @@
 
 ---
 
+## v0.7.0 — 2026-03-20
+
+### Stripe決済統合・予約確認メール・バグ修正
+
+**新機能: Stripe CardElement 統合**
+- `@stripe/react-stripe-js` 導入。手動カード入力フィールドを廃止しセキュアな CardElement に置換
+- `page.tsx` を `<Elements>` でラップ。Dashboard 内で `useStripe` / `useElements` を使用
+- 支払いフロー：PaymentIntent 作成（`POST /payments/create-intent`）→ `stripe.confirmCardPayment()` → 予約作成
+- バックエンド `POST /payments/create-intent` エンドポイント追加（`STRIPE_SECRET_KEY` 未設定時はモックレスポンス）
+- `frontend/app/api/payment/route.ts` プロキシルート追加
+- 「🔒 Powered by Stripe — PCI DSS準拠」表記追加
+
+**新機能: クレジットカード手数料 10% 表示**
+- `CARD_SURCHARGE_RATE = 0.10` 定数追加
+- 支払い方法タブにバッジ：クレジット `+10%`（赤）/ JPYC・USDC `0%`（緑）
+- 料金内訳に「💳 カード決済手数料」行を追加。JPYC/USDC との差別化を可視化
+- `calcTotal()` がカード選択時のみ手数料を加算
+
+**新機能: 予約確認メール（Resend）**
+- `backend/email.py` 追加：HTML メールテンプレート + `send_booking_confirmation()`
+- 予約作成後に自動送信（失敗しても予約は成立・KRX番号は発行される）
+- メール内容：追跡番号（大）・予約詳細テーブル・追跡リンクボタン・キャンセルポリシー
+- `RESEND_API_KEY` 未設定または email 空の場合は無音でスキップ
+- 送信元：`onboarding@resend.dev`（独自ドメイン認証後に `noreply@kairox.jp` へ変更予定）
+- `RESEND_FROM` 環境変数でオーバーライド可能
+
+**バグ修正**
+- 配達完了がPC側（顧客追跡画面）に反映されない問題を修正
+  - バックエンド：`done → delivered`・`nearby → transit` のステータスマッピングを追加
+  - `DriverLocationUpdate` モデルの `lat` / `lng` を `Optional[float]` に変更
+- GPS OFF 時にステータス変更がバックエンドに送信されない問題を修正
+  - `pushStatus()` 関数を新設。GPS ON/OFF に関わらずステータス変更は必ずバックエンドに送信
+  - GPS 取得失敗時も `pushStatus()` にフォールバック
+- `DriverView` の画面上 PIN 表示を削除（セキュリティ対応）
+
+**ドキュメント**
+- `public/sop-v1.html` — システム動作確認書・標準操作手順書（SOP v1.0）追加
+  - 旅行者 / ドライバー / 追跡フロー の各 SOP（ステップ形式）
+  - 動作確認チェックリスト 14 項目（□ 確認欄付き）
+  - パートナー向け説明トーク例・トラブルシューティング表
+
+---
+
+## v0.6.0 — 2026-03-20
+
+### 富良野ゾーン・ドライバー登録ページ・GPS近接割引テロップ
+
+**新機能: 富良野・美瑛ゾーン追加**
+- Zone 型に `furano` を追加（旭川空港 AKJ 経由）
+- 料金：Solo ¥5,500 / Pair ¥9,000 / Family ¥15,000
+- 集荷スポット 4 件：旭川空港到着ロビー / 旭川駅 / 富良野駅 / ホテルフロント前
+- ホテルリスト 12 件（新富良野プリンスホテル・OMO7旭川・ホテル日航旭川等）
+- ゾーンセレクターを 2 列グリッドに変更（4 ゾーン対応）
+- i18n：全 4 言語対応（"富良野・美瑛（旭川空港経由）"）
+- 旭川空港→富良野エリアは競合空白地帯（LuggAgent は CTS コリドーに集中）
+
+**新機能: 新千歳空港配送の有効化**
+- `new_chitose` を Destination として有効化
+- 配送先スポット 6 件（国際線チェックイン前 / 無印良品前 / スタバ前 / ANA・JAL カウンター前 / 到着ロビー）
+- 成田・羽田は disabled ボタン + 「近日公開」バッジで表示維持
+
+**新機能: GPS近接ドライバー割引テロップ（DriverNearbyTicker）**
+- `ZONE_CENTERS` 配列でサービスゾーン 4 地点を定義
+- 顧客が 30km 圏内 + 営業時間内（6〜22 時）のとき予約画面上部に自動表示
+- `globals.css` に `@keyframes marquee` を追加。スクロールテロップ表示
+- LIVE パルスアニメーションバッジ付き・4 言語対応
+- 支払い画面に「🚐 近接ドライバー即時割引 −¥300」として内訳表示
+- ドライバーの空走を有償化する需要平準化メカニズム
+
+**新機能: BusinessView ドライバー登録タブ**
+- `biz_tab_corporate` / `biz_tab_driver` タブスイッチャー追加
+- `DriverSection`：収入シミュレーション（KAIROX ¥270,000 vs 業界大手 ¥180,000）
+- 還元率比較バー（KAIROX 85〜90% vs 大手 60〜70%）
+- ドライバー登録フォーム（名前・電話・車両種別・エリア・稼働スタイル）
+- i18n：`drv_*` キー 30 項目以上を全 4 言語追加
+
+**その他**
+- 小樽 OMO5（星野リゾート）をホテルリストに追加
+- `TrackingView` に mock DriverCard データを追加（transit / pickup 時にテスト用ドライバー情報表示）
+- `docs/pitch_deck.md`：ハイブリッドスケールモデル・シズナイロゴス競合分析・空港手荷物預かり比較込みの完全版（15スライド）
+- `public/ceo-meeting-20260320.html`：CEO ミーティング議事録（プラットフォーム化宣言・GPS近接割引・富良野戦略）
+
+---
+
 ## v0.5.0 — 2026-03-20
 
 ### ドライバーGPS追跡 + 日本国内旅行者対応
@@ -154,16 +238,22 @@
 |--------|------|------|
 | フロントエンド | Next.js 16 (App Router) | Vercel |
 | バックエンド | FastAPI + SQLAlchemy | Railway |
-| DB | SQLite（ローカル）/ PostgreSQL（本番） | Railway |
-| AI | Claude haiku-4-5-20251001 | Anthropic API |
-| 決済（予定） | Stripe / USDC on Solana | Phase 1 |
+| DB | PostgreSQL | Railway |
+| AI（マッチング・チャット） | Claude haiku-4-5-20251001 | Anthropic API |
+| 決済 | Stripe（テストモード）/ JPYC on Polygon / USDC on Solana | 本番稼働中 |
+| メール | Resend | 本番稼働中（要ドメイン認証） |
 
 ---
 
-## 既知の制限・Phase 1 以降の予定
+## 既知の制限・今後の予定
 
-- 決済は現在モック（Stripe未接続）
-- 相乗りマッチングのPush通知未実装（メール通知は Phase 1）
-- 複数台の地図表示・リアルタイムETA追跡は Phase 1
-- 羽田・成田エリアは Phase 2
-- 法人問い合わせフォームのバックエンド接続は Phase 1
+| 項目 | 状態 |
+|------|------|
+| Stripe 本番キー設定 | ⬜ 未対応（テストモード） |
+| Resend 独自ドメイン認証 | ⬜ 未対応（要 kairox.jp DNS 設定） |
+| JPYC 本番ウォレットアドレス | ⬜ 未設定（プレースホルダー） |
+| 成田・羽田エリア | ⬜ Phase 2（近日公開バッジ表示中） |
+| 相乗りマッチング Push 通知 | ⬜ Phase 1 |
+| 法人問い合わせフォーム バックエンド接続 | ⬜ Phase 1 |
+| KKday / Klook 掲載 | ⬜ 申請準備中 |
+| `GET /drivers/active` エンドポイント | ⬜ Phase 1（GPS テロップの実ドライバー連動） |
