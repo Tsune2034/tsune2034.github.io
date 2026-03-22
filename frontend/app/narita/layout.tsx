@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "KAIROX — Luggage Delivery from Narita | 成田手ぶら観光",
+  title: "KAIROX Japan Luggage Freedom — Travel Japan Hands-Free",
   description:
     "Land at Narita. Start exploring immediately. Your luggage meets you at the hotel. No counter, no cut-off time.",
   openGraph: {
-    title: "KAIROX — Narita Luggage Delivery",
+    title: "KAIROX — Japan Luggage Freedom",
     description:
       "Land at Narita. Start exploring. Your luggage meets you at the hotel.",
     url: "https://kairox.app/narita",
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "KAIROX — Narita Luggage Delivery",
+    title: "KAIROX — Japan Luggage Freedom",
     description:
       "Land at Narita. Start exploring. Your luggage meets you at the hotel.",
     site: "@kairox_jp",

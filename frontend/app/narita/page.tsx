@@ -268,8 +268,8 @@ function calcAiRoute(
 // ─────────────────────────────────────────────
 const TR = {
   en: {
-    brand: "KAIROX", tagline: "Luggage finds a driver.",
-    narita_badge: "Narita — Beta",
+    brand: "KAIROX", tagline: "Travel Japan hands-free.",
+    narita_badge: "Japan Luggage Freedom",
     hero: "Land at Narita. Start exploring. Your luggage meets you at the hotel.",
     hero_sub: "No counter, no cut-off time.",
     step_pickup: "Pickup", step_dest: "Dest.", step_luggage: "Luggage", step_live: "Live",
@@ -325,8 +325,8 @@ const TR = {
     name_ph: "Your name", phone_ph: "e.g. +1 234 567 8900",
   },
   ja: {
-    brand: "KAIROX", tagline: "荷物がドライバーを探す。",
-    narita_badge: "成田 — ベータ版",
+    brand: "KAIROX", tagline: "日本を、手ぶらで。",
+    narita_badge: "Japan Luggage Freedom",
     hero: "着いた瞬間から、旅が始まる。",
     hero_sub: "荷物はホテルへ先着。カウンター不要・〆切なし。",
     step_pickup: "場所", step_dest: "届け先", step_luggage: "荷物", step_live: "追跡",
@@ -382,8 +382,8 @@ const TR = {
     name_ph: "お名前を入力", phone_ph: "例）+81 90-0000-0000",
   },
   zh: {
-    brand: "KAIROX", tagline: "行李自己找司机。",
-    narita_badge: "成田 — 测试版",
+    brand: "KAIROX", tagline: "畅游日本，轻装出行。",
+    narita_badge: "Japan Luggage Freedom",
     hero: "抵达成田，立刻出发。行李先到酒店。", hero_sub: "无需柜台，无截止时间。",
     step_pickup: "取件", step_dest: "目的地", step_luggage: "行李", step_live: "追踪",
     pickup_title: "您现在在哪里？",
@@ -431,8 +431,8 @@ const TR = {
     name_ph: "请输入姓名", phone_ph: "例如 +86 138 0000 0000",
   },
   ko: {
-    brand: "KAIROX", tagline: "짐이 드라이버를 찾는다.",
-    narita_badge: "나리타 — 베타",
+    brand: "KAIROX", tagline: "일본을 손 가볍게.",
+    narita_badge: "Japan Luggage Freedom",
     hero: "나리타 도착, 바로 여행 시작. 짐은 호텔에서 만나요.", hero_sub: "카운터 불필요, 마감 없음.",
     step_pickup: "위치", step_dest: "목적지", step_luggage: "짐", step_live: "추적",
     pickup_title: "지금 어디 계세요?",
