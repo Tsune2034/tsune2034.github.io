@@ -1151,7 +1151,6 @@ export default function NaritaApp() {
         {step === "pickup" && (
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 space-y-5">
             <div className="flex items-center gap-3">
-              <a href="/" className="text-gray-500 hover:text-gray-300 transition-colors text-sm">← {tr.back}</a>
               <h2 className="text-base font-bold text-white">{tr.pickup_title}</h2>
             </div>
 
