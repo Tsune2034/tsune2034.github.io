@@ -168,6 +168,11 @@ const HOTELS: Destination[] = [
   { id: "h-yokohama-royal",  nameJa: "横浜ロイヤルパークホテル",          nameEn: "Yokohama Royal Park Hotel",           nameZh: "横滨皇家公园大酒店",      nameKo: "요코하마 로얄 파크 호텔",         area: "Kanagawa",       distanceKm: 90,  etaMin: 100, priceJpy: 7800,  emoji: "🏨", lat: 35.4554, lng: 139.6317 },
   { id: "h-yokohama-sheraton", nameJa: "横浜ベイシェラトン ホテル&タワーズ", nameEn: "Yokohama Bay Sheraton Hotel",      nameZh: "横滨湾喜来登酒店",        nameKo: "요코하마 베이 셰라톤 호텔",       area: "Kanagawa",       distanceKm: 90,  etaMin: 100, priceJpy: 7800,  emoji: "🏨", lat: 35.4663, lng: 139.6254 },
   { id: "h-new-otani-yh",    nameJa: "ホテルニューグランド",              nameEn: "Hotel New Grand Yokohama",            nameZh: "横滨新格兰大饭店",        nameKo: "호텔 뉴 그랜드 요코하마",         area: "Kanagawa",       distanceKm: 90,  etaMin: 100, priceJpy: 7800,  emoji: "🏨", lat: 35.4451, lng: 139.6436 },
+  // ── 追加4件（合計50件） ──
+  { id: "h-tokyo-station",   nameJa: "東京ステーションホテル",            nameEn: "The Tokyo Station Hotel",             nameZh: "东京车站大酒店",          nameKo: "더 도쿄 스테이션 호텔",           area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 5700,  emoji: "🏨", lat: 35.6812, lng: 139.7671 },
+  { id: "h-okura-tokyo",     nameJa: "ホテルオークラ東京",                nameEn: "Hotel Okura Tokyo",                   nameZh: "东京大仓酒店",            nameKo: "호텔 오쿠라 도쿄",                area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 5700,  emoji: "🏨", lat: 35.6698, lng: 139.7424 },
+  { id: "h-new-otani-tokyo", nameJa: "ホテルニューオータニ東京",          nameEn: "Hotel New Otani Tokyo",               nameZh: "东京新大谷大饭店",        nameKo: "호텔 뉴 오타니 도쿄",             area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 5700,  emoji: "🏨", lat: 35.6861, lng: 139.7313 },
+  { id: "h-imperial-tokyo",  nameJa: "帝国ホテル 東京",                   nameEn: "Imperial Hotel Tokyo",                nameZh: "东京帝国大酒店",          nameKo: "임페리얼 호텔 도쿄",              area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 5700,  emoji: "🏨", lat: 35.6732, lng: 139.7584 },
 ];
 
 // ─────────────────────────────────────────────
@@ -317,6 +322,7 @@ const TR = {
     closed_sub: "We're currently outside service hours. Please book again tomorrow from 10:00 AM.",
     closed_chat: "You can still use the chat below for questions.",
     rs_riders: "riders", rs_save: "Save", rs_badge: "Shared", rs_available: "Shared ride available!",
+    name_ph: "Your name", phone_ph: "e.g. +1 234 567 8900",
   },
   ja: {
     brand: "KAIROX", tagline: "荷物がドライバーを探す。",
@@ -373,6 +379,7 @@ const TR = {
     closed_sub: "現在は受付時間外です。明日10:00以降に再度お試しください。",
     closed_chat: "ご質問はチャットでお気軽にどうぞ。",
     rs_riders: "人相乗り", rs_save: "節約", rs_badge: "相乗り", rs_available: "相乗りチャンス！",
+    name_ph: "お名前を入力", phone_ph: "例）+81 90-0000-0000",
   },
   zh: {
     brand: "KAIROX", tagline: "行李自己找司机。",
@@ -421,6 +428,7 @@ const TR = {
     closed_sub: "当前不在服务时间内。请明天10:00后再试。",
     closed_chat: "如有疑问，欢迎使用下方聊天功能。",
     rs_riders: "人拼车", rs_save: "省", rs_badge: "拼车", rs_available: "可拼车！",
+    name_ph: "请输入姓名", phone_ph: "例如 +86 138 0000 0000",
   },
   ko: {
     brand: "KAIROX", tagline: "짐이 드라이버를 찾는다.",
@@ -469,6 +477,7 @@ const TR = {
     closed_sub: "현재 운영 시간이 아닙니다. 내일 10:00 이후에 다시 시도해 주세요.",
     closed_chat: "질문이 있으시면 아래 채팅을 이용해 주세요.",
     rs_riders: "명 합승", rs_save: "절약", rs_badge: "합승", rs_available: "합승 가능!",
+    name_ph: "이름을 입력하세요", phone_ph: "예) +82 10-0000-0000",
   },
 } as const;
 
@@ -1327,8 +1336,8 @@ export default function NaritaApp() {
             {/* Name + Phone */}
             <div className="grid grid-cols-2 gap-3">
               {[
-                { label: tr.name_label, val: name, set: setName, ph: "Taro Yamada", type: "text" },
-                { label: tr.phone_label, val: phone, set: setPhone, ph: "+81 / +1 …", type: "tel" },
+                { label: tr.name_label, val: name, set: setName, ph: tr.name_ph, type: "text" },
+                { label: tr.phone_label, val: phone, set: setPhone, ph: tr.phone_ph, type: "tel" },
               ].map((f) => (
                 <div key={f.label} className="space-y-1">
                   <label className="text-xs text-gray-400">{f.label}</label>
