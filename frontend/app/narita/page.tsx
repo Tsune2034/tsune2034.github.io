@@ -327,6 +327,7 @@ const TR = {
     closed_chat: "You can still use the chat below for questions.",
     rs_riders: "riders", rs_save: "Save", rs_badge: "Shared", rs_available: "Shared ride available!",
     name_ph: "Your name", phone_ph: "e.g. +1 234 567 8900",
+    email_label: "Email (optional)", email_ph: "your@email.com",
   },
   ja: {
     brand: "KAIROX", tagline: "日本を、手ぶらで。",
@@ -388,6 +389,7 @@ const TR = {
     closed_chat: "ご質問はチャットでお気軽にどうぞ。",
     rs_riders: "人相乗り", rs_save: "節約", rs_badge: "相乗り", rs_available: "相乗りチャンス！",
     name_ph: "お名前を入力", phone_ph: "例）+81 90-0000-0000",
+    email_label: "メール（任意）", email_ph: "your@email.com",
   },
   zh: {
     brand: "KAIROX", tagline: "畅游日本，轻装出行。",
@@ -441,6 +443,7 @@ const TR = {
     closed_chat: "如有疑问，欢迎使用下方聊天功能。",
     rs_riders: "人拼车", rs_save: "省", rs_badge: "拼车", rs_available: "可拼车！",
     name_ph: "请输入姓名", phone_ph: "例如 +86 138 0000 0000",
+    email_label: "邮箱（选填）", email_ph: "your@email.com",
   },
   ko: {
     brand: "KAIROX", tagline: "일본을 손 가볍게.",
@@ -494,6 +497,7 @@ const TR = {
     closed_chat: "질문이 있으시면 아래 채팅을 이용해 주세요.",
     rs_riders: "명 합승", rs_save: "절약", rs_badge: "합승", rs_available: "합승 가능!",
     name_ph: "이름을 입력하세요", phone_ph: "예) +82 10-0000-0000",
+    email_label: "이메일 (선택)", email_ph: "your@email.com",
   },
 } as const;
 
@@ -968,6 +972,7 @@ export default function NaritaApp() {
   const [payMethod, setPayMethod] = useState<PayMethod>("credit");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
 
   // Cancel
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -1070,7 +1075,7 @@ export default function NaritaApp() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: name.trim() || "Guest",
-          email: "",
+          email: email.trim(),
           phone,
           locale,
           plan: "solo",
@@ -1087,6 +1092,21 @@ export default function NaritaApp() {
         const data = await res.json();
         if (data.booking_id) setBookingId(data.booking_id);
         if (data.ai_message) setAiConfirmMsg(data.ai_message);
+        // 確認メール送信（メールがある場合のみ）
+        if (email.trim()) {
+          fetch("/api/send-confirmation", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: email.trim(),
+              name: name.trim() || "Guest",
+              booking_id: data.booking_id,
+              destination: destName,
+              total,
+              locale,
+            }),
+          }).catch(() => {});
+        }
       }
     } catch {
       // Keep frontend-generated ID as fallback
@@ -1382,6 +1402,13 @@ export default function NaritaApp() {
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-amber-500" />
                 </div>
               ))}
+            </div>
+            {/* Email */}
+            <div className="space-y-1">
+              <label className="text-xs text-gray-400">{tr.email_label}</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={tr.email_ph}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-amber-500" />
+              <p className="text-[10px] text-gray-600">予約確認・追跡URLをお送りします / Confirmation & tracking link</p>
             </div>
 
             {/* Order recap */}
