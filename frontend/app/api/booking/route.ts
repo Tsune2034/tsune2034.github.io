@@ -29,6 +29,22 @@ export async function GET(req: NextRequest) {
   }
 }
 
+export async function DELETE(req: NextRequest) {
+  const id = req.nextUrl.searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "missing id" }, { status: 400 });
+  try {
+    const res = await fetch(`${BACKEND}/bookings/${id}/cancel`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "cancelled" }),
+    });
+    const data = await res.json().catch(() => ({}));
+    return NextResponse.json(data, { status: res.ok ? 200 : res.status });
+  } catch {
+    return NextResponse.json({ error: "Backend unreachable" }, { status: 503 });
+  }
+}
+
 export async function PUT(req: NextRequest) {
   const id = req.nextUrl.searchParams.get("id");
   if (!id) return NextResponse.json({ error: "missing id" }, { status: 400 });

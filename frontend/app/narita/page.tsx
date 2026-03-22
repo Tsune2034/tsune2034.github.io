@@ -310,7 +310,11 @@ const TR = {
     live_to_pickup: "Heading to pickup",
     live_loaded: "Luggage loaded — en route to hotel",
     live_done: "Delivered ✓",
-    cancel_btn: "Cancel", new_btn: "New booking",
+    cancel_btn: "Cancel booking", new_btn: "New booking",
+    cancel_confirm_title: "Cancel this booking?",
+    cancel_confirm_sub: "This cannot be undone.",
+    cancel_confirm_yes: "Yes, cancel",
+    cancel_confirm_no: "Go back",
     back: "Back", next: "Next",
     pieces: "piece(s)",
     chat_btn: "Chat",
@@ -367,7 +371,11 @@ const TR = {
     live_to_pickup: "集荷場所へ移動中",
     live_loaded: "積み込み完了 — 目的地へ向かっています",
     live_done: "配達完了 ✓",
-    cancel_btn: "キャンセル", new_btn: "新しい予約",
+    cancel_btn: "予約をキャンセル", new_btn: "新しい予約",
+    cancel_confirm_title: "予約をキャンセルしますか？",
+    cancel_confirm_sub: "この操作は元に戻せません。",
+    cancel_confirm_yes: "キャンセルする",
+    cancel_confirm_no: "戻る",
     back: "戻る", next: "次へ",
     pieces: "個",
     chat_btn: "チャット",
@@ -417,7 +425,11 @@ const TR = {
     pickup_instruction: "司机到达时出示二维码",
     open_maps: "在谷歌地图中打开",
     live_title: "实时追踪", live_to_pickup: "前往取件地点", live_loaded: "行李已装车 — 前往酒店", live_done: "已送达 ✓",
-    cancel_btn: "取消", new_btn: "新的预订",
+    cancel_btn: "取消预订", new_btn: "新的预订",
+    cancel_confirm_title: "确认取消预订？",
+    cancel_confirm_sub: "此操作无法撤销。",
+    cancel_confirm_yes: "确认取消",
+    cancel_confirm_no: "返回",
     back: "返回", next: "下一步", pieces: "件",
     chat_btn: "聊天",
     chat_title: "客服聊天",
@@ -466,7 +478,11 @@ const TR = {
     pickup_instruction: "드라이버 도착 시 QR 코드 제시",
     open_maps: "구글 지도로 열기",
     live_title: "실시간 추적", live_to_pickup: "픽업 장소로 이동 중", live_loaded: "짐 적재 완료 — 호텔로 이동 중", live_done: "배송 완료 ✓",
-    cancel_btn: "취소", new_btn: "새 예약",
+    cancel_btn: "예약 취소", new_btn: "새 예약",
+    cancel_confirm_title: "예약을 취소할까요?",
+    cancel_confirm_sub: "이 작업은 되돌릴 수 없습니다.",
+    cancel_confirm_yes: "취소하기",
+    cancel_confirm_no: "돌아가기",
     back: "뒤로", next: "다음", pieces: "개",
     chat_btn: "채팅",
     chat_title: "고객 지원 채팅",
@@ -947,6 +963,10 @@ export default function NaritaApp() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
 
+  // Cancel
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+
   // Matching
   const [matchPhase, setMatchPhase] = useState<"searching" | "found">("searching");
   const [aiRoute, setAiRoute] = useState<RouteSegment[]>([]);
@@ -1021,6 +1041,18 @@ export default function NaritaApp() {
     setStep("pickup"); setGpsStatus("idle"); setGpsCoord(null); setManualLoc(""); setTerminal("T1"); setSpot("t1-arrival");
     setDest(null); setDestMode("area"); setHotelSearch(""); setBags(1); setPayMethod("credit"); setName(""); setPhone(""); setMatchPhase("searching");
     setBookingId("NRT-" + Math.random().toString(36).slice(2, 8).toUpperCase());
+  }
+
+  async function cancelBooking() {
+    setCancelLoading(true);
+    try {
+      await fetch(`/api/booking?id=${encodeURIComponent(bookingId)}`, { method: "DELETE" });
+    } catch {
+      // フォールバック: フロントエンドのみリセット
+    }
+    setCancelLoading(false);
+    setShowCancelModal(false);
+    reset();
   }
 
   async function submitBooking() {
@@ -1495,6 +1527,12 @@ export default function NaritaApp() {
                 {tr.live_title} →
               </button>
             )}
+            {(step === "matching" || step === "live") && (
+              <button type="button" onClick={() => setShowCancelModal(true)}
+                className="px-5 py-3 rounded-xl border border-red-800/60 text-red-400 text-sm hover:bg-red-950/30 transition-colors">
+                {tr.cancel_btn}
+              </button>
+            )}
           </div>
         )}
 
@@ -1518,6 +1556,29 @@ export default function NaritaApp() {
            "Lost or damaged luggage covered up to ¥100,000"}
         </p>
       </footer>
+
+      {/* Cancel Confirmation Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center px-4 pb-8 bg-gray-950/80 backdrop-blur-sm">
+          <div className="w-full max-w-sm bg-gray-900 border border-red-800/50 rounded-2xl p-6 space-y-4">
+            <div className="text-center space-y-1">
+              <p className="text-2xl">⚠️</p>
+              <h3 className="text-base font-bold text-white">{tr.cancel_confirm_title}</h3>
+              <p className="text-xs text-gray-500">{tr.cancel_confirm_sub}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <button type="button" onClick={() => setShowCancelModal(false)}
+                className="py-3 rounded-xl border border-gray-700 text-sm text-gray-300 hover:bg-gray-800 transition-colors">
+                {tr.cancel_confirm_no}
+              </button>
+              <button type="button" onClick={cancelBooking} disabled={cancelLoading}
+                className="py-3 rounded-xl bg-red-600 text-white font-bold text-sm hover:bg-red-500 transition-colors disabled:opacity-40">
+                {cancelLoading ? "…" : tr.cancel_confirm_yes}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Rideshare Toast */}
       <RideshareToast
