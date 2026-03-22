@@ -652,9 +652,9 @@ function AiRoutePlan({ route, tr }: { route: RouteSegment[]; tr: Tr }) {
 }
 
 // Live Tracker
-function LiveTracker({ dest, pickupLat, pickupLng, pickupLabel, locale, tr, onReset }: {
+function LiveTracker({ dest, pickupLat, pickupLng, pickupLabel, locale, tr, onReset, onCancel }: {
   dest: Destination; pickupLat: number; pickupLng: number; pickupLabel: string;
-  locale: Locale; tr: Tr; onReset: () => void;
+  locale: Locale; tr: Tr; onReset: () => void; onCancel: () => void;
 }) {
   const [progress, setProgress] = useState(0);
   const destName = locale === "ja" ? dest.nameJa : locale === "zh" ? dest.nameZh : locale === "ko" ? dest.nameKo : dest.nameEn;
@@ -723,9 +723,15 @@ function LiveTracker({ dest, pickupLat, pickupLng, pickupLabel, locale, tr, onRe
           <button onClick={onReset} className="w-full py-3 rounded-xl bg-amber-500 text-gray-950 font-bold text-sm hover:bg-amber-400 transition-colors">{tr.new_btn}</button>
         </div>
       ) : (
-        <div className="bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 flex items-center justify-between">
-          <span className="text-xs text-gray-400">{tr.driver_eta_label}</span>
-          <span className="text-xl font-bold text-white tabular-nums">~{Math.max(1, Math.ceil((100 - progress) / 2))} min</span>
+        <div className="space-y-2">
+          <div className="bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 flex items-center justify-between">
+            <span className="text-xs text-gray-400">{tr.driver_eta_label}</span>
+            <span className="text-xl font-bold text-white tabular-nums">~{Math.max(1, Math.ceil((100 - progress) / 2))} min</span>
+          </div>
+          <button type="button" onClick={onCancel}
+            className="w-full py-2.5 rounded-xl border border-red-800/50 text-red-400 text-xs font-semibold hover:bg-red-950/30 transition-colors">
+            {tr.cancel_btn}
+          </button>
         </div>
       )}
     </div>
@@ -1502,6 +1508,7 @@ export default function NaritaApp() {
             <LiveTracker
               dest={dest} pickupLat={pickupLat} pickupLng={pickupLng}
               pickupLabel={pickupLabel} locale={locale} tr={tr} onReset={reset}
+              onCancel={() => setShowCancelModal(true)}
             />
           </div>
         )}
@@ -1527,7 +1534,7 @@ export default function NaritaApp() {
                 {tr.live_title} →
               </button>
             )}
-            {(step === "matching" || step === "live") && (
+            {step === "matching" && (
               <button type="button" onClick={() => setShowCancelModal(true)}
                 className="px-5 py-3 rounded-xl border border-red-800/60 text-red-400 text-sm hover:bg-red-950/30 transition-colors">
                 {tr.cancel_btn}
