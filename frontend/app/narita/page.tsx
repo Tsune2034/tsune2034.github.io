@@ -1105,7 +1105,7 @@ export default function NaritaApp() {
             </div>
 
             {/* Book button */}
-            <button type="button" onClick={submitBooking} disabled={!name.trim() || bookingLoading || !isOpen}
+            <button type="button" onClick={submitBooking} disabled={!name.trim() || bookingLoading /* || !isOpen (テスト中は無効化) */}
               className="w-full py-4 rounded-xl bg-amber-500 text-gray-950 font-black text-sm hover:bg-amber-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
               {bookingLoading ? <><PulseDots /> {tr.matching_sub}</> : <>{tr.confirm_book} →</>}
             </button>
