@@ -150,6 +150,78 @@ def list_driver_registrations(db: Session) -> list["DriverRegistrationRecord"]:
     return db.query(DriverRegistrationRecord).order_by(DriverRegistrationRecord.created_at.desc()).all()
 
 
+# ───────────────────────── Player ─────────────────────────
+
+class PlayerRecord(Base):
+    __tablename__ = "players"
+
+    id             = Column(Integer, primary_key=True, autoincrement=True)
+    name           = Column(String(128), nullable=False)
+    email          = Column(String(256), nullable=False, unique=True, index=True)
+    phone          = Column(String(32), nullable=False)
+    route          = Column(String(16), default="both")   # narita | haneda | both
+    id_verified    = Column(Boolean, default=False)
+    completed_jobs = Column(Integer, default=0)
+    on_time_jobs   = Column(Integer, default=0)
+    avg_rating     = Column(Float, default=0.0)
+    trust_score    = Column(Float, default=0.0)
+    rank           = Column(String(16), default="new")    # new | trusted | elite
+    created_at     = Column(DateTime(timezone=True), nullable=False)
+
+
+class PlayerReviewRecord(Base):
+    __tablename__ = "player_reviews"
+
+    id         = Column(Integer, primary_key=True, autoincrement=True)
+    player_id  = Column(Integer, nullable=False, index=True)
+    booking_id = Column(String(16), nullable=False)
+    rating     = Column(Integer, nullable=False)          # 1〜5
+    on_time    = Column(Boolean, default=True)
+    comment    = Column(Text, default="")
+    created_at = Column(DateTime(timezone=True), nullable=False)
+
+
+def save_player(db: Session, record: PlayerRecord) -> PlayerRecord:
+    db.add(record)
+    db.commit()
+    db.refresh(record)
+    return record
+
+
+def get_player(db: Session, player_id: int) -> PlayerRecord | None:
+    return db.query(PlayerRecord).filter_by(id=player_id).first()
+
+
+def get_player_by_email(db: Session, email: str) -> PlayerRecord | None:
+    return db.query(PlayerRecord).filter_by(email=email).first()
+
+
+def list_players(db: Session) -> list[PlayerRecord]:
+    return db.query(PlayerRecord).order_by(PlayerRecord.trust_score.desc()).all()
+
+
+def save_review(db: Session, record: PlayerReviewRecord) -> PlayerReviewRecord:
+    db.add(record)
+    db.commit()
+    db.refresh(record)
+    return record
+
+
+def get_reviews_for_player(db: Session, player_id: int) -> list[PlayerReviewRecord]:
+    return db.query(PlayerReviewRecord).filter_by(player_id=player_id).all()
+
+
+def update_player_score(db: Session, player: PlayerRecord, trust_score_result) -> None:
+    """TrustScoreオブジェクトをPlayerRecordに反映してコミットする"""
+    player.avg_rating     = trust_score_result.avg_rating
+    player.trust_score    = trust_score_result.score
+    player.rank           = trust_score_result.rank
+    player.on_time_jobs   = trust_score_result.completed_jobs - (
+        trust_score_result.completed_jobs - int(trust_score_result.on_time_rate * trust_score_result.completed_jobs)
+    )
+    db.commit()
+
+
 def get_unmatched_shareride(
     db: Session,
     slot: int,

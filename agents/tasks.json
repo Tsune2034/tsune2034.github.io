@@ -109,6 +109,60 @@
       "status": "pending",
       "priority": "P2",
       "blocked_by": null
+    },
+    {
+      "id": 13,
+      "role": "engineer",
+      "task": "FastAPI: POST /players/register 実装",
+      "detail": "プレイヤー登録データをPostgreSQLに保存。name/email/phone/route/id_doc_url/created_at",
+      "status": "pending",
+      "priority": "P2",
+      "blocked_by": null
+    },
+    {
+      "id": 14,
+      "role": "engineer",
+      "task": "ハンドキャリー用GPS・ステータス設計",
+      "detail": "電車・徒歩移動対応。ステータス追加（空港から移動中/電車乗車中/ホテルへ徒歩中）。地下鉄圏外時は最終位置保持+ステータスで補完。GPS送信間隔: 徒歩15秒・電車60秒。旅行者側は路線進捗バー表示",
+      "status": "pending",
+      "priority": "P2",
+      "blocked_by": "task:13"
+    },
+    {
+      "id": 15,
+      "role": "engineer",
+      "task": "旅行者GPS画面: プレイヤー選択UI",
+      "detail": "GPS上にプレイヤーを表示。ランクバッジ・評価件数・ETAを表示。車ドライバー=地図ピン、ハンドキャリー=路線進捗バーで表示分岐",
+      "status": "pending",
+      "priority": "P2",
+      "blocked_by": "task:14"
+    },
+    {
+      "id": 16,
+      "role": "engineer",
+      "task": "身分証アップロード機能（/player登録フォーム）",
+      "detail": "免許証・マイナカード表面・パスポートの画像アップロード。バックエンド経由でS3/R2に暗号化保存。番号は収集しない",
+      "status": "pending",
+      "priority": "P2",
+      "blocked_by": "task:13"
+    },
+    {
+      "id": 17,
+      "role": "engineer",
+      "task": "信頼スコア自動計算ロジック",
+      "detail": "旅行者レビュー40% + 時間厳守率30% + 完了件数20% + 身分証確認10%。ランク自動昇格（New→Trusted→Elite）",
+      "status": "pending",
+      "priority": "P3",
+      "blocked_by": "task:14"
+    },
+    {
+      "id": 18,
+      "role": "engineer",
+      "task": "Stripe Connect（プレイヤー報酬送金フロー）",
+      "detail": "旅行者支払い→KAIROX手数料控除→プレイヤーへ自動送金。Stripe Connectのonboarding UI実装",
+      "status": "pending",
+      "priority": "P3",
+      "blocked_by": "task:5（Stripe本番キー）"
     }
   ],
   "completed": [

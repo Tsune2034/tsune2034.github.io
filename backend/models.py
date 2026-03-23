@@ -41,6 +41,37 @@ class DriverRegistrationCreate(BaseModel):
     style: str = ""
 
 
+# ───────────────────────── Player ─────────────────────────
+
+class PlayerCreate(BaseModel):
+    name: str
+    email: str
+    phone: str
+    route: str = "both"   # narita | haneda | both
+
+
+class PlayerReviewCreate(BaseModel):
+    player_id: int
+    booking_id: str
+    rating: int           # 1〜5
+    on_time: bool = True
+    comment: str = ""
+
+
+class PlayerResponse(BaseModel):
+    id: int
+    name: str
+    email: str
+    route: str
+    id_verified: bool
+    completed_jobs: int
+    avg_rating: float
+    trust_score: float
+    rank: str
+    breakdown: Optional[dict] = None
+    created_at: str
+
+
 class DriverLocationUpdate(BaseModel):
     lat: Optional[float] = None
     lng: Optional[float] = None

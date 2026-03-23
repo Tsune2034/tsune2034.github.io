@@ -24,10 +24,12 @@ Agents (parallel or sequential)
    ├ researcher — market, competitor, user data
    ├ support    — customer-facing answers
    ├ finance    — pricing, revenue, break-even
-   ├ strategy   — growth, expansion, decisions
-   ├ lawyer     — 法令解釈, 規制, 雇用法, 外国人労働, 保険
-   ├ finance    — 価格設計, コスト構造, 損益計算
-   └ secretary  — ideas記録, タスク化, ブリーフィング
+   ├ strategy        — growth, expansion, decisions
+   ├ lawyer          — 法令解釈, 規制, 雇用法, 外国人労働, 保険
+   ├ finance         — 価格設計, コスト構造, 損益計算
+   ├ secretary       — ideas記録, タスク化, ブリーフィング
+   ├ devil's advocate — 反論・最悪ケース・前提崩し・リスク論証
+   └ optimizer       — 悪魔の代弁者への打ち手・改善案・最適化
    ↓
 Structured Output
 ```

@@ -22,9 +22,10 @@ from fastapi.security import APIKeyHeader
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 
-from .models import BriefingRequest, BriefingResponse, Industry, Language, BookingCreate, BookingResponse, MatchResult, DriverLocationUpdate, DriverRegistrationCreate
+from .models import BriefingRequest, BriefingResponse, Industry, Language, BookingCreate, BookingResponse, MatchResult, DriverLocationUpdate, DriverRegistrationCreate, PlayerCreate, PlayerReviewCreate, PlayerResponse
 from .briefing import generate_briefing
-from .database import SessionLocal, init_db, save_briefing, get_latest_briefing, BookingRecord, get_booking, save_booking, list_bookings, get_active_drivers, DriverRegistrationRecord, save_driver_registration, list_driver_registrations
+from .database import SessionLocal, init_db, save_briefing, get_latest_briefing, BookingRecord, get_booking, save_booking, list_bookings, get_active_drivers, DriverRegistrationRecord, save_driver_registration, list_driver_registrations, PlayerRecord, PlayerReviewRecord, save_player, get_player, get_player_by_email, list_players, save_review, get_reviews_for_player, update_player_score
+from .trust_score import calculate, recalculate_from_reviews
 from .matching import find_and_match
 from .scheduler import TARGET_JOBS, run_daily_briefings
 from .email import send_booking_confirmation
@@ -397,6 +398,137 @@ def admin_list_drivers(db: Session = Depends(get_db), _: None = Depends(require_
         }
         for r in records
     ]
+
+
+# ───────────────────────── Player endpoints ─────────────────────────
+
+@app.post("/players/register", response_model=PlayerResponse)
+def register_player(req: PlayerCreate, db: Session = Depends(get_db)):
+    """プレイヤー新規登録。重複メールは409を返す。"""
+    if get_player_by_email(db, req.email):
+        raise HTTPException(status_code=409, detail="Email already registered")
+
+    record = PlayerRecord(
+        name=req.name,
+        email=req.email,
+        phone=req.phone,
+        route=req.route,
+        id_verified=False,
+        completed_jobs=0,
+        on_time_jobs=0,
+        avg_rating=0.0,
+        trust_score=0.0,
+        rank="new",
+        created_at=datetime.now(timezone.utc),
+    )
+    saved = save_player(db, record)
+    return _player_to_response(saved)
+
+
+@app.get("/players", response_model=list[PlayerResponse])
+def list_players_endpoint(db: Session = Depends(get_db), _: None = Depends(require_api_key)):
+    """全プレイヤー一覧（信頼スコア降順・管理者用）"""
+    return [_player_to_response(p) for p in list_players(db)]
+
+
+@app.get("/players/{player_id}", response_model=PlayerResponse)
+def get_player_endpoint(player_id: int, db: Session = Depends(get_db)):
+    """プレイヤー情報取得（GPS選択画面用）"""
+    player = get_player(db, player_id)
+    if not player:
+        raise HTTPException(status_code=404, detail="Player not found")
+    return _player_to_response(player)
+
+
+@app.post("/players/{player_id}/reviews")
+def add_review(player_id: int, req: PlayerReviewCreate, db: Session = Depends(get_db)):
+    """
+    旅行者がレビューを投稿する。
+    投稿後、プレイヤーの信頼スコアとランクを自動再計算する。
+    """
+    if not 1 <= req.rating <= 5:
+        raise HTTPException(status_code=400, detail="rating must be 1-5")
+
+    player = get_player(db, player_id)
+    if not player:
+        raise HTTPException(status_code=404, detail="Player not found")
+
+    # レビュー保存
+    review = PlayerReviewRecord(
+        player_id=player_id,
+        booking_id=req.booking_id,
+        rating=req.rating,
+        on_time=req.on_time,
+        comment=req.comment,
+        created_at=datetime.now(timezone.utc),
+    )
+    save_review(db, review)
+
+    # 完了件数・時間厳守件数を更新
+    player.completed_jobs += 1
+    if req.on_time:
+        player.on_time_jobs += 1
+
+    # 全レビューから信頼スコアを再計算
+    all_reviews = get_reviews_for_player(db, player_id)
+    result = recalculate_from_reviews(
+        reviews=[{"rating": r.rating} for r in all_reviews],
+        completed_jobs=player.completed_jobs,
+        on_time_jobs=player.on_time_jobs,
+        id_verified=player.id_verified,
+    )
+    update_player_score(db, player, result)
+
+    return {
+        "ok": True,
+        "player_id": player_id,
+        "new_score": result.score,
+        "new_rank": result.rank,
+        "breakdown": result.breakdown,
+    }
+
+
+@app.put("/players/{player_id}/verify-id")
+def verify_player_id(player_id: int, db: Session = Depends(get_db), _: None = Depends(require_api_key)):
+    """
+    管理者が身分証確認済みにする（+10点・スコア再計算）。
+    """
+    player = get_player(db, player_id)
+    if not player:
+        raise HTTPException(status_code=404, detail="Player not found")
+
+    player.id_verified = True
+    all_reviews = get_reviews_for_player(db, player_id)
+    result = recalculate_from_reviews(
+        reviews=[{"rating": r.rating} for r in all_reviews],
+        completed_jobs=player.completed_jobs,
+        on_time_jobs=player.on_time_jobs,
+        id_verified=True,
+    )
+    update_player_score(db, player, result)
+
+    return {
+        "ok": True,
+        "player_id": player_id,
+        "new_score": result.score,
+        "new_rank": result.rank,
+    }
+
+
+def _player_to_response(p: PlayerRecord, breakdown: dict | None = None) -> PlayerResponse:
+    return PlayerResponse(
+        id=p.id,
+        name=p.name,
+        email=p.email,
+        route=p.route,
+        id_verified=p.id_verified,
+        completed_jobs=p.completed_jobs,
+        avg_rating=p.avg_rating,
+        trust_score=p.trust_score,
+        rank=p.rank,
+        breakdown=breakdown,
+        created_at=p.created_at.isoformat(),
+    )
 
 
 @app.post("/briefing", response_model=BriefingResponse)
