@@ -326,6 +326,22 @@ def get_booking_endpoint(booking_id: str, db: Session = Depends(get_db)):
     )
 
 
+@app.put("/bookings/{booking_id}/cancel")
+def cancel_booking(
+    booking_id: str,
+    db: Session = Depends(get_db),
+):
+    """予約をキャンセルする"""
+    record = get_booking(db, booking_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    if record.status in ("delivered", "cancelled"):
+        raise HTTPException(status_code=400, detail=f"Cannot cancel booking with status: {record.status}")
+    record.status = "cancelled"
+    db.commit()
+    return {"ok": True, "booking_id": booking_id, "status": "cancelled"}
+
+
 @app.put("/bookings/{booking_id}/driver-location")
 def update_driver_location(
     booking_id: str,
