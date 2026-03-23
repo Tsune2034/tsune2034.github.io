@@ -25,6 +25,8 @@ Agents (parallel or sequential)
    ├ support    — customer-facing answers
    ├ finance    — pricing, revenue, break-even
    ├ strategy   — growth, expansion, decisions
+   ├ lawyer     — 法令解釈, 規制, 雇用法, 外国人労働, 保険
+   ├ finance    — 価格設計, コスト構造, 損益計算
    └ secretary  — ideas記録, タスク化, ブリーフィング
    ↓
 Structured Output
