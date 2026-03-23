@@ -5,7 +5,7 @@ import type { Translation } from "./i18n";
 import type { FlightInfo } from "./api/flights/route";
 
 // ───────────────────────── 定数 ─────────────────────────
-const DRIVER_PIN = "1234"; // 本番前に変更すること
+const DRIVER_PIN = process.env.NEXT_PUBLIC_DRIVER_PIN ?? "1234";
 const GPS_INTERVAL_MS = 30_000; // 30秒ごとに送信
 const FLIGHT_REFRESH_MS = 60_000; // フライト情報60秒ごと更新
 

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 
 // ───────────────────────── 定数 ─────────────────────────
-const PLAYER_PIN = "1234"; // 本番前に変更すること
+const PLAYER_PIN = process.env.NEXT_PUBLIC_PLAYER_PIN ?? "1234";
 const BASE_INTERVAL_MS = 15_000; // 基本15秒
 const TRAIN_SKIP = 4;            // 電車中は4ティック=60秒に1回送信
 
