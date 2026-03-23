@@ -489,9 +489,21 @@ export default function TrackingView({ tr, initialNumber, locale = "en" }: { tr:
 
       let driver: DriverInfo | undefined;
       if (data.driver_lat != null && data.driver_lng != null) {
-        // ETA: 平均30km/h想定
-        const dest = ZONE_COORDS.chitose; // フォールバック。本来はbookingのzone座標を使う
+        const dest = ZONE_COORDS[data.zone as string] ?? ZONE_COORDS.chitose;
         const distKm = haversineKm(data.driver_lat, data.driver_lng, dest.lat, dest.lng);
+
+        // Google Directions API でリアルタイムETA取得（失敗時は距離計算にフォールバック）
+        let etaMin = Math.round((distKm / 30) * 60);
+        try {
+          const etaRes = await fetch(
+            `/api/eta?olat=${data.driver_lat}&olng=${data.driver_lng}&dlat=${dest.lat}&dlng=${dest.lng}`
+          );
+          if (etaRes.ok) {
+            const etaData = await etaRes.json();
+            etaMin = etaData.durationMin;
+          }
+        } catch { /* フォールバック維持 */ }
+
         driver = {
           lat: data.driver_lat,
           lng: data.driver_lng,
@@ -500,7 +512,7 @@ export default function TrackingView({ tr, initialNumber, locale = "en" }: { tr:
             ? new Date(data.driver_updated_at).toLocaleString("ja-JP", { hour: "2-digit", minute: "2-digit" })
             : "--:--",
           distanceKm: distKm,
-          etaMin: Math.round((distKm / 30) * 60),
+          etaMin,
         };
       }
 
@@ -510,9 +522,13 @@ export default function TrackingView({ tr, initialNumber, locale = "en" }: { tr:
         status: (data.status as DeliveryStatus) ?? "confirmed",
         from: tr.track_from,
         to:   tr.track_to,
-        eta:  new Date(now.getTime() + 2 * 3600 * 1000).toLocaleString("ja-JP", {
-          month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit",
-        }),
+        eta:  driver
+          ? new Date(now.getTime() + driver.etaMin * 60_000).toLocaleString("ja-JP", {
+              month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit",
+            })
+          : new Date(now.getTime() + 2 * 3600 * 1000).toLocaleString("ja-JP", {
+              month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit",
+            }),
         updatedAt: now.toLocaleString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
         driver,
       });
