@@ -1,0 +1,65 @@
+{
+  "updated": "2026-03-23",
+  "ideas": [
+    {
+      "id": 1,
+      "date": "2026-03-23",
+      "project": "KAIROX",
+      "category": "feature",
+      "idea": "LINE連携で予約確認・追跡URLを送信。訪日旅行者（韓国・台湾・タイ）のLINE普及率は90%超。メールより確実に届く。",
+      "status": "pending",
+      "priority": "high",
+      "note": "LINE Notify or LINE Messaging API。Resendと並行運用"
+    },
+    {
+      "id": 2,
+      "date": "2026-03-23",
+      "project": "KAIROX",
+      "category": "marketing",
+      "idea": "旅行インフルエンサー向け無料トライアル。SNSシェアを条件に1回無料。口コミ獲得コストが最も低い。",
+      "status": "pending",
+      "priority": "high",
+      "note": "Instagram・TikTok・Xiaohongshu（小紅書）で訪日コンテンツを発信しているインフルエンサー対象"
+    },
+    {
+      "id": 3,
+      "date": "2026-03-23",
+      "project": "KAIROX",
+      "category": "business",
+      "idea": "ホテルとのB2B提携。ホテルのコンシェルジュがKAIROXを案内するアフィリエイトモデル。紹介1件につき¥500。",
+      "status": "pending",
+      "priority": "medium",
+      "note": "ターゲット: 浅草・新宿・銀座エリアの中規模ホテル。既存HOTELS配列の50件が対象候補"
+    },
+    {
+      "id": 4,
+      "date": "2026-03-23",
+      "project": "KAIROX",
+      "category": "feature",
+      "idea": "WhatsApp通知対応。欧米・中東・東南アジア向け。メール・LINEをカバーできないユーザー層に対応。",
+      "status": "pending",
+      "priority": "medium",
+      "note": "Twilio WhatsApp API or Meta Cloud API"
+    },
+    {
+      "id": 5,
+      "date": "2026-03-23",
+      "project": "KAIROX",
+      "category": "tech",
+      "idea": "ドライバーPINをVercel環境変数化。コードに直書きしている1234を DRIVER_PIN env var に移行。",
+      "status": "pending",
+      "priority": "high",
+      "note": "app/DriverView.tsx line 8: const DRIVER_PIN = '1234'"
+    },
+    {
+      "id": 6,
+      "date": "2026-03-23",
+      "project": "NEW",
+      "category": "business",
+      "idea": "（新規ビジネスアイデアはここに追加）",
+      "status": "pending",
+      "priority": "medium",
+      "note": ""
+    }
+  ]
+}

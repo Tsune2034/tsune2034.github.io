@@ -24,7 +24,8 @@ Agents (parallel or sequential)
    ├ researcher — market, competitor, user data
    ├ support    — customer-facing answers
    ├ finance    — pricing, revenue, break-even
-   └ strategy   — growth, expansion, decisions
+   ├ strategy   — growth, expansion, decisions
+   └ secretary  — ideas記録, タスク化, ブリーフィング
    ↓
 Structured Output
 ```
