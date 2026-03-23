@@ -16,7 +16,7 @@ import anthropic
 import httpx
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
-from fastapi import FastAPI, HTTPException, Depends, Security, Request
+from fastapi import FastAPI, HTTPException, Depends, Security, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import APIKeyHeader
 from dotenv import load_dotenv
@@ -652,6 +652,53 @@ def get_player_assignments(player_id: int, db: Session = Depends(get_db)):
         }
         for b in bookings
     ]
+
+
+@app.post("/players/{player_id}/upload-id")
+async def upload_player_id(
+    player_id: int,
+    doc_type: str,
+    file: "UploadFile",
+    db: Session = Depends(get_db),
+):
+    """
+    身分証画像をアップロードする。
+    - 対応: license（免許証）/ mynumber（マイナカード表面）/ passport（パスポート）
+    - 番号記載面は収集しない（規約・フロントUIで明示）
+    - 保存先: /tmp/kairox_ids/（Railway ephemeral）→ 本番は R2 に移行
+    """
+    player = get_player(db, player_id)
+    if not player:
+        raise HTTPException(status_code=404, detail="Player not found")
+
+    if doc_type not in ("license", "mynumber", "passport"):
+        raise HTTPException(status_code=400, detail="Invalid doc_type")
+
+    allowed_types = {"image/jpeg", "image/png", "image/webp", "image/heic"}
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Image files only (JPEG/PNG/WEBP/HEIC)")
+
+    # 保存ディレクトリ
+    upload_dir = "/tmp/kairox_ids"
+    os.makedirs(upload_dir, exist_ok=True)
+
+    ext      = file.filename.rsplit(".", 1)[-1].lower() if "." in (file.filename or "") else "jpg"
+    filename = f"player_{player_id}_{doc_type}_{int(datetime.now(timezone.utc).timestamp())}.{ext}"
+    path     = os.path.join(upload_dir, filename)
+
+    contents = await file.read()
+    if len(contents) > 10 * 1024 * 1024:  # 10MB上限
+        raise HTTPException(status_code=400, detail="File too large (max 10MB)")
+
+    with open(path, "wb") as f:
+        f.write(contents)
+
+    player.id_doc_type = doc_type
+    player.id_doc_path = path
+    db.commit()
+
+    log.info(f"ID uploaded: player={player_id} type={doc_type} path={path}")
+    return {"ok": True, "player_id": player_id, "doc_type": doc_type}
 
 
 @app.post("/briefing", response_model=BriefingResponse)

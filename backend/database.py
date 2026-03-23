@@ -181,6 +181,10 @@ class PlayerRecord(Base):
     location_updated_at = Column(DateTime(timezone=True), nullable=True)
     is_available        = Column(Boolean, default=False)   # 待機中フラグ
 
+    # 身分証（顔写真面のみ・番号収集不可）
+    id_doc_type         = Column(String(32), nullable=True)   # license | mynumber | passport
+    id_doc_path         = Column(String(512), nullable=True)  # サーバー保存パス or R2 key
+
 
 class PlayerReviewRecord(Base):
     __tablename__ = "player_reviews"

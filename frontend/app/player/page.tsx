@@ -36,6 +36,14 @@ const copy: Record<Locale, {
   route_both: string;
   form_submit: string;
   form_note: string;
+  form_id_title: string;
+  form_id_label: string;
+  form_id_note: string;
+  id_license: string;
+  id_mynumber: string;
+  id_passport: string;
+  id_placeholder: string;
+  id_selected: string;
   success_title: string;
   success_body: string;
   footer_company: string;
@@ -77,6 +85,14 @@ const copy: Record<Locale, {
     route_both: "両方",
     form_submit: "登録する",
     form_note: "審査完了後（1〜2営業日）にメールでご連絡します。",
+    form_id_title: "身分証の提出",
+    form_id_label: "証明書の種類を選択",
+    form_id_note: "顔写真面のみアップロードしてください。番号記載面は不要です。",
+    id_license: "運転免許証",
+    id_mynumber: "マイナカード（表面のみ）",
+    id_passport: "パスポート",
+    id_placeholder: "画像を選択（JPG / PNG / WEBP）",
+    id_selected: "選択済み",
     success_title: "登録受付完了",
     success_body: "確認メールをお送りしました。1〜2営業日以内にご連絡します。",
     footer_company: "One Hour Value Inc.",
@@ -118,6 +134,14 @@ const copy: Record<Locale, {
     route_both: "Both",
     form_submit: "Register",
     form_note: "We'll email you within 1–2 business days after review.",
+    form_id_title: "Identity verification",
+    form_id_label: "Select document type",
+    form_id_note: "Upload photo side only. Do NOT upload the number/back side.",
+    id_license: "Driver's license",
+    id_mynumber: "My Number Card (front only)",
+    id_passport: "Passport",
+    id_placeholder: "Select image (JPG / PNG / WEBP)",
+    id_selected: "Selected",
     success_title: "Registration received",
     success_body: "A confirmation email has been sent. We'll be in touch within 1–2 business days.",
     footer_company: "One Hour Value Inc.",
@@ -159,6 +183,14 @@ const copy: Record<Locale, {
     route_both: "两条都可",
     form_submit: "提交注册",
     form_note: "审核完成后（1〜2个工作日）将通过邮件联系您。",
+    form_id_title: "身份证明",
+    form_id_label: "选择证件类型",
+    form_id_note: "仅上传有照片的正面，请勿上传号码页。",
+    id_license: "驾驶证",
+    id_mynumber: "My Number 卡（仅正面）",
+    id_passport: "护照",
+    id_placeholder: "选择图片（JPG / PNG / WEBP）",
+    id_selected: "已选择",
     success_title: "注册已受理",
     success_body: "确认邮件已发送，我们将在 1〜2 个工作日内与您联系。",
     footer_company: "One Hour Value Inc.",
@@ -200,6 +232,14 @@ const copy: Record<Locale, {
     route_both: "둘 다",
     form_submit: "등록하기",
     form_note: "심사 완료 후 (1〜2 영업일) 이메일로 연락드립니다.",
+    form_id_title: "신분증 제출",
+    form_id_label: "증명서 종류 선택",
+    form_id_note: "사진면만 업로드하세요. 번호 기재면은 불필요합니다.",
+    id_license: "운전면허증",
+    id_mynumber: "마이넘버 카드（앞면만）",
+    id_passport: "여권",
+    id_placeholder: "이미지 선택（JPG / PNG / WEBP）",
+    id_selected: "선택됨",
     success_title: "등록 접수 완료",
     success_body: "확인 이메일을 보내드렸습니다. 1〜2 영업일 이내에 연락드리겠습니다.",
     footer_company: "One Hour Value Inc.",
@@ -226,13 +266,15 @@ const RANKS = [
 ];
 
 export default function PlayerPage() {
-  const [locale, setLocale] = useState<Locale>("ja");
-  const [route, setRoute] = useState("both");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [locale, setLocale]   = useState<Locale>("ja");
+  const [route, setRoute]     = useState("both");
+  const [name, setName]       = useState("");
+  const [email, setEmail]     = useState("");
+  const [phone, setPhone]     = useState("");
+  const [docType, setDocType] = useState<"license" | "mynumber" | "passport" | "">("");
+  const [idFile, setIdFile]   = useState<File | null>(null);
   const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading]     = useState(false);
 
   const tr = copy[locale];
 
@@ -240,11 +282,25 @@ export default function PlayerPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await fetch("/api/player-register", {
+      // ① プレイヤー基本情報を登録
+      const res = await fetch("/api/player-register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, phone, route }),
       });
+
+      // ② 身分証画像をアップロード（選択されている場合のみ）
+      if (idFile && docType && res.ok) {
+        const data = await res.json();
+        const playerId = data.id;
+        if (playerId) {
+          const form = new FormData();
+          form.append("player_id", String(playerId));
+          form.append("doc_type", docType);
+          form.append("file", idFile);
+          await fetch("/api/player-id-upload", { method: "POST", body: form });
+        }
+      }
     } catch {
       // バックエンド未接続でも登録受付済み表示
     }
@@ -448,6 +504,76 @@ export default function PlayerPage() {
                 ))}
               </div>
             </div>
+            {/* 身分証アップロード */}
+            <div className="border border-gray-800 rounded-2xl p-4 space-y-3 bg-gray-900/30">
+              <div>
+                <p className="text-sm font-bold text-white mb-0.5">{tr.form_id_title}</p>
+                <p className="text-[11px] text-amber-400 bg-amber-950/30 border border-amber-800/40 rounded-lg px-3 py-2 mt-2">
+                  {tr.form_id_note}
+                </p>
+              </div>
+
+              {/* 証明書の種類 */}
+              <div>
+                <label className="block text-xs text-gray-500 mb-2">{tr.form_id_label}</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["license", "mynumber", "passport"] as const).map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setDocType(t)}
+                      className={`px-2 py-2.5 rounded-xl text-[10px] font-medium border transition-all leading-tight ${
+                        docType === t
+                          ? "bg-green-500 border-green-500 text-gray-950 font-bold"
+                          : "bg-gray-900/40 border-gray-800 text-gray-400 hover:border-gray-600"
+                      }`}
+                    >
+                      {t === "license"  ? tr.id_license  :
+                       t === "mynumber" ? tr.id_mynumber : tr.id_passport}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* ファイル選択 */}
+              {docType && (
+                <label className="block cursor-pointer">
+                  <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all ${
+                    idFile
+                      ? "border-green-600/60 bg-green-950/30"
+                      : "border-dashed border-gray-700 bg-gray-900/40 hover:border-gray-500"
+                  }`}>
+                    <span className="text-xl flex-shrink-0">{idFile ? "✅" : "📷"}</span>
+                    <div className="flex-1 min-w-0">
+                      {idFile ? (
+                        <>
+                          <p className="text-xs font-semibold text-green-400">{tr.id_selected}</p>
+                          <p className="text-[10px] text-gray-500 truncate">{idFile.name}</p>
+                        </>
+                      ) : (
+                        <p className="text-xs text-gray-500">{tr.id_placeholder}</p>
+                      )}
+                    </div>
+                    {idFile && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.preventDefault(); setIdFile(null); }}
+                        className="text-gray-600 hover:text-gray-400 text-xs flex-shrink-0"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/heic"
+                    className="sr-only"
+                    onChange={(e) => setIdFile(e.target.files?.[0] ?? null)}
+                  />
+                </label>
+              )}
+            </div>
+
             <button
               type="submit"
               disabled={loading}
