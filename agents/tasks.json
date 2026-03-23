@@ -1,0 +1,182 @@
+{
+  "project": "KAIROX",
+  "updated": "2026-03-23",
+  "tasks": [
+    {
+      "id": 1,
+      "role": "engineer",
+      "task": "Resend APIキー設定（RESEND_API_KEY → Vercel env vars）",
+      "detail": "resend.com でアカウント作成 → APIキー発行 → Vercel Dashboard > Settings > Environment Variables に追加",
+      "status": "pending",
+      "priority": "P0",
+      "blocked_by": "CEO（アカウント作成）"
+    },
+    {
+      "id": 2,
+      "role": "engineer",
+      "task": "ドライバーPIN変更（1234 → 本番用）",
+      "detail": "app/DriverView.tsx line 8: const DRIVER_PIN = '1234' を変更。または Vercel env var 化推奨",
+      "status": "pending",
+      "priority": "P0",
+      "blocked_by": "CEO（PIN決定）"
+    },
+    {
+      "id": 3,
+      "role": "engineer",
+      "task": "AviationStack APIキー設定",
+      "detail": "aviationstack.com でAPIキー取得 → AVIATIONSTACK_API_KEY を Vercel env vars に追加 → NEXT_PUBLIC_AVIATIONSTACK_MOCK=0 に変更",
+      "status": "pending",
+      "priority": "P0",
+      "blocked_by": null
+    },
+    {
+      "id": 4,
+      "role": "ceo",
+      "task": "ドライバー1〜3名の確保・稼働テスト",
+      "detail": "実予約1件を通じてフロー全体を検証。ドライバー確保後に営業時間制御を本番有効化",
+      "status": "in_progress",
+      "priority": "P0",
+      "blocked_by": null
+    },
+    {
+      "id": 5,
+      "role": "engineer",
+      "task": "Stripe本番キー設定",
+      "detail": "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY（本番）を Vercel env vars に追加",
+      "status": "pending",
+      "priority": "P1",
+      "blocked_by": "CEO（Stripe本番申請）"
+    },
+    {
+      "id": 6,
+      "role": "engineer",
+      "task": "営業時間制御の本番有効化",
+      "detail": "app/narita/page.tsx: isOpen チェックのコメントアウトを解除",
+      "status": "pending",
+      "priority": "P1",
+      "blocked_by": "task:4（ドライバー確保後）"
+    },
+    {
+      "id": 7,
+      "role": "ceo",
+      "task": "独自ドメイン取得（kairox.jp または kairox.app）",
+      "detail": "取得後 Vercel > Domains に追加。layout.tsx の canonical URL も更新が必要",
+      "status": "pending",
+      "priority": "P1",
+      "blocked_by": null
+    },
+    {
+      "id": 8,
+      "role": "ceo",
+      "task": "貨物運送の法的要件確認",
+      "detail": "貨物軽自動車運送事業（黒ナンバー）または一般貨物自動車運送事業の要件を確認",
+      "status": "pending",
+      "priority": "P1",
+      "blocked_by": null
+    },
+    {
+      "id": 9,
+      "role": "engineer",
+      "task": "予約キャンセルフロー — バックエンド疎通確認",
+      "detail": "フロントのキャンセルモーダルは実装済み。バックエンド PUT /bookings/{id}/cancel が正常動作するか確認",
+      "status": "pending",
+      "priority": "P1",
+      "blocked_by": null
+    },
+    {
+      "id": 10,
+      "role": "engineer",
+      "task": "Google Directions API 接続（リアルタイムルート）",
+      "detail": "現在は静的ETA表示。Google Maps Directions API で実ルート・所要時間を取得",
+      "status": "pending",
+      "priority": "P2",
+      "blocked_by": null
+    },
+    {
+      "id": 11,
+      "role": "engineer",
+      "task": "羽田フロー（/haneda）展開",
+      "detail": "/narita の構成をベースに羽田空港向けページを作成。T1/T2/T3 対応",
+      "status": "pending",
+      "priority": "P2",
+      "blocked_by": "task:4（成田で実績を作ってから）"
+    },
+    {
+      "id": 12,
+      "role": "engineer",
+      "task": "/admin 管理者ページ作成",
+      "detail": "全予約一覧・売上サマリ・ドライバー稼働状況を表示。Basic認証で保護",
+      "status": "pending",
+      "priority": "P2",
+      "blocked_by": null
+    }
+  ],
+  "completed": [
+    {
+      "id": 101,
+      "task": "ホテル50件静的リスト + ホテル名検索タブ（4言語）",
+      "commit": "043427a",
+      "done": "2026-03-23"
+    },
+    {
+      "id": 102,
+      "task": "乗り合わせ機能（テロップ・トースト・バッジ）",
+      "commit": "043427a",
+      "done": "2026-03-23"
+    },
+    {
+      "id": 103,
+      "task": "ブランド再定義（Japan Luggage Freedom）",
+      "commit": "b34f728",
+      "done": "2026-03-23"
+    },
+    {
+      "id": 104,
+      "task": "OGP・メタタグ設定（layout.tsx）",
+      "commit": "043427a",
+      "done": "2026-03-23"
+    },
+    {
+      "id": 105,
+      "task": "到着即観光ヒーローコピー変更（4言語）",
+      "commit": "043427a",
+      "done": "2026-03-23"
+    },
+    {
+      "id": 106,
+      "task": "予約キャンセルフロー実装（フロントエンド）",
+      "commit": "043427a",
+      "done": "2026-03-23"
+    },
+    {
+      "id": 107,
+      "task": "プレースホルダーUX改善（名前・電話）",
+      "commit": "58b80b5",
+      "done": "2026-03-23"
+    },
+    {
+      "id": 108,
+      "task": "羽田T1/T2/T3 料金 ¥12,000 に統一",
+      "commit": "043427a",
+      "done": "2026-03-23"
+    },
+    {
+      "id": 109,
+      "task": "/ → /narita リダイレクト・戻るボタン削除",
+      "commit": "e4394e5",
+      "done": "2026-03-23"
+    },
+    {
+      "id": 110,
+      "task": "/driver ルート新設（PIN認証付きドライバー専用画面）",
+      "commit": "a192e74",
+      "done": "2026-03-23"
+    },
+    {
+      "id": 111,
+      "task": "予約確認メール送信機能（Resend対応・4言語）",
+      "commit": "3713f63",
+      "done": "2026-03-23"
+    }
+  ]
+}
