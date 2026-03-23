@@ -64,11 +64,18 @@ class BookingRecord(Base):
     route_order_json  = Column(Text, nullable=True)
     estimated_minutes = Column(Integer, nullable=True)
 
-    # ドライバーGPS
+    # ドライバー/プレイヤーGPS
     driver_lat        = Column(Float, nullable=True)
     driver_lng        = Column(Float, nullable=True)
-    driver_status     = Column(String(32), nullable=True)   # heading | nearby | arrived
+    driver_status     = Column(String(32), nullable=True)
     driver_updated_at = Column(DateTime(timezone=True), nullable=True)
+
+    # AI Dispatcher
+    pickup_lat         = Column(Float, nullable=True)    # 旅行者GPS（将来）
+    pickup_lng         = Column(Float, nullable=True)
+    assigned_player_id = Column(Integer, nullable=True, index=True)
+    dispatch_reason    = Column(String(256), nullable=True)
+    dispatched_at      = Column(DateTime(timezone=True), nullable=True)
 
     created_at = Column(DateTime(timezone=True), nullable=False)
 
@@ -168,6 +175,12 @@ class PlayerRecord(Base):
     rank           = Column(String(16), default="new")    # new | trusted | elite
     created_at     = Column(DateTime(timezone=True), nullable=False)
 
+    # GPS近接マッチング用
+    lat                 = Column(Float, nullable=True)
+    lng                 = Column(Float, nullable=True)
+    location_updated_at = Column(DateTime(timezone=True), nullable=True)
+    is_available        = Column(Boolean, default=False)   # 待機中フラグ
+
 
 class PlayerReviewRecord(Base):
     __tablename__ = "player_reviews"
@@ -220,6 +233,75 @@ def update_player_score(db: Session, player: PlayerRecord, trust_score_result) -
         trust_score_result.completed_jobs - int(trust_score_result.on_time_rate * trust_score_result.completed_jobs)
     )
     db.commit()
+
+
+def update_player_location(db: Session, player: PlayerRecord, lat: float, lng: float, is_available: bool) -> None:
+    player.lat                 = lat
+    player.lng                 = lng
+    player.location_updated_at = datetime.now(timezone.utc)
+    player.is_available        = is_available
+    db.commit()
+
+
+def get_available_players_near(
+    db: Session, ref_lat: float, ref_lng: float, radius_km: float
+) -> list[tuple["PlayerRecord", float]]:
+    """利用可能・GPS有効・半径内のプレイヤーを（record, dist_km）のリストで返す（距離昇順）"""
+    import math
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=10)
+    candidates = (
+        db.query(PlayerRecord)
+        .filter(
+            PlayerRecord.is_available == True,       # noqa: E712
+            PlayerRecord.lat.isnot(None),
+            PlayerRecord.lng.isnot(None),
+            PlayerRecord.location_updated_at.isnot(None),
+            PlayerRecord.location_updated_at >= cutoff,
+        )
+        .all()
+    )
+
+    def haversine(lat1, lng1, lat2, lng2):
+        R = 6371.0
+        dlat = math.radians(lat2 - lat1)
+        dlng = math.radians(lng2 - lng1)
+        a = math.sin(dlat / 2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlng / 2) ** 2
+        return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+    result = []
+    for p in candidates:
+        dist = haversine(ref_lat, ref_lng, p.lat, p.lng)
+        if dist <= radius_km:
+            result.append((p, dist))
+    result.sort(key=lambda x: x[1])
+    return result
+
+
+def assign_player_to_booking(db: Session, booking_id: str, player_id: int, reason: str) -> None:
+    booking = db.query(BookingRecord).filter_by(booking_id=booking_id).first()
+    if booking:
+        booking.assigned_player_id = player_id
+        booking.dispatch_reason    = reason
+        booking.dispatched_at      = datetime.now(timezone.utc)
+        db.commit()
+
+
+def get_active_bookings_for_monitor(db: Session) -> list["BookingRecord"]:
+    """監視対象: delivered・cancelled以外のGPS更新がある予約"""
+    return (
+        db.query(BookingRecord)
+        .filter(
+            BookingRecord.status.notin_(["delivered", "cancelled"]),
+            BookingRecord.driver_status.isnot(None),
+        )
+        .all()
+    )
+
+
+def complete_booking_if_done(db: Session, booking: "BookingRecord") -> None:
+    if booking.driver_status == "done":
+        booking.status = "delivered"
+        db.commit()
 
 
 def get_unmatched_shareride(

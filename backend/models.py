@@ -75,7 +75,28 @@ class PlayerResponse(BaseModel):
 class DriverLocationUpdate(BaseModel):
     lat: Optional[float] = None
     lng: Optional[float] = None
-    driver_status: str = "heading"   # "heading" | "nearby" | "arrived" | "done"
+    driver_status: str = "heading"
+
+
+class PlayerLocationUpdate(BaseModel):
+    lat: float
+    lng: float
+    is_available: bool = True
+
+
+class DispatchResult(BaseModel):
+    ok: bool
+    player_id: Optional[int] = None
+    reason: str = ""
+    confidence: float = 0.0
+
+
+class MonitorAlert(BaseModel):
+    booking_id: Optional[str] = None
+    type: str
+    msg: str
+    stale_min: Optional[float] = None
+    player_status: Optional[str] = None
 
 
 class BookingResponse(BaseModel):

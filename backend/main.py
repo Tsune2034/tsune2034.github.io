@@ -22,13 +22,14 @@ from fastapi.security import APIKeyHeader
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 
-from .models import BriefingRequest, BriefingResponse, Industry, Language, BookingCreate, BookingResponse, MatchResult, DriverLocationUpdate, DriverRegistrationCreate, PlayerCreate, PlayerReviewCreate, PlayerResponse
+from .models import BriefingRequest, BriefingResponse, Industry, Language, BookingCreate, BookingResponse, MatchResult, DriverLocationUpdate, DriverRegistrationCreate, PlayerCreate, PlayerReviewCreate, PlayerResponse, PlayerLocationUpdate, DispatchResult, MonitorAlert
 from .briefing import generate_briefing
-from .database import SessionLocal, init_db, save_briefing, get_latest_briefing, BookingRecord, get_booking, save_booking, list_bookings, get_active_drivers, DriverRegistrationRecord, save_driver_registration, list_driver_registrations, PlayerRecord, PlayerReviewRecord, save_player, get_player, get_player_by_email, list_players, save_review, get_reviews_for_player, update_player_score
+from .database import SessionLocal, init_db, save_briefing, get_latest_briefing, BookingRecord, get_booking, save_booking, list_bookings, get_active_drivers, DriverRegistrationRecord, save_driver_registration, list_driver_registrations, PlayerRecord, PlayerReviewRecord, save_player, get_player, get_player_by_email, list_players, save_review, get_reviews_for_player, update_player_score, update_player_location, get_available_players_near, assign_player_to_booking, get_active_bookings_for_monitor
 from .trust_score import calculate, recalculate_from_reviews
 from .matching import find_and_match
 from .scheduler import TARGET_JOBS, run_daily_briefings
 from .email import send_booking_confirmation
+from .ai_ops import ai_dispatch, ai_monitor
 
 load_dotenv()
 log = logging.getLogger(__name__)
@@ -96,8 +97,15 @@ async def lifespan(app: FastAPI):
         id="daily_briefings",
         replace_existing=True,
     )
+    scheduler.add_job(
+        _scheduled_monitor,
+        "interval",
+        seconds=30,
+        id="ai_monitor",
+        replace_existing=True,
+    )
     scheduler.start()
-    log.info("Scheduler started — daily briefings at 06:00 UTC")
+    log.info("Scheduler started — daily briefings at 06:00 UTC, AI monitor every 30s")
 
     yield
 
@@ -106,10 +114,21 @@ async def lifespan(app: FastAPI):
 
 
 def _scheduled_briefings():
-    """Synchronous wrapper called by APScheduler."""
     db = SessionLocal()
     try:
         run_daily_briefings(db)
+    finally:
+        db.close()
+
+
+async def _scheduled_monitor():
+    db = SessionLocal()
+    try:
+        alerts = await ai_monitor(db)
+        if alerts:
+            log.info(f"[Monitor] {len(alerts)} alerts: {[a['type'] for a in alerts]}")
+    except Exception as e:
+        log.error(f"[Monitor] scheduled run failed: {e}")
     finally:
         db.close()
 
@@ -229,6 +248,12 @@ async def create_booking(req: BookingCreate, db: Session = Depends(get_db)):
         total=req.total_amount,
         locale=req.locale,
     )
+
+    # AI Dispatcher — 近接プレイヤーを自動アサイン（失敗しても予約は成立）
+    try:
+        await ai_dispatch(db, booking_id)
+    except Exception as e:
+        log.warning(f"AI dispatch failed (non-fatal): {e}")
 
     # LINE通知（オペレーターへ）
     await notify_line(
@@ -488,6 +513,50 @@ def add_review(player_id: int, req: PlayerReviewCreate, db: Session = Depends(ge
     }
 
 
+@app.put("/players/{player_id}/location")
+def update_player_location_endpoint(
+    player_id: int,
+    req: PlayerLocationUpdate,
+    db: Session = Depends(get_db),
+):
+    """
+    プレイヤーのGPS位置と待機状態を更新する。
+    PlayerView が GPS ON 時に 15〜60 秒ごとに呼び出す。
+    """
+    player = get_player(db, player_id)
+    if not player:
+        raise HTTPException(status_code=404, detail="Player not found")
+    update_player_location(db, player, req.lat, req.lng, req.is_available)
+    return {"ok": True, "player_id": player_id, "lat": req.lat, "lng": req.lng}
+
+
+@app.get("/players/nearby")
+def nearby_players(
+    lat: float,
+    lng: float,
+    radius: float = 3.0,
+    db: Session = Depends(get_db),
+):
+    """
+    旅行者のGPS座標から指定半径内の利用可能プレイヤーを返す。
+    TrackingView / マッチング画面で使用。
+    """
+    candidates = get_available_players_near(db, lat, lng, radius)
+    return [
+        {
+            "player_id": p.id,
+            "name": p.name,
+            "rank": p.rank,
+            "trust_score": round(p.trust_score, 1),
+            "avg_rating":  round(p.avg_rating, 2),
+            "completed_jobs": p.completed_jobs,
+            "distance_km": round(dist, 2),
+            "eta_min": max(1, round(dist / 5 * 60)),  # 徒歩5km/h想定
+        }
+        for p, dist in candidates
+    ]
+
+
 @app.put("/players/{player_id}/verify-id")
 def verify_player_id(player_id: int, db: Session = Depends(get_db), _: None = Depends(require_api_key)):
     """
@@ -529,6 +598,60 @@ def _player_to_response(p: PlayerRecord, breakdown: dict | None = None) -> Playe
         breakdown=breakdown,
         created_at=p.created_at.isoformat(),
     )
+
+
+# ───────────────────────── AI Ops endpoints ─────────────────────────
+
+@app.post("/ai/dispatch/{booking_id}", response_model=DispatchResult)
+async def dispatch_booking(booking_id: str, db: Session = Depends(get_db)):
+    """
+    指定予約に対して AI が最適プレイヤーを選択し自動アサインする。
+    予約作成後に自動呼び出し、または手動トリガー可能。
+    """
+    result = await ai_dispatch(db, booking_id)
+    return DispatchResult(**result)
+
+
+@app.get("/ai/monitor")
+async def monitor_deliveries(db: Session = Depends(get_db), _: None = Depends(require_api_key)):
+    """
+    全アクティブ配送の監視を手動実行する（管理者用）。
+    通常は 30 秒ごとに Scheduler が自動実行。
+    """
+    alerts = await ai_monitor(db)
+    return {"alerts": alerts, "count": len(alerts)}
+
+
+@app.get("/players/{player_id}/assignments")
+def get_player_assignments(player_id: int, db: Session = Depends(get_db)):
+    """
+    プレイヤーにアサインされた予約一覧を返す。
+    PlayerView が 10 秒ごとにポーリングして新規アサインを検出する。
+    """
+    bookings = (
+        db.query(BookingRecord)
+        .filter(
+            BookingRecord.assigned_player_id == player_id,
+            BookingRecord.status.notin_(["delivered", "cancelled"]),
+        )
+        .order_by(BookingRecord.dispatched_at.desc())
+        .limit(10)
+        .all()
+    )
+    return [
+        {
+            "booking_id":       b.booking_id,
+            "status":           b.status,
+            "pickup_location":  b.pickup_location,
+            "hotel_name":       b.hotel_name,
+            "plan":             b.plan,
+            "extra_bags":       b.extra_bags,
+            "total_amount":     b.total_amount,
+            "dispatch_reason":  b.dispatch_reason,
+            "dispatched_at":    b.dispatched_at.isoformat() if b.dispatched_at else None,
+        }
+        for b in bookings
+    ]
 
 
 @app.post("/briefing", response_model=BriefingResponse)

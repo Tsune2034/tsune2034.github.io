@@ -95,6 +95,100 @@ const STATUS_ICONS: Record<DeliveryStatus, string> = {
   delivered: "🏨",
 };
 
+// ───────────────────────── Hand-carry status helpers ─────────────────────────
+const HANDCARRY_STATUSES = new Set(["at_airport", "on_train", "walking"]);
+
+function isHandCarry(status: string): boolean {
+  return HANDCARRY_STATUSES.has(status);
+}
+
+const PLAYER_STEPS = ["at_airport", "on_train", "walking", "done"] as const;
+const PLAYER_STEP_LABELS: Record<string, string> = {
+  at_airport: "空港",
+  on_train:   "電車",
+  walking:    "徒歩",
+  done:       "完了",
+};
+const PLAYER_STATUS_LABELS: Record<string, { ja: string; en: string; zh: string; ko: string }> = {
+  at_airport: { ja: "空港で荷物受け取り中", en: "Receiving luggage at airport", zh: "在机场取行李", ko: "공항에서 짐 수령 중" },
+  on_train:   { ja: "電車で移動中",          en: "On the train",                zh: "乘坐电车中",    ko: "전철 이동 중"       },
+  walking:    { ja: "ホテルへ徒歩中",         en: "Walking to hotel",            zh: "步行前往酒店",  ko: "호텔까지 도보 중"  },
+  done:       { ja: "配達完了",              en: "Delivered",                   zh: "已送达",        ko: "배달 완료"          },
+};
+
+function PlayerProgressBar({ driver, locale }: { driver: DriverInfo; locale?: string }) {
+  const status = driver.status;
+  const currentIdx = PLAYER_STEPS.indexOf(status as typeof PLAYER_STEPS[number]);
+  const pct = Math.max(0, (currentIdx / (PLAYER_STEPS.length - 1)) * 100);
+  const lang = (locale ?? "en") as "ja" | "en" | "zh" | "ko";
+  const statusLabel = PLAYER_STATUS_LABELS[status]?.[lang] ?? status;
+
+  return (
+    <div className="bg-gray-800/60 border border-green-800/50 rounded-2xl p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">🧳</span>
+          <div>
+            <p className="text-xs font-bold text-green-400">Hand Carry</p>
+            <p className="text-xs font-semibold text-green-300">{statusLabel}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+          </span>
+          <span className="text-[10px] text-green-400">LIVE</span>
+          <span className="text-[10px] text-gray-600 ml-1">{driver.updatedAt}</span>
+        </div>
+      </div>
+
+      {/* 路線進捗バー */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between px-0.5">
+          {PLAYER_STEPS.map((s, i) => (
+            <span
+              key={s}
+              className={`text-[9px] font-semibold transition-colors ${
+                i < currentIdx  ? "text-green-500" :
+                i === currentIdx ? "text-green-300" :
+                "text-gray-700"
+              }`}
+            >
+              {PLAYER_STEP_LABELS[s]}
+            </span>
+          ))}
+        </div>
+        <div className="relative h-3 bg-gray-700 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-green-500 to-emerald-400 rounded-full transition-all duration-1000"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <div className="flex items-center justify-between px-0.5">
+          {PLAYER_STEPS.map((_, i) => (
+            <div
+              key={i}
+              className={`w-2.5 h-2.5 rounded-full border-2 transition-colors ${
+                i < currentIdx  ? "bg-green-500 border-green-500" :
+                i === currentIdx ? "bg-green-400 border-green-400 ring-2 ring-green-400/30" :
+                "bg-gray-800 border-gray-700"
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* 電車中のヒント */}
+      {status === "on_train" && (
+        <p className="text-[10px] text-purple-400 bg-purple-950/30 border border-purple-800/40 rounded-lg px-3 py-1.5">
+          電車乗車中 — 地下鉄圏外では最終位置を保持しています
+        </p>
+      )}
+    </div>
+  );
+}
+
 // ───────────────────────── Driver Location Card ─────────────────────────
 function DriverCard({ driver, tr }: { driver: DriverInfo; tr: Translation }) {
   const pct = Math.max(0, Math.min(100, 100 - (driver.distanceKm / 15) * 100));
@@ -199,7 +293,7 @@ function Timeline({ info, tr }: { info: TrackingInfo; tr: Translation }) {
 }
 
 // ───────────────────────── Main ─────────────────────────
-export default function TrackingView({ tr, initialNumber }: { tr: Translation; initialNumber?: string }) {
+export default function TrackingView({ tr, initialNumber, locale = "en" }: { tr: Translation; initialNumber?: string; locale?: string }) {
   const [input, setInput]     = useState(initialNumber ?? "");
   const [info, setInfo]       = useState<TrackingInfo | null>(initialNumber ? mockTrack(initialNumber) : null);
   const [notFound, setNotFound] = useState(false);
@@ -331,8 +425,12 @@ export default function TrackingView({ tr, initialNumber }: { tr: Translation; i
             )}
           </div>
 
-          {/* ドライバーGPS */}
-          {info.driver && <DriverCard driver={info.driver} tr={tr} />}
+          {/* GPS表示: ハンドキャリー=路線進捗バー、車=距離バー */}
+          {info.driver && (
+            isHandCarry(info.driver.status)
+              ? <PlayerProgressBar driver={info.driver} locale={locale} />
+              : <DriverCard driver={info.driver} tr={tr} />
+          )}
 
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
             <Timeline info={info} tr={tr} />

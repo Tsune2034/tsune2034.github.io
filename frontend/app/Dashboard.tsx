@@ -7,6 +7,7 @@ import TrackingView from "./TrackingView";
 import ChatWidget from "./ChatWidget";
 import BusinessView, { DriverSection } from "./BusinessView";
 import DriverView from "./DriverView";
+import PlayerView from "./PlayerView";
 import AdminView from "./AdminView";
 
 // ───────────────────────── Types ─────────────────────────
@@ -1721,6 +1722,10 @@ export default function Dashboard() {
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
             <AdminView />
           </div>
+        ) : view === "player" ? (
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+            <PlayerView />
+          </div>
         ) : view === "driver" ? (
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
             <DriverView tr={tr} />
@@ -1733,7 +1738,7 @@ export default function Dashboard() {
           <BusinessView tr={tr} />
         ) : view === "track" ? (
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-            <TrackingView tr={tr} initialNumber={trackingForView} />
+            <TrackingView tr={tr} initialNumber={trackingForView} locale={locale} />
           </div>
         ) : (
           <>
@@ -1805,7 +1810,7 @@ export default function Dashboard() {
         )}
       </main>
 
-      {/* Hidden links — driver & admin */}
+      {/* Hidden links — driver, player & admin */}
       <div className="flex justify-center gap-4 pb-6">
         <button
           type="button"
@@ -1813,6 +1818,13 @@ export default function Dashboard() {
           className="text-[10px] text-gray-800 hover:text-gray-600 transition-colors"
         >
           🚐
+        </button>
+        <button
+          type="button"
+          onClick={() => setView("player")}
+          className="text-[10px] text-gray-800 hover:text-gray-600 transition-colors"
+        >
+          🧳
         </button>
         <button
           type="button"
