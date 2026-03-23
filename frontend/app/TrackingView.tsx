@@ -3,6 +3,18 @@
 import { useState, useEffect, useCallback } from "react";
 import type { Translation } from "./i18n";
 
+// ───────────────────────── Nearby Player types ─────────────────────────
+interface NearbyPlayer {
+  player_id: number;
+  name: string;
+  rank: string;
+  trust_score: number;
+  avg_rating: number;
+  completed_jobs: number;
+  distance_km: number;
+  eta_min: number;
+}
+
 // ───────────────────────── Types ─────────────────────────
 type DeliveryStatus = "booked" | "confirmed" | "pickup" | "transit" | "delivered";
 
@@ -292,6 +304,177 @@ function Timeline({ info, tr }: { info: TrackingInfo; tr: Translation }) {
   );
 }
 
+// ───────────────────────── Nearby Players Panel ─────────────────────────
+const RANK_BADGE: Record<string, { label: string; color: string }> = {
+  new:     { label: "New",     color: "bg-gray-600/40 text-gray-300 border-gray-600/50"       },
+  trusted: { label: "Trusted", color: "bg-sky-600/30 text-sky-300 border-sky-500/40"          },
+  elite:   { label: "Elite",   color: "bg-amber-500/30 text-amber-300 border-amber-500/40"    },
+};
+
+function NearbyPlayersPanel({
+  bookingId,
+  locale,
+}: {
+  bookingId: string;
+  locale: string;
+}) {
+  const [players, setPlayers]     = useState<NearbyPlayer[]>([]);
+  const [loading, setLoading]     = useState(false);
+  const [gpsError, setGpsError]   = useState(false);
+  const [selected, setSelected]   = useState<number | null>(null);
+  const [dispatching, setDispatching] = useState(false);
+  const [dispatched, setDispatched]   = useState(false);
+
+  const labels: Record<string, Record<string, string>> = {
+    title:    { en: "Available Players Nearby", ja: "近くのプレイヤー", zh: "附近的快递员", ko: "근처 플레이어" },
+    subtitle: { en: "AI auto-selects best match", ja: "AIが最適プレイヤーを自動選択", zh: "AI自动选择最优", ko: "AI가 최적 플레이어 자동 선택" },
+    find:     { en: "Find nearby players", ja: "近くを検索", zh: "搜索附近", ko: "근처 검색" },
+    select:   { en: "Select", ja: "選択", zh: "选择", ko: "선택" },
+    dispatch: { en: "Request this player", ja: "このプレイヤーにリクエスト", zh: "请求此快递员", ko: "이 플레이어 요청" },
+    done:     { en: "Request sent! AI will confirm.", ja: "リクエスト送信済み！AIが確認します", zh: "请求已发送！AI将确认", ko: "요청 전송됨! AI가 확인합니다" },
+    eta:      { en: "min", ja: "分", zh: "分钟", ko: "분" },
+    jobs:     { en: "jobs", ja: "件", zh: "件", ko: "건" },
+    none:     { en: "No players nearby right now", ja: "現在近くにプレイヤーがいません", zh: "目前附近没有快递员", ko: "현재 근처에 플레이어가 없습니다" },
+    nogps:    { en: "Enable GPS to find players", ja: "GPSを許可してプレイヤーを検索", zh: "允许GPS搜索快递员", ko: "GPS 허용하여 플레이어 검색" },
+  };
+  const L = (key: string) => labels[key]?.[locale] ?? labels[key]?.["en"] ?? key;
+
+  function findNearby() {
+    if (!navigator.geolocation) { setGpsError(true); return; }
+    setLoading(true);
+    setGpsError(false);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude: lat, longitude: lng } = pos.coords;
+          const res = await fetch(`/api/players-nearby?lat=${lat}&lng=${lng}&radius=3`);
+          if (res.ok) setPlayers(await res.json());
+        } catch { /* ignore */ } finally {
+          setLoading(false);
+        }
+      },
+      () => { setGpsError(true); setLoading(false); },
+      { enableHighAccuracy: true, timeout: 8000 },
+    );
+  }
+
+  async function requestDispatch() {
+    if (!selected) return;
+    setDispatching(true);
+    try {
+      await fetch("/api/dispatch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ booking_id: bookingId }),
+      });
+      setDispatched(true);
+    } catch { /* ignore */ } finally {
+      setDispatching(false);
+    }
+  }
+
+  if (dispatched) {
+    return (
+      <div className="bg-emerald-950/40 border border-emerald-700/50 rounded-2xl px-4 py-4 text-center space-y-1">
+        <p className="text-emerald-400 font-bold text-sm">✅ {L("done")}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-gray-800/50 border border-gray-700/60 rounded-2xl p-4 space-y-3">
+      {/* ヘッダー */}
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs font-bold text-white">{L("title")}</p>
+          <p className="text-[10px] text-gray-500 mt-0.5">{L("subtitle")}</p>
+        </div>
+        <button
+          type="button"
+          onClick={findNearby}
+          disabled={loading}
+          className="px-3 py-1.5 rounded-xl bg-amber-500 text-gray-950 text-xs font-semibold hover:bg-amber-400 transition-colors disabled:opacity-50"
+        >
+          {loading ? "…" : L("find")}
+        </button>
+      </div>
+
+      {/* GPS エラー */}
+      {gpsError && (
+        <p className="text-[11px] text-amber-400 bg-amber-950/30 border border-amber-800/40 rounded-xl px-3 py-2">
+          {L("nogps")}
+        </p>
+      )}
+
+      {/* プレイヤーなし */}
+      {!loading && players.length === 0 && !gpsError && (
+        <p className="text-[11px] text-gray-600 text-center py-2">{L("none")}</p>
+      )}
+
+      {/* プレイヤー一覧 */}
+      {players.length > 0 && (
+        <div className="space-y-2">
+          {players.map((p) => {
+            const badge = RANK_BADGE[p.rank] ?? RANK_BADGE.new;
+            const isSelected = selected === p.player_id;
+            return (
+              <button
+                key={p.player_id}
+                type="button"
+                onClick={() => setSelected(isSelected ? null : p.player_id)}
+                className={`w-full text-left rounded-xl border px-3 py-2.5 transition-all ${
+                  isSelected
+                    ? "border-amber-500/70 bg-amber-950/30"
+                    : "border-gray-700/60 bg-gray-900/50 hover:border-gray-600"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  {/* ランクバッジ */}
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border flex-shrink-0 ${badge.color}`}>
+                    {badge.label}
+                  </span>
+                  {/* 名前 */}
+                  <p className="text-xs font-semibold text-white flex-1 truncate">{p.name}</p>
+                  {/* 評価 */}
+                  {p.avg_rating > 0 && (
+                    <p className="text-xs text-amber-300 flex-shrink-0">
+                      ★ {p.avg_rating.toFixed(1)}
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-3 mt-1.5 text-[10px] text-gray-500">
+                  <span>📍 {p.distance_km.toFixed(1)} km</span>
+                  <span>⏱ {p.eta_min}{L("eta")}</span>
+                  <span>✅ {p.completed_jobs}{L("jobs")}</span>
+                </div>
+                {/* 信頼スコアバー */}
+                <div className="mt-1.5 h-0.5 bg-gray-700 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-amber-500 to-amber-300 rounded-full"
+                    style={{ width: `${Math.min(100, p.trust_score)}%` }}
+                  />
+                </div>
+              </button>
+            );
+          })}
+
+          {/* リクエストボタン */}
+          {selected && (
+            <button
+              type="button"
+              onClick={requestDispatch}
+              disabled={dispatching}
+              className="w-full py-2.5 rounded-xl bg-amber-500 text-gray-950 font-bold text-sm hover:bg-amber-400 transition-colors disabled:opacity-50"
+            >
+              {dispatching ? "…" : L("dispatch")}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ───────────────────────── Main ─────────────────────────
 export default function TrackingView({ tr, initialNumber, locale = "en" }: { tr: Translation; initialNumber?: string; locale?: string }) {
   const [input, setInput]     = useState(initialNumber ?? "");
@@ -430,6 +613,11 @@ export default function TrackingView({ tr, initialNumber, locale = "en" }: { tr:
             isHandCarry(info.driver.status)
               ? <PlayerProgressBar driver={info.driver} locale={locale} />
               : <DriverCard driver={info.driver} tr={tr} />
+          )}
+
+          {/* プレイヤー選択UI: 予約確認済み・未アサイン時に表示 */}
+          {(info.status === "confirmed" || info.status === "booked") && !info.driver && (
+            <NearbyPlayersPanel bookingId={info.trackingNumber} locale={locale} />
           )}
 
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
