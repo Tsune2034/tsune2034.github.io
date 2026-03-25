@@ -301,6 +301,56 @@ export default function TrafficPage() {
           </div>
         </div>
 
+        {/* ─── CTA：手ぶら配送 ─── */}
+        <div className="px-4 py-4">
+          <div className="max-w-2xl mx-auto">
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl px-4 py-4 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-bold text-amber-400">荷物を持たずに移動しませんか？</p>
+                <p className="text-[11px] text-gray-500 mt-0.5">成田・羽田発 — ホテルまで先に届けます</p>
+              </div>
+              <a
+                href="/narita"
+                className="shrink-0 bg-amber-500 text-gray-950 font-black text-xs px-4 py-2.5 rounded-xl hover:bg-amber-400 transition-colors"
+              >
+                無料で予約 →
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* ─── SEO コンテンツ ─── */}
+        <div className="px-4 py-4 border-t border-gray-800/50">
+          <div className="max-w-2xl mx-auto space-y-5">
+            <div>
+              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">成田空港の渋滞について</h2>
+              <p className="text-[11px] text-gray-600 leading-relaxed">
+                成田空港から都心へのアクセスは主に東関東自動車道・京葉道路・国道51号の3ルートがあります。
+                平日朝8〜10時・夕方17〜20時は慢性的な渋滞が発生しやすく、特に東関東道の千葉北IC〜宮野木JCT間は渋滞の名所です。
+                週末・連休前後は全ルートで混雑が激化し、成田空港ICから都心まで通常の2〜3倍の時間がかかることがあります。
+                KAIROXの実配送データによる渋滞情報は、一般的な交通情報と組み合わせてご活用ください。
+              </p>
+            </div>
+            <div>
+              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">羽田空港の渋滞について</h2>
+              <p className="text-[11px] text-gray-600 leading-relaxed">
+                羽田空港から都心へは首都高速湾岸線・1号羽田線が主なルートです。
+                平日朝は羽田空港IC〜浜崎橋JCT間で慢性的な渋滞が発生します。
+                国際線ターミナル（T3）からは空港連絡バスや都心直行バスも選択肢ですが、朝夕のラッシュ時は道路渋滞の影響を受けます。
+                本マップでは羽田〜成田間の連絡ルート（首都高・東関東道経由）も監視しています。
+              </p>
+            </div>
+            <div>
+              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">渋滞を避けるには</h2>
+              <p className="text-[11px] text-gray-600 leading-relaxed">
+                空港から宿泊先へ大きな荷物を持って移動する場合、渋滞は特に負担になります。
+                KAIROXの手ぶら配送サービスを使えば、荷物をそのままホテルへ先送りできるため、混雑した電車やバスでも身軽に移動できます。
+                成田空港・羽田空港対応。カウンター不要・締め切りなし。
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* ─── フッター ─── */}
         <div className="px-4 py-5 border-t border-gray-800 mt-2">
           <div className="max-w-2xl mx-auto text-center space-y-1">
@@ -308,10 +358,7 @@ export default function TrafficPage() {
               データ提供: KAIROX 実配送GPS + Google Traffic
             </p>
             <p className="text-[10px] text-gray-700">
-              成田・羽田空港の手ぶら配送サービス —{" "}
-              <a href="/narita" className="text-amber-500/70 hover:text-amber-400 transition-colors">
-                KAIROX で荷物を預ける
-              </a>
+              © 2026 KAIROX — Japan Luggage Freedom
             </p>
           </div>
         </div>

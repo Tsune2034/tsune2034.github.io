@@ -1,13 +1,17 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "KAIROX Traffic | 成田・羽田 空港ルート リアルタイム渋滞情報",
+  title: "成田空港・羽田空港 リアルタイム渋滞情報 | KAIROX Traffic",
   description:
-    "成田空港・羽田空港発着の主要ルートをリアルタイム渋滞情報で確認。KAIROXが実際の配送走行データから生成した関東エリアの交通状況マップ。",
-  keywords: ["成田空港 渋滞", "羽田空港 渋滞", "関東 交通情報", "空港 ルート", "KAIROX"],
+    "成田空港・羽田空港発着の主要ルート（東関東道・首都高・国道357号）をリアルタイム渋滞情報で確認。実配送GPSデータとGoogleトラフィックを組み合わせた関東エリアの交通状況マップ。",
+  keywords: [
+    "成田空港 渋滞", "羽田空港 渋滞", "東関東道 渋滞", "首都高 渋滞",
+    "成田空港 渋滞 今日", "羽田空港 渋滞 リアルタイム", "空港 ルート 渋滞",
+    "関東 交通情報", "KAIROX"
+  ],
   openGraph: {
-    title: "KAIROX Traffic — 成田・羽田 リアルタイム渋滞マップ",
-    description: "実配送データから生成した空港ルート渋滞情報",
+    title: "成田・羽田 リアルタイム渋滞マップ | KAIROX Traffic",
+    description: "実配送GPSデータから生成した空港ルート渋滞情報。東関東道・首都高・国道357号をリアルタイム表示。",
     type: "website",
   },
 };
