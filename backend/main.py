@@ -365,12 +365,14 @@ def _analyze_route_on_complete(db: Session, booking: BookingRecord) -> None:
 
     first = track[0]
     last  = track[-1]
-    jst_hour = track[0].recorded_at.astimezone(timezone(timedelta(hours=9))).hour
+    jst_hour   = track[0].recorded_at.astimezone(timezone(timedelta(hours=9))).hour
     pickup_grid = f"{round(first.lat, 1)},{round(first.lng, 1)}"
     dest_grid   = f"{round(last.lat,  1)},{round(last.lng,  1)}"
+    # 最後のtrack点のroute_typeを採用（走行中に変更された場合も最終設定を優先）
+    route_type  = track[-1].route_type or "local"
 
-    upsert_route_stats(db, pickup_grid, dest_grid, jst_hour, actual_min)
-    log.info(f"[RouteLearn] {booking.booking_id}: {pickup_grid}→{dest_grid} {actual_min:.1f}min (JST{jst_hour}h)")
+    upsert_route_stats(db, pickup_grid, dest_grid, jst_hour, actual_min, route_type)
+    log.info(f"[RouteLearn] {booking.booking_id}: {pickup_grid}→{dest_grid} [{route_type}] {actual_min:.1f}min (JST{jst_hour}h)")
 
 
 @app.put("/bookings/{booking_id}/driver-location")
@@ -387,8 +389,8 @@ def update_driver_location(
     if req.lat is not None:
         record.driver_lat = req.lat
         record.driver_lng = req.lng
-        # GPS学習: 全点を履歴テーブルに保存
-        save_gps_point(db, booking_id, req.lat, req.lng, req.driver_status)
+        # GPS学習: 全点を履歴テーブルに保存（route_typeも記録）
+        save_gps_point(db, booking_id, req.lat, req.lng, req.driver_status, req.route_type)
 
     record.driver_status     = req.driver_status
     record.driver_updated_at = datetime.now(timezone.utc)
@@ -411,11 +413,12 @@ def update_driver_location(
 @app.get("/route-stats/correction")
 def get_correction_factor(
     olat: float, olng: float, dlat: float, dlng: float, hour: int,
+    route_type: str = "local",
     db: Session = Depends(get_db),
 ):
     """ETA補正係数を返す。学習データ不足なら correction_factor=1.0"""
-    factor = get_route_correction(db, olat, olng, dlat, dlng, hour)
-    return {"correction_factor": factor or 1.0, "has_data": factor is not None}
+    factor = get_route_correction(db, olat, olng, dlat, dlng, hour, route_type)
+    return {"correction_factor": factor or 1.0, "has_data": factor is not None, "route_type": route_type}
 
 
 @app.get("/route-stats")

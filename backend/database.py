@@ -91,6 +91,7 @@ class GpsTrackPoint(Base):
     lat           = Column(Float, nullable=False)
     lng           = Column(Float, nullable=False)
     driver_status = Column(String(32), nullable=True)
+    route_type    = Column(String(16), default="local")  # "highway" | "local"
     recorded_at   = Column(DateTime(timezone=True), nullable=False)
 
 
@@ -102,6 +103,7 @@ class RouteStats(Base):
     # 0.1度グリッドで丸めたルート識別（例: "35.7,140.4"）
     pickup_grid       = Column(String(32), nullable=False, index=True)
     dest_grid         = Column(String(32), nullable=False, index=True)
+    route_type        = Column(String(16), default="local", index=True)  # "highway" | "local"
     hour_of_day       = Column(Integer, nullable=False)   # JST 0-23
     actual_min        = Column(Float, nullable=False)     # 最新実走行時間
     avg_actual_min    = Column(Float, nullable=False)     # 加重平均
@@ -111,12 +113,14 @@ class RouteStats(Base):
     updated_at        = Column(DateTime(timezone=True), nullable=False)
 
 
-def save_gps_point(db: Session, booking_id: str, lat: float, lng: float, status: str) -> None:
+def save_gps_point(db: Session, booking_id: str, lat: float, lng: float,
+                   status: str, route_type: str = "local") -> None:
     db.add(GpsTrackPoint(
         booking_id=booking_id,
         lat=lat,
         lng=lng,
         driver_status=status,
+        route_type=route_type,
         recorded_at=datetime.now(timezone.utc),
     ))
     # commit は呼び出し元に任せる
@@ -137,12 +141,14 @@ def upsert_route_stats(
     dest_grid: str,
     hour: int,
     actual_min: float,
+    route_type: str = "local",
     google_est_min: float | None = None,
 ) -> None:
     """既存レコードがあれば加重平均で更新、なければINSERT"""
     existing = (
         db.query(RouteStats)
-        .filter_by(pickup_grid=pickup_grid, dest_grid=dest_grid, hour_of_day=hour)
+        .filter_by(pickup_grid=pickup_grid, dest_grid=dest_grid,
+                   route_type=route_type, hour_of_day=hour)
         .first()
     )
     if existing:
@@ -159,6 +165,7 @@ def upsert_route_stats(
         db.add(RouteStats(
             pickup_grid=pickup_grid,
             dest_grid=dest_grid,
+            route_type=route_type,
             hour_of_day=hour,
             actual_min=actual_min,
             avg_actual_min=actual_min,
@@ -171,13 +178,15 @@ def upsert_route_stats(
 
 
 def get_route_correction(db: Session, pickup_lat: float, pickup_lng: float,
-                         dest_lat: float, dest_lng: float, hour: int) -> float | None:
+                         dest_lat: float, dest_lng: float, hour: int,
+                         route_type: str = "local") -> float | None:
     """学習済みの補正係数を返す。データ不足なら None"""
     pickup_grid = f"{round(pickup_lat, 1)},{round(pickup_lng, 1)}"
     dest_grid   = f"{round(dest_lat,   1)},{round(dest_lng,   1)}"
     row = (
         db.query(RouteStats)
-        .filter_by(pickup_grid=pickup_grid, dest_grid=dest_grid, hour_of_day=hour)
+        .filter_by(pickup_grid=pickup_grid, dest_grid=dest_grid,
+                   route_type=route_type, hour_of_day=hour)
         .first()
     )
     # サンプル3件未満は信頼性が低いので使わない

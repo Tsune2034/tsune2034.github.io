@@ -18,19 +18,23 @@ const STATUS_CONFIG: Record<DriverStatus, { label: string; color: string; next?:
   done:    { label: "✅ 配達完了",          color: "bg-gray-600"                   },
 };
 
+type RouteType = "highway" | "local";
+
 interface ActiveDelivery {
   bookingId: string;
   status: DriverStatus;
   gpsActive: boolean;
+  routeType: RouteType;
 }
 
 // ───────────────────────── GPS・ステータス送信 ─────────────────────────
-async function pushLocation(bookingId: string, lat: number, lng: number, driverStatus: string) {
+async function pushLocation(bookingId: string, lat: number, lng: number,
+                            driverStatus: string, routeType: string) {
   try {
     await fetch(`/api/booking?id=${encodeURIComponent(bookingId)}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lat, lng, driver_status: driverStatus }),
+      body: JSON.stringify({ lat, lng, driver_status: driverStatus, route_type: routeType }),
     });
   } catch {
     // GPS送信失敗は無視（次回リトライ）
@@ -38,12 +42,12 @@ async function pushLocation(bookingId: string, lat: number, lng: number, driverS
 }
 
 // ステータスのみ送信（GPS OFF時も必ず呼ぶ）
-async function pushStatus(bookingId: string, driverStatus: string) {
+async function pushStatus(bookingId: string, driverStatus: string, routeType: string) {
   try {
     await fetch(`/api/booking?id=${encodeURIComponent(bookingId)}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ driver_status: driverStatus }),
+      body: JSON.stringify({ driver_status: driverStatus, route_type: routeType }),
     });
   } catch {
     // 失敗は無視
@@ -291,13 +295,16 @@ function DeliveryCard({
   delivery,
   onStatusNext,
   onToggleGps,
+  onToggleRouteType,
 }: {
   delivery: ActiveDelivery;
   onStatusNext: (id: string) => void;
   onToggleGps: (id: string) => void;
+  onToggleRouteType: (id: string) => void;
 }) {
   const cfg = STATUS_CONFIG[delivery.status];
   const nextCfg = cfg.next ? STATUS_CONFIG[cfg.next] : null;
+  const isHighway = delivery.routeType === "highway";
 
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 space-y-3">
@@ -307,6 +314,34 @@ function DeliveryCard({
           {cfg.label}
         </span>
       </div>
+
+      {/* ルート種別トグル */}
+      <button
+        type="button"
+        onClick={() => onToggleRouteType(delivery.bookingId)}
+        className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl border transition-all ${
+          isHighway
+            ? "border-violet-600 bg-violet-950/30"
+            : "border-green-800 bg-green-950/20"
+        }`}
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-base">{isHighway ? "🛣️" : "🏘️"}</span>
+          <div className="text-left">
+            <p className={`text-xs font-bold ${isHighway ? "text-violet-300" : "text-green-400"}`}>
+              {isHighway ? "高速道路" : "一般道"}
+            </p>
+            <p className="text-[10px] text-gray-600">
+              {isHighway ? "学習: 高速ルート" : "学習: 一般ルート"}
+            </p>
+          </div>
+        </div>
+        <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+          isHighway ? "bg-violet-900/50 text-violet-400" : "bg-green-900/40 text-green-500"
+        }`}>
+          タップで切替
+        </span>
+      </button>
 
       {/* GPS状態 */}
       <button
@@ -320,12 +355,10 @@ function DeliveryCard({
       >
         <div className="relative flex-shrink-0">
           {delivery.gpsActive ? (
-            <>
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-sky-500" />
-              </span>
-            </>
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-sky-500" />
+            </span>
           ) : (
             <span className="w-2.5 h-2.5 rounded-full bg-gray-600 inline-block" />
           )}
@@ -388,8 +421,16 @@ export default function DriverView({ tr }: { tr: Translation }) {
   function addDelivery() {
     const id = bookingInput.trim().toUpperCase();
     if (!id.startsWith("KRX-") || deliveries.find((d) => d.bookingId === id)) return;
-    setDeliveries((prev) => [...prev, { bookingId: id, status: "heading", gpsActive: false }]);
+    setDeliveries((prev) => [...prev, { bookingId: id, status: "heading", gpsActive: false, routeType: "local" }]);
     setBookingInput("");
+  }
+
+  function toggleRouteType(bookingId: string) {
+    setDeliveries((prev) => prev.map((d) =>
+      d.bookingId === bookingId
+        ? { ...d, routeType: d.routeType === "highway" ? "local" : "highway" }
+        : d
+    ));
   }
 
   function toggleGps(bookingId: string) {
@@ -416,14 +457,14 @@ export default function DriverView({ tr }: { tr: Translation }) {
       const send = () => {
         if (lastLat === 0) return;
         const d = deliveries.find((x) => x.bookingId === bookingId);
-        pushLocation(bookingId, lastLat, lastLng, d?.status ?? "heading");
+        pushLocation(bookingId, lastLat, lastLng, d?.status ?? "heading", d?.routeType ?? "local");
       };
 
       const wid = navigator.geolocation.watchPosition(
         (pos) => {
           lastLat = pos.coords.latitude;
           lastLng = pos.coords.longitude;
-          pushLocation(bookingId, lastLat, lastLng, delivery.status);
+          pushLocation(bookingId, lastLat, lastLng, delivery.status, delivery.routeType);
         },
         () => {},
         { enableHighAccuracy: true, timeout: 10000 },
@@ -445,12 +486,12 @@ export default function DriverView({ tr }: { tr: Translation }) {
       if (d.gpsActive) {
         // GPS ON: 位置情報つきで送信
         navigator.geolocation?.getCurrentPosition(
-          (pos) => pushLocation(bookingId, pos.coords.latitude, pos.coords.longitude, next),
-          () => pushStatus(bookingId, next), // GPS取得失敗時はステータスのみ
+          (pos) => pushLocation(bookingId, pos.coords.latitude, pos.coords.longitude, next, d.routeType),
+          () => pushStatus(bookingId, next, d.routeType),
         );
       } else {
         // GPS OFF でもステータスは必ず送信
-        pushStatus(bookingId, next);
+        pushStatus(bookingId, next, d.routeType);
       }
       return { ...d, status: next };
     }));
@@ -536,6 +577,7 @@ export default function DriverView({ tr }: { tr: Translation }) {
                 delivery={d}
                 onStatusNext={statusNext}
                 onToggleGps={toggleGps}
+                onToggleRouteType={toggleRouteType}
               />
               <button
                 type="button"

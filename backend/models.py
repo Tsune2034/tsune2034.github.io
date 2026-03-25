@@ -76,6 +76,7 @@ class DriverLocationUpdate(BaseModel):
     lat: Optional[float] = None
     lng: Optional[float] = None
     driver_status: str = "heading"
+    route_type: str = "local"   # "highway" | "local"
 
 
 class PlayerLocationUpdate(BaseModel):
@@ -109,6 +110,7 @@ class BookingResponse(BaseModel):
     driver_lng: Optional[float] = None
     driver_status: Optional[str] = None
     driver_updated_at: Optional[str] = None
+    player_id: Optional[int] = None
 
 
 
