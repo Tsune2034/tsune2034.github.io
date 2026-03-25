@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const API_KEY = process.env.GOOGLE_MAPS_API_KEY ?? "";
+const API_KEY   = process.env.GOOGLE_MAPS_API_KEY ?? "";
+const BACKEND   = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 export interface EtaResult {
   durationMin: number;
   distanceKm: number;
   summary: string; // e.g. "首都高速経由"
-  source: "google" | "estimate";
+  source: "google" | "estimate" | "learned"; // learned = 自社学習補正済み
+  correctionFactor?: number;
 }
 
 export async function GET(req: NextRequest) {
@@ -51,16 +53,33 @@ export async function GET(req: NextRequest) {
     }
 
     const leg = json.routes[0].legs[0];
+    const googleMin = Math.round(leg.duration.value / 60);
+
+    // 学習済み補正係数を取得（バックエンドから）
+    let correctionFactor = 1.0;
+    try {
+      const hour = new Date().getHours(); // JST近似
+      const statsUrl = `${BACKEND}/route-stats/correction?olat=${originLat}&olng=${originLng}&dlat=${destLat}&dlng=${destLng}&hour=${hour}`;
+      const statsRes = await fetch(statsUrl, { next: { revalidate: 300 } });
+      if (statsRes.ok) {
+        const stats = await statsRes.json();
+        if (stats.correction_factor) correctionFactor = stats.correction_factor;
+      }
+    } catch {
+      // 学習データなし → 補正なし
+    }
+
+    const learnedMin = Math.round(googleMin * correctionFactor);
     return NextResponse.json({
-      durationMin: Math.round(leg.duration.value / 60),
-      distanceKm:  Math.round(leg.distance.value / 100) / 10,
-      summary:     json.routes[0].summary ?? "",
-      source:      "google",
+      durationMin:      learnedMin,
+      distanceKm:       Math.round(leg.distance.value / 100) / 10,
+      summary:          json.routes[0].summary ?? "",
+      source:           correctionFactor !== 1.0 ? "learned" : "google",
+      correctionFactor: correctionFactor !== 1.0 ? correctionFactor : undefined,
     } satisfies EtaResult);
 
   } catch (err) {
     console.error("[eta API]", err);
-    // フォールバック
     return NextResponse.json({
       durationMin: Math.round((distKm / 30) * 60),
       distanceKm: Math.round(distKm * 10) / 10,

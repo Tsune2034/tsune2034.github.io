@@ -9,7 +9,7 @@ import os
 import random
 import string
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 import stripe
 import anthropic
@@ -24,7 +24,7 @@ from sqlalchemy.orm import Session
 
 from .models import BriefingRequest, BriefingResponse, Industry, Language, BookingCreate, BookingResponse, MatchResult, DriverLocationUpdate, DriverRegistrationCreate, PlayerCreate, PlayerReviewCreate, PlayerResponse, PlayerLocationUpdate, DispatchResult, MonitorAlert
 from .briefing import generate_briefing
-from .database import SessionLocal, init_db, save_briefing, get_latest_briefing, BookingRecord, get_booking, save_booking, list_bookings, get_active_drivers, DriverRegistrationRecord, save_driver_registration, list_driver_registrations, PlayerRecord, PlayerReviewRecord, save_player, get_player, get_player_by_email, list_players, save_review, get_reviews_for_player, update_player_score, update_player_location, get_available_players_near, assign_player_to_booking, get_active_bookings_for_monitor
+from .database import SessionLocal, init_db, save_briefing, get_latest_briefing, BookingRecord, get_booking, save_booking, list_bookings, get_active_drivers, DriverRegistrationRecord, save_driver_registration, list_driver_registrations, PlayerRecord, PlayerReviewRecord, save_player, get_player, get_player_by_email, list_players, save_review, get_reviews_for_player, update_player_score, update_player_location, get_available_players_near, assign_player_to_booking, get_active_bookings_for_monitor, GpsTrackPoint, RouteStats, save_gps_point, get_gps_track, upsert_route_stats, get_route_correction
 from .trust_score import calculate, recalculate_from_reviews
 from .matching import find_and_match
 from .scheduler import TARGET_JOBS, run_daily_briefings
@@ -61,15 +61,24 @@ async def generate_ai_message(name: str, booking_id: str, pickup: str, destinati
 
 # ─── LINE Notify ───
 async def notify_line(booking_id: str, name: str, phone: str, pickup: str,
-                      destination: str, total: int, pay_method: str) -> None:
+                      destination: str, total: int, pay_method: str,
+                      pickup_date: str = "") -> None:
     token = os.getenv("LINE_NOTIFY_TOKEN", "")
     if not token:
         log.info("LINE_NOTIFY_TOKEN not set — skipping LINE notification")
         return
     cancel_url = f"https://frontend-psi-seven-15.vercel.app/driver/approve/{booking_id}"
+
+    # 翌日の予約かチェック（JST基準）
+    jst_now = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=9)))
+    tomorrow_str = (jst_now + timedelta(days=1)).strftime("%Y-%m-%d")
+    is_tomorrow = pickup_date and pickup_date.startswith(tomorrow_str)
+
+    priority_line = "\n🚗 【KAIROX優先】明日の下請けはお断りください！" if is_tomorrow else ""
     msg = (
-        f"\n🔔 新規予約 {booking_id}"
+        f"\n🔔 新規予約 {booking_id}{priority_line}"
         f"\n👤 {name}  📞 {phone}"
+        f"\n📅 集荷日：{pickup_date or '未設定'}"
         f"\n📍 集荷：{pickup}"
         f"\n🏨 配達先：{destination}"
         f"\n💰 ¥{total:,}（{pay_method}）"
@@ -264,6 +273,7 @@ async def create_booking(req: BookingCreate, db: Session = Depends(get_db)):
         destination=req.hotel_name or req.destination,
         total=req.total_amount,
         pay_method=req.pay_method,
+        pickup_date=req.pickup_date,
     )
 
     # 予約確認メール送信（失敗しても予約は成立）
@@ -323,6 +333,7 @@ def get_booking_endpoint(booking_id: str, db: Session = Depends(get_db)):
         driver_lng=record.driver_lng,
         driver_status=record.driver_status,
         driver_updated_at=record.driver_updated_at.isoformat() if record.driver_updated_at else None,
+        player_id=record.assigned_player_id,
     )
 
 
@@ -342,6 +353,26 @@ def cancel_booking(
     return {"ok": True, "booking_id": booking_id, "status": "cancelled"}
 
 
+def _analyze_route_on_complete(db: Session, booking: BookingRecord) -> None:
+    """配送完了時: GPS履歴から実走行時間を計算しRouteStatsに保存"""
+    track = get_gps_track(db, booking.booking_id)
+    if len(track) < 3:
+        return  # データ不足
+
+    actual_min = (track[-1].recorded_at - track[0].recorded_at).total_seconds() / 60
+    if actual_min < 5 or actual_min > 300:
+        return  # 異常値（テスト・忘れ操作等）を除外
+
+    first = track[0]
+    last  = track[-1]
+    jst_hour = track[0].recorded_at.astimezone(timezone(timedelta(hours=9))).hour
+    pickup_grid = f"{round(first.lat, 1)},{round(first.lng, 1)}"
+    dest_grid   = f"{round(last.lat,  1)},{round(last.lng,  1)}"
+
+    upsert_route_stats(db, pickup_grid, dest_grid, jst_hour, actual_min)
+    log.info(f"[RouteLearn] {booking.booking_id}: {pickup_grid}→{dest_grid} {actual_min:.1f}min (JST{jst_hour}h)")
+
+
 @app.put("/bookings/{booking_id}/driver-location")
 def update_driver_location(
     booking_id: str,
@@ -355,8 +386,10 @@ def update_driver_location(
 
     if req.lat is not None:
         record.driver_lat = req.lat
-    if req.lng is not None:
         record.driver_lng = req.lng
+        # GPS学習: 全点を履歴テーブルに保存
+        save_gps_point(db, booking_id, req.lat, req.lng, req.driver_status)
+
     record.driver_status     = req.driver_status
     record.driver_updated_at = datetime.now(timezone.utc)
 
@@ -369,9 +402,39 @@ def update_driver_location(
         record.status = "transit"
     elif req.driver_status == "done":
         record.status = "delivered"
+        _analyze_route_on_complete(db, record)  # 完了時にルート学習
 
     db.commit()
     return {"ok": True, "booking_id": booking_id, "driver_status": req.driver_status}
+
+
+@app.get("/route-stats/correction")
+def get_correction_factor(
+    olat: float, olng: float, dlat: float, dlng: float, hour: int,
+    db: Session = Depends(get_db),
+):
+    """ETA補正係数を返す。学習データ不足なら correction_factor=1.0"""
+    factor = get_route_correction(db, olat, olng, dlat, dlng, hour)
+    return {"correction_factor": factor or 1.0, "has_data": factor is not None}
+
+
+@app.get("/route-stats")
+def get_route_stats_list(db: Session = Depends(get_db)):
+    """学習済みルート統計一覧（管理者・ETA補正用）"""
+    rows = db.query(RouteStats).order_by(RouteStats.sample_count.desc()).limit(100).all()
+    return [
+        {
+            "pickup_grid":       r.pickup_grid,
+            "dest_grid":         r.dest_grid,
+            "hour_of_day":       r.hour_of_day,
+            "avg_actual_min":    round(r.avg_actual_min, 1),
+            "google_est_min":    r.google_est_min,
+            "correction_factor": round(r.correction_factor, 3),
+            "sample_count":      r.sample_count,
+            "updated_at":        r.updated_at.isoformat(),
+        }
+        for r in rows
+    ]
 
 
 @app.get("/drivers/active")
@@ -418,6 +481,7 @@ def admin_list_bookings(db: Session = Depends(get_db), _: None = Depends(require
             "total_amount": r.total_amount,
             "pay_method": r.pay_method,
             "created_at": r.created_at.isoformat(),
+            "pickup_date": r.pickup_date or "",
         }
         for r in records
     ]

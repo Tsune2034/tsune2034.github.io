@@ -1,7 +1,16 @@
 {
   "project": "KAIROX",
-  "updated": "2026-03-23",
+  "updated": "2026-03-25T12:00",
   "tasks": [
+    {
+      "id": 26,
+      "role": "engineer",
+      "task": "GPS学習モード Phase3: 時間帯別補正係数の自動更新",
+      "detail": "sample_count >= 20 になったルートは hour_of_day を 朝(6-9)/昼(10-16)/夜(17-23)/深夜(0-5) の4帯に集約して精度向上。AdminViewにルート統計タブ追加",
+      "status": "pending",
+      "priority": "P2",
+      "blocked_by": "実走データ20件以上蓄積後"
+    },
     {
       "id": 1,
       "role": "engineer",
@@ -12,28 +21,10 @@
       "blocked_by": "CEO（アカウント作成）"
     },
     {
-      "id": 2,
-      "role": "engineer",
-      "task": "ドライバーPIN変更（1234 → 本番用）",
-      "detail": "app/DriverView.tsx line 8: const DRIVER_PIN = '1234' を変更。または Vercel env var 化推奨",
-      "status": "pending",
-      "priority": "P0",
-      "blocked_by": "CEO（PIN決定）"
-    },
-    {
-      "id": 3,
-      "role": "engineer",
-      "task": "AviationStack APIキー設定",
-      "detail": "aviationstack.com でAPIキー取得 → AVIATIONSTACK_API_KEY を Vercel env vars に追加 → NEXT_PUBLIC_AVIATIONSTACK_MOCK=0 に変更",
-      "status": "pending",
-      "priority": "P0",
-      "blocked_by": null
-    },
-    {
       "id": 4,
       "role": "ceo",
-      "task": "ドライバー1〜3名の確保・稼働テスト",
-      "detail": "実予約1件を通じてフロー全体を検証。ドライバー確保後に営業時間制御を本番有効化",
+      "task": "ドライバー/プレイヤー確保・稼働テスト + 黒ナンバー取得",
+      "detail": "実予約1件を通じてフロー全体を検証。社有軽バン取得 + 千葉運輸支局へ軽貨物運送事業届出 + 黒ナンバー申請。下請け契約書に専属禁止条項・競業除外を確認",
       "status": "in_progress",
       "priority": "P0",
       "blocked_by": null
@@ -66,31 +57,22 @@
       "blocked_by": null
     },
     {
-      "id": 8,
-      "role": "ceo",
-      "task": "貨物運送の法的要件確認",
-      "detail": "貨物軽自動車運送事業（黒ナンバー）または一般貨物自動車運送事業の要件を確認",
+      "id": 20,
+      "role": "engineer",
+      "task": "事前予約割引ロジック実装",
+      "detail": "48h前以上: ¥9,500 / 24〜48h前: ¥10,500 / 当日: ¥12,000。予約フォームに割引バッジ表示。ハンドキャリーは別途設定",
       "status": "pending",
       "priority": "P1",
       "blocked_by": null
     },
     {
-      "id": 9,
+      "id": 22,
       "role": "engineer",
-      "task": "予約キャンセルフロー — バックエンド疎通確認",
-      "detail": "フロントのキャンセルモーダルは実装済み。バックエンド PUT /bookings/{id}/cancel が正常動作するか確認",
+      "task": "LINE Notify 死コード削除 + 代替通知選定",
+      "detail": "LINE Notifyは2025年3月31日終了済み。notify_line()を削除。代替: Resend メール（task:1）/ Slack Webhook / LINE Messaging API のいずれかをCEOと決定後実装",
       "status": "pending",
       "priority": "P1",
-      "blocked_by": null
-    },
-    {
-      "id": 10,
-      "role": "engineer",
-      "task": "Google Directions API 接続（リアルタイムルート）",
-      "detail": "現在は静的ETA表示。Google Maps Directions API で実ルート・所要時間を取得",
-      "status": "pending",
-      "priority": "P2",
-      "blocked_by": null
+      "blocked_by": "CEO（通知先選定）"
     },
     {
       "id": 11,
@@ -100,60 +82,6 @@
       "status": "pending",
       "priority": "P2",
       "blocked_by": "task:4（成田で実績を作ってから）"
-    },
-    {
-      "id": 12,
-      "role": "engineer",
-      "task": "/admin 管理者ページ作成",
-      "detail": "全予約一覧・売上サマリ・ドライバー稼働状況を表示。Basic認証で保護",
-      "status": "pending",
-      "priority": "P2",
-      "blocked_by": null
-    },
-    {
-      "id": 13,
-      "role": "engineer",
-      "task": "FastAPI: POST /players/register 実装",
-      "detail": "プレイヤー登録データをPostgreSQLに保存。name/email/phone/route/id_doc_url/created_at",
-      "status": "pending",
-      "priority": "P2",
-      "blocked_by": null
-    },
-    {
-      "id": 14,
-      "role": "engineer",
-      "task": "ハンドキャリー用GPS・ステータス設計",
-      "detail": "電車・徒歩移動対応。ステータス追加（空港から移動中/電車乗車中/ホテルへ徒歩中）。地下鉄圏外時は最終位置保持+ステータスで補完。GPS送信間隔: 徒歩15秒・電車60秒。旅行者側は路線進捗バー表示",
-      "status": "pending",
-      "priority": "P2",
-      "blocked_by": "task:13"
-    },
-    {
-      "id": 15,
-      "role": "engineer",
-      "task": "旅行者GPS画面: プレイヤー選択UI",
-      "detail": "GPS上にプレイヤーを表示。ランクバッジ・評価件数・ETAを表示。車ドライバー=地図ピン、ハンドキャリー=路線進捗バーで表示分岐",
-      "status": "pending",
-      "priority": "P2",
-      "blocked_by": "task:14"
-    },
-    {
-      "id": 16,
-      "role": "engineer",
-      "task": "身分証アップロード機能（/player登録フォーム）",
-      "detail": "免許証・マイナカード表面・パスポートの画像アップロード。バックエンド経由でS3/R2に暗号化保存。番号は収集しない",
-      "status": "pending",
-      "priority": "P2",
-      "blocked_by": "task:13"
-    },
-    {
-      "id": 17,
-      "role": "engineer",
-      "task": "信頼スコア自動計算ロジック",
-      "detail": "旅行者レビュー40% + 時間厳守率30% + 完了件数20% + 身分証確認10%。ランク自動昇格（New→Trusted→Elite）",
-      "status": "pending",
-      "priority": "P3",
-      "blocked_by": "task:14"
     },
     {
       "id": 18,
@@ -231,6 +159,88 @@
       "task": "予約確認メール送信機能（Resend対応・4言語）",
       "commit": "3713f63",
       "done": "2026-03-23"
+    },
+    {
+      "id": 13,
+      "task": "FastAPI: POST /players/register 実装",
+      "commit": "7140e0c",
+      "done": "2026-03-23"
+    },
+    {
+      "id": 12,
+      "task": "/admin 管理者ページ拡張（プレイヤー管理タブ + AI Opsタブ）",
+      "commit": "663dbb1",
+      "done": "2026-03-24"
+    },
+    {
+      "id": 14,
+      "task": "ハンドキャリーGPS設計 — PlayerView.tsx（GPS送信・待機モード・AIアサイン受信）",
+      "detail": "ステータス: at_airport/on_train/walking/done。GPS 15秒間隔（電車中は60秒）。空港待機モードでAIマッチング候補登録",
+      "commit": "663dbb1",
+      "done": "2026-03-24"
+    },
+    {
+      "id": 15,
+      "task": "旅行者GPS画面: プレイヤー選択UI（NearbyPlayersPanel）",
+      "detail": "GPS近接3km以内のプレイヤー一覧。ランクバッジ・評価・距離・ETA・信頼スコアバー表示",
+      "commit": "663dbb1",
+      "done": "2026-03-24"
+    },
+    {
+      "id": 16,
+      "task": "身分証アップロード機能（/player登録フォーム）",
+      "detail": "免許証・マイナカード表面・パスポート。顔写真面のみ。番号収集不可",
+      "commit": "663dbb1",
+      "done": "2026-03-24"
+    },
+    {
+      "id": 19,
+      "task": "AI Dispatcher + AI Monitor（P0: AI運営化）",
+      "detail": "ai_ops.py: Claude Haiku がtrust×0.7+proximity×0.2でプレイヤー自動選択。30秒Cronで全配送監視・GPS途絶検知・自動完了処理",
+      "commit": "663dbb1",
+      "done": "2026-03-24"
+    },
+    {
+      "id": 2,
+      "task": "ドライバー/プレイヤー PIN env変数化（セキュリティ改善）",
+      "detail": "NEXT_PUBLIC_DRIVER_PIN / NEXT_PUBLIC_PLAYER_PIN として Vercel env vars に移行。本番PIN: Driver 9283 / Player 7461",
+      "done": "2026-03-24"
+    },
+    {
+      "id": 10,
+      "task": "Google Directions API 接続（リアルタイムETA）",
+      "detail": "/api/eta エンドポイント新設。TrackingView.tsx のETA計算を差し替え。成田→東京 70分・77.6km 疎通確認済み",
+      "done": "2026-03-24"
+    },
+    {
+      "id": 17,
+      "task": "信頼スコア自動計算ロジック",
+      "detail": "backend: trust_score.py + POST /players/{id}/reviews。frontend: ReviewForm（★+on_time+comment 4言語）をdelivered時に表示",
+      "done": "2026-03-24"
+    },
+    {
+      "id": 21,
+      "task": "KAIROX優先アラート（翌日予約通知）",
+      "detail": "翌日KAIROX予約があるとき: LINE通知に優先メッセージ追加 + /driver 画面にアラートカード + /admin にバナー表示",
+      "done": "2026-03-25"
+    },
+    {
+      "id": 23,
+      "task": "ピックアップ画面にホテル選択タブ追加",
+      "detail": "予約フォーム1画面目に「Airport Terminal」「Hotel / Other」タブを追加。ホテル選択時はHOTELS一覧から検索・座標をpickup地点として使用。4言語対応",
+      "done": "2026-03-25"
+    },
+    {
+      "id": 24,
+      "task": "ユニフォーム仕様書作成（車配送社員専用）",
+      "detail": "ブランドコンセプト「モダン和」確定。ネイビーポロシャツ+折り鶴刺繍+白手袋+ネームタグ。1名初回約¥15,300。docs/uniform_spec.md に保存",
+      "done": "2026-03-25"
+    },
+    {
+      "id": 25,
+      "task": "バックアップ作成 + リストアスクリプト",
+      "detail": "docs/backup_kairox_20260325.zip（336KB・108ファイル）。frontend/app/ + backend/ + agents/ + docs/ 収録。docs/restore.sh で復元可能",
+      "done": "2026-03-25"
     }
   ]
 }

@@ -80,6 +80,112 @@ class BookingRecord(Base):
     created_at = Column(DateTime(timezone=True), nullable=False)
 
 
+# ───────────────────────── GPS学習テーブル ─────────────────────────
+
+class GpsTrackPoint(Base):
+    """配送中のGPS履歴（30秒ごと）。ルート学習に使用"""
+    __tablename__ = "gps_tracks"
+
+    id            = Column(Integer, primary_key=True, autoincrement=True)
+    booking_id    = Column(String(16), nullable=False, index=True)
+    lat           = Column(Float, nullable=False)
+    lng           = Column(Float, nullable=False)
+    driver_status = Column(String(32), nullable=True)
+    recorded_at   = Column(DateTime(timezone=True), nullable=False)
+
+
+class RouteStats(Base):
+    """実走行データから学習したルート別所要時間統計"""
+    __tablename__ = "route_stats"
+
+    id                = Column(Integer, primary_key=True, autoincrement=True)
+    # 0.1度グリッドで丸めたルート識別（例: "35.7,140.4"）
+    pickup_grid       = Column(String(32), nullable=False, index=True)
+    dest_grid         = Column(String(32), nullable=False, index=True)
+    hour_of_day       = Column(Integer, nullable=False)   # JST 0-23
+    actual_min        = Column(Float, nullable=False)     # 最新実走行時間
+    avg_actual_min    = Column(Float, nullable=False)     # 加重平均
+    google_est_min    = Column(Float, nullable=True)      # 参考: Googleの推定値
+    correction_factor = Column(Float, default=1.0)        # avg_actual / google_est
+    sample_count      = Column(Integer, default=1)
+    updated_at        = Column(DateTime(timezone=True), nullable=False)
+
+
+def save_gps_point(db: Session, booking_id: str, lat: float, lng: float, status: str) -> None:
+    db.add(GpsTrackPoint(
+        booking_id=booking_id,
+        lat=lat,
+        lng=lng,
+        driver_status=status,
+        recorded_at=datetime.now(timezone.utc),
+    ))
+    # commit は呼び出し元に任せる
+
+
+def get_gps_track(db: Session, booking_id: str) -> list["GpsTrackPoint"]:
+    return (
+        db.query(GpsTrackPoint)
+        .filter_by(booking_id=booking_id)
+        .order_by(GpsTrackPoint.recorded_at)
+        .all()
+    )
+
+
+def upsert_route_stats(
+    db: Session,
+    pickup_grid: str,
+    dest_grid: str,
+    hour: int,
+    actual_min: float,
+    google_est_min: float | None = None,
+) -> None:
+    """既存レコードがあれば加重平均で更新、なければINSERT"""
+    existing = (
+        db.query(RouteStats)
+        .filter_by(pickup_grid=pickup_grid, dest_grid=dest_grid, hour_of_day=hour)
+        .first()
+    )
+    if existing:
+        n = existing.sample_count
+        existing.avg_actual_min    = (existing.avg_actual_min * n + actual_min) / (n + 1)
+        existing.actual_min        = actual_min
+        existing.sample_count      = n + 1
+        if google_est_min:
+            existing.google_est_min    = google_est_min
+            existing.correction_factor = existing.avg_actual_min / google_est_min
+        existing.updated_at = datetime.now(timezone.utc)
+    else:
+        factor = (actual_min / google_est_min) if google_est_min else 1.0
+        db.add(RouteStats(
+            pickup_grid=pickup_grid,
+            dest_grid=dest_grid,
+            hour_of_day=hour,
+            actual_min=actual_min,
+            avg_actual_min=actual_min,
+            google_est_min=google_est_min,
+            correction_factor=factor,
+            sample_count=1,
+            updated_at=datetime.now(timezone.utc),
+        ))
+    db.commit()
+
+
+def get_route_correction(db: Session, pickup_lat: float, pickup_lng: float,
+                         dest_lat: float, dest_lng: float, hour: int) -> float | None:
+    """学習済みの補正係数を返す。データ不足なら None"""
+    pickup_grid = f"{round(pickup_lat, 1)},{round(pickup_lng, 1)}"
+    dest_grid   = f"{round(dest_lat,   1)},{round(dest_lng,   1)}"
+    row = (
+        db.query(RouteStats)
+        .filter_by(pickup_grid=pickup_grid, dest_grid=dest_grid, hour_of_day=hour)
+        .first()
+    )
+    # サンプル3件未満は信頼性が低いので使わない
+    if row and row.sample_count >= 3:
+        return row.correction_factor
+    return None
+
+
 class BriefingRecord(Base):
     __tablename__ = "briefings"
 

@@ -7,7 +7,7 @@ import type { FlightInfo } from "./api/flights/route";
 // ───────────────────────── 定数 ─────────────────────────
 const DRIVER_PIN = process.env.NEXT_PUBLIC_DRIVER_PIN ?? "1234";
 const GPS_INTERVAL_MS = 30_000; // 30秒ごとに送信
-const FLIGHT_REFRESH_MS = 60_000; // フライト情報60秒ごと更新
+const FLIGHT_REFRESH_MS = 600_000; // フライト情報10分ごと更新（Vercel Data Cacheに合わせる）
 
 type DriverStatus = "heading" | "nearby" | "arrived" | "done";
 
@@ -357,6 +357,7 @@ export default function DriverView({ tr }: { tr: Translation }) {
   const [unlocked, setUnlocked] = useState(false);
   const [bookingInput, setBookingInput] = useState("");
   const [deliveries, setDeliveries] = useState<ActiveDelivery[]>([]);
+  const [tomorrowBookings, setTomorrowBookings] = useState<{ booking_id: string; name: string; total_amount: number }[]>([]);
   const watchIds = useRef<Map<string, number>>(new Map());
   const intervals = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
 
@@ -367,6 +368,22 @@ export default function DriverView({ tr }: { tr: Translation }) {
       intervals.current.forEach((id) => clearInterval(id));
     };
   }, []);
+
+  // 翌日KAIROX予約を取得
+  useEffect(() => {
+    if (!unlocked) return;
+    fetch("/api/admin?type=bookings")
+      .then((r) => r.ok ? r.json() : [])
+      .then((rows: { booking_id: string; name: string; total_amount: number; pickup_date: string; status: string }[]) => {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tStr = tomorrow.toISOString().slice(0, 10);
+        setTomorrowBookings(
+          rows.filter((b) => b.pickup_date?.startsWith(tStr) && !["delivered", "cancelled"].includes(b.status))
+        );
+      })
+      .catch(() => {});
+  }, [unlocked]);
 
   function addDelivery() {
     const id = bookingInput.trim().toUpperCase();
@@ -467,6 +484,24 @@ export default function DriverView({ tr }: { tr: Translation }) {
           ログアウト
         </button>
       </div>
+
+      {/* 翌日KAIROX優先アラート */}
+      {tomorrowBookings.length > 0 && (
+        <div className="bg-amber-500/15 border border-amber-500/50 rounded-2xl px-4 py-3 flex items-start gap-3">
+          <span className="text-2xl">🚗</span>
+          <div>
+            <p className="text-sm font-bold text-amber-300">明日はKAIROX優先！</p>
+            <p className="text-xs text-amber-400/80 mt-0.5">下請けはお断りしてください</p>
+            <div className="mt-2 space-y-0.5">
+              {tomorrowBookings.map((b) => (
+                <p key={b.booking_id} className="text-[10px] text-amber-300/70 font-mono">
+                  {b.booking_id} · {b.name} · ¥{b.total_amount.toLocaleString()}
+                </p>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 予約追加 */}
       <div className="flex gap-2">

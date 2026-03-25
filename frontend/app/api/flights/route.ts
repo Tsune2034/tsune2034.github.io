@@ -3,48 +3,42 @@ import { NextRequest, NextResponse } from "next/server";
 const API_KEY = process.env.AVIATIONSTACK_API_KEY ?? "";
 const BASE_URL = "https://api.aviationstack.com/v1/flights";
 
-// キャッシュ（空港全便は60秒、フライト個別は30秒）
-const cache = new Map<string, { data: unknown; ts: number }>();
+// ─── Vercel Data Cache で10分キャッシュ（全サーバーレスインスタンス共有） ───
+// インメモリ Map はサーバーレスで無効なため使用しない
+async function fetchAirportBoard(airport: string, status?: string | null): Promise<FlightInfo[]> {
+  const params = new URLSearchParams({ access_key: API_KEY, arr_iata: airport, limit: "50" });
+  if (status) params.set("flight_status", status);
+
+  const res = await fetch(`${BASE_URL}?${params}`, {
+    next: { revalidate: 600 }, // 10分キャッシュ（Vercel Data Cache）
+  });
+  if (!res.ok) throw new Error(`Aviationstack ${res.status}`);
+  const json = await res.json();
+  return normalizeFlights(json);
+}
 
 export async function GET(req: NextRequest) {
   if (!API_KEY) {
-    // APIキー未設定 → モックデータを返す（開発・プロト用）
     return NextResponse.json(mockFlights());
   }
 
   const { searchParams } = req.nextUrl;
   const flight = searchParams.get("flight"); // 例: NH847
   const airport = searchParams.get("airport") ?? "NRT";
-  const status = searchParams.get("status"); // active | landed | scheduled
-
-  const cacheKey = flight ? `flight:${flight}` : `arr:${airport}:${status}`;
-  const ttl = flight ? 30_000 : 60_000;
-  const cached = cache.get(cacheKey);
-  if (cached && Date.now() - cached.ts < ttl) {
-    return NextResponse.json(cached.data);
-  }
-
-  const params = new URLSearchParams({ access_key: API_KEY });
-  if (flight) {
-    params.set("flight_iata", flight.toUpperCase());
-  } else {
-    params.set("arr_iata", airport);
-    if (status) params.set("flight_status", status);
-    params.set("limit", "20");
-  }
+  const status  = searchParams.get("status"); // active | landed | scheduled
 
   try {
-    const res = await fetch(`${BASE_URL}?${params}`, {
-      next: { revalidate: 60 },
-    });
-    if (!res.ok) throw new Error(`Aviationstack ${res.status}`);
-    const json = await res.json();
-    const data = normalizeFlights(json);
-    cache.set(cacheKey, { data, ts: Date.now() });
-    return NextResponse.json(data);
+    // 空港ボードを1回取得（10分キャッシュ）
+    // 個別フライント検索も同じキャッシュから絞り込む → 追加APIコールなし
+    const allFlights = await fetchAirportBoard(airport, flight ? null : status);
+
+    if (flight) {
+      const q = flight.toUpperCase();
+      return NextResponse.json(allFlights.filter(f => f.flightIata.toUpperCase() === q));
+    }
+    return NextResponse.json(allFlights);
   } catch (err) {
     console.error("[flights API]", err);
-    // フォールバック: モックデータ
     return NextResponse.json(mockFlights());
   }
 }
