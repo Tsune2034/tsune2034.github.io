@@ -24,7 +24,7 @@ from sqlalchemy.orm import Session
 
 from .models import BriefingRequest, BriefingResponse, Industry, Language, BookingCreate, BookingResponse, MatchResult, DriverLocationUpdate, DriverRegistrationCreate, PlayerCreate, PlayerReviewCreate, PlayerResponse, PlayerLocationUpdate, DispatchResult, MonitorAlert
 from .briefing import generate_briefing
-from .database import SessionLocal, init_db, save_briefing, get_latest_briefing, BookingRecord, get_booking, save_booking, list_bookings, get_active_drivers, DriverRegistrationRecord, save_driver_registration, list_driver_registrations, PlayerRecord, PlayerReviewRecord, save_player, get_player, get_player_by_email, list_players, save_review, get_reviews_for_player, update_player_score, update_player_location, get_available_players_near, assign_player_to_booking, get_active_bookings_for_monitor, GpsTrackPoint, RouteStats, save_gps_point, get_gps_track, upsert_route_stats, get_route_correction
+from .database import SessionLocal, init_db, save_briefing, get_latest_briefing, BookingRecord, get_booking, save_booking, list_bookings, get_active_drivers, DriverRegistrationRecord, save_driver_registration, list_driver_registrations, PlayerRecord, PlayerReviewRecord, save_player, get_player, get_player_by_email, list_players, save_review, get_reviews_for_player, update_player_score, update_player_location, get_available_players_near, assign_player_to_booking, get_active_bookings_for_monitor, GpsTrackPoint, RouteStats, save_gps_point, get_gps_track, upsert_route_stats, get_route_correction, CongestionSegment, upsert_congestion, get_congestion_data
 from .trust_score import calculate, recalculate_from_reviews
 from .matching import find_and_match
 from .scheduler import TARGET_JOBS, run_daily_briefings
@@ -353,6 +353,44 @@ def cancel_booking(
     return {"ok": True, "booking_id": booking_id, "status": "cancelled"}
 
 
+def _haversine_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    import math
+    R = 6371
+    dlat = math.radians(lat2 - lat1)
+    dlng = math.radians(lng2 - lng1)
+    a = math.sin(dlat / 2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlng / 2) ** 2
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
+def _calculate_congestion_from_track(db: Session, booking_id: str) -> int:
+    """GPS履歴の各区間で速度を計算し congestion_segments を更新。更新点数を返す"""
+    track = get_gps_track(db, booking_id)
+    if len(track) < 2:
+        return 0
+    updated = 0
+    for i in range(1, len(track)):
+        prev, curr = track[i - 1], track[i]
+        dt = (curr.recorded_at - prev.recorded_at).total_seconds()
+        if dt <= 0 or dt > 120:   # 2分超の飛びはGPS途絶扱い
+            continue
+        dist_km   = _haversine_km(prev.lat, prev.lng, curr.lat, curr.lng)
+        speed_kmh = (dist_km / dt) * 3600
+        if speed_kmh > 150:       # GPS誤差除外
+            continue
+        # 0.05度グリッド（約5km）
+        grid_lat = round(curr.lat * 20) / 20
+        grid_lng = round(curr.lng * 20) / 20
+        grid     = f"{grid_lat},{grid_lng}"
+        jst_dt   = curr.recorded_at.astimezone(timezone(timedelta(hours=9)))
+        upsert_congestion(db, grid, grid_lat, grid_lng,
+                          curr.route_type or "local",
+                          jst_dt.hour, jst_dt.weekday(), speed_kmh)
+        updated += 1
+    if updated:
+        db.commit()
+    return updated
+
+
 def _analyze_route_on_complete(db: Session, booking: BookingRecord) -> None:
     """配送完了時: GPS履歴から実走行時間を計算しRouteStatsに保存"""
     track = get_gps_track(db, booking.booking_id)
@@ -373,6 +411,11 @@ def _analyze_route_on_complete(db: Session, booking: BookingRecord) -> None:
 
     upsert_route_stats(db, pickup_grid, dest_grid, jst_hour, actual_min, route_type)
     log.info(f"[RouteLearn] {booking.booking_id}: {pickup_grid}→{dest_grid} [{route_type}] {actual_min:.1f}min (JST{jst_hour}h)")
+
+    # 渋滞セグメント解析（速度データをグリッドに蓄積）
+    n = _calculate_congestion_from_track(db, booking.booking_id)
+    if n:
+        log.info(f"[Congestion] {booking.booking_id}: {n}点更新")
 
 
 @app.put("/bookings/{booking_id}/driver-location")
@@ -408,6 +451,25 @@ def update_driver_location(
 
     db.commit()
     return {"ok": True, "booking_id": booking_id, "driver_status": req.driver_status}
+
+
+@app.get("/congestion")
+def get_congestion(hour: int | None = None, db: Session = Depends(get_db)):
+    """渋滞セグメント一覧（/traffic マップ用）"""
+    rows = get_congestion_data(db, hour)
+    return [
+        {
+            "lat":              r.lat,
+            "lng":              r.lng,
+            "congestion_level": r.congestion_level,
+            "avg_speed_kmh":    round(r.avg_speed_kmh, 1),
+            "route_type":       r.route_type,
+            "hour_of_day":      r.hour_of_day,
+            "day_of_week":      r.day_of_week,
+            "sample_count":     r.sample_count,
+        }
+        for r in rows
+    ]
 
 
 @app.get("/route-stats/correction")

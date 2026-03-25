@@ -7,6 +7,7 @@ Production: PostgreSQL via DATABASE_URL env var (set automatically by Railway)
 """
 
 import json
+import math
 import os
 from datetime import datetime, timedelta, timezone
 
@@ -193,6 +194,67 @@ def get_route_correction(db: Session, pickup_lat: float, pickup_lng: float,
     if row and row.sample_count >= 3:
         return row.correction_factor
     return None
+
+
+# ───────────────────────── 渋滞セグメント ─────────────────────────
+
+def _speed_to_level(speed_kmh: float) -> str:
+    if speed_kmh < 10: return "jam"
+    if speed_kmh < 25: return "slow"
+    return "clear"
+
+
+class CongestionSegment(Base):
+    """GPS速度データから計算した渋滞セグメント（0.05度グリッド ≈ 5km）"""
+    __tablename__ = "congestion_segments"
+
+    id               = Column(Integer, primary_key=True, autoincrement=True)
+    grid             = Column(String(32), nullable=False, index=True)  # "35.77,140.38"
+    lat              = Column(Float, nullable=False)
+    lng              = Column(Float, nullable=False)
+    route_type       = Column(String(16), default="local")
+    hour_of_day      = Column(Integer, nullable=False)
+    day_of_week      = Column(Integer, nullable=False)   # 0=月〜6=日
+    avg_speed_kmh    = Column(Float, nullable=False)
+    congestion_level = Column(String(16), nullable=False)  # "clear"|"slow"|"jam"
+    sample_count     = Column(Integer, default=1)
+    updated_at       = Column(DateTime(timezone=True), nullable=False)
+
+
+def upsert_congestion(db: Session, grid: str, lat: float, lng: float,
+                      route_type: str, hour: int, dow: int,
+                      speed_kmh: float) -> None:
+    """加重平均で速度を更新、渋滞レベルを再計算"""
+    existing = (
+        db.query(CongestionSegment)
+        .filter_by(grid=grid, route_type=route_type, hour_of_day=hour, day_of_week=dow)
+        .first()
+    )
+    if existing:
+        n = existing.sample_count
+        new_avg = (existing.avg_speed_kmh * n + speed_kmh) / (n + 1)
+        existing.avg_speed_kmh    = new_avg
+        existing.congestion_level = _speed_to_level(new_avg)
+        existing.sample_count     = n + 1
+        existing.updated_at       = datetime.now(timezone.utc)
+    else:
+        db.add(CongestionSegment(
+            grid=grid, lat=lat, lng=lng,
+            route_type=route_type,
+            hour_of_day=hour, day_of_week=dow,
+            avg_speed_kmh=speed_kmh,
+            congestion_level=_speed_to_level(speed_kmh),
+            sample_count=1,
+            updated_at=datetime.now(timezone.utc),
+        ))
+    # commit は呼び出し元で一括
+
+
+def get_congestion_data(db: Session, hour: int | None = None) -> list["CongestionSegment"]:
+    q = db.query(CongestionSegment)
+    if hour is not None:
+        q = q.filter_by(hour_of_day=hour)
+    return q.order_by(CongestionSegment.sample_count.desc()).limit(500).all()
 
 
 class BriefingRecord(Base):
