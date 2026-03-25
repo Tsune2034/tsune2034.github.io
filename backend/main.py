@@ -59,40 +59,37 @@ async def generate_ai_message(name: str, booking_id: str, pickup: str, destinati
         return ""
 
 
-# ─── LINE Notify ───
-async def notify_line(booking_id: str, name: str, phone: str, pickup: str,
-                      destination: str, total: int, pay_method: str,
-                      pickup_date: str = "") -> None:
-    token = os.getenv("LINE_NOTIFY_TOKEN", "")
-    if not token:
-        log.info("LINE_NOTIFY_TOKEN not set — skipping LINE notification")
+# ─── Slack Webhook 通知 ───
+async def notify_slack(booking_id: str, name: str, phone: str, pickup: str,
+                       destination: str, total: int, pay_method: str,
+                       pickup_date: str = "") -> None:
+    webhook_url = os.getenv("SLACK_WEBHOOK_URL", "")
+    if not webhook_url:
+        log.info("SLACK_WEBHOOK_URL not set — skipping Slack notification")
         return
-    cancel_url = f"https://frontend-psi-seven-15.vercel.app/driver/approve/{booking_id}"
+
+    admin_url = f"https://frontend-psi-seven-15.vercel.app/admin"
 
     # 翌日の予約かチェック（JST基準）
     jst_now = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=9)))
     tomorrow_str = (jst_now + timedelta(days=1)).strftime("%Y-%m-%d")
     is_tomorrow = pickup_date and pickup_date.startswith(tomorrow_str)
 
-    priority_line = "\n🚗 【KAIROX優先】明日の下請けはお断りください！" if is_tomorrow else ""
-    msg = (
-        f"\n🔔 新規予約 {booking_id}{priority_line}"
+    priority_text = "\n🚗 *【KAIROX優先】明日の下請けはお断りください！*" if is_tomorrow else ""
+    text = (
+        f"🔔 *新規予約 `{booking_id}`*{priority_text}"
         f"\n👤 {name}  📞 {phone}"
         f"\n📅 集荷日：{pickup_date or '未設定'}"
         f"\n📍 集荷：{pickup}"
         f"\n🏨 配達先：{destination}"
         f"\n💰 ¥{total:,}（{pay_method}）"
-        f"\n✅ 管理：{cancel_url}"
+        f"\n🔗 <{admin_url}|管理画面を開く>"
     )
     try:
         async with httpx.AsyncClient(timeout=5) as client:
-            await client.post(
-                "https://notify-api.line.me/api/notify",
-                headers={"Authorization": f"Bearer {token}"},
-                data={"message": msg},
-            )
+            await client.post(webhook_url, json={"text": text})
     except Exception as e:
-        log.warning(f"LINE notify failed: {e}")
+        log.warning(f"Slack notify failed: {e}")
 
 
 @asynccontextmanager
@@ -264,8 +261,8 @@ async def create_booking(req: BookingCreate, db: Session = Depends(get_db)):
     except Exception as e:
         log.warning(f"AI dispatch failed (non-fatal): {e}")
 
-    # LINE通知（オペレーターへ）
-    await notify_line(
+    # Slack通知（オペレーターへ）
+    await notify_slack(
         booking_id=booking_id,
         name=req.name,
         phone=req.phone,

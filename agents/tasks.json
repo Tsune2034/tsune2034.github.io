@@ -61,18 +61,18 @@
       "role": "engineer",
       "task": "事前予約割引ロジック実装",
       "detail": "48h前以上: ¥9,500 / 24〜48h前: ¥10,500 / 当日: ¥12,000。予約フォームに割引バッジ表示。ハンドキャリーは別途設定",
-      "status": "pending",
+      "status": "done",
       "priority": "P1",
       "blocked_by": null
     },
     {
       "id": 22,
       "role": "engineer",
-      "task": "LINE Notify 死コード削除 + 代替通知選定",
-      "detail": "LINE Notifyは2025年3月31日終了済み。notify_line()を削除。代替: Resend メール（task:1）/ Slack Webhook / LINE Messaging API のいずれかをCEOと決定後実装",
-      "status": "pending",
+      "task": "LINE Notify 死コード削除 + Slack Webhook 通知実装",
+      "detail": "notify_line()削除→notify_slack()に置換。env: SLACK_WEBHOOK_URL。CEOがSlackワークスペースでIncoming Webhook URLを発行しVercel env varsに設定すれば即稼働",
+      "status": "done",
       "priority": "P1",
-      "blocked_by": "CEO（通知先選定）"
+      "blocked_by": null
     },
     {
       "id": 11,

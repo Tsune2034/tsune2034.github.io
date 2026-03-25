@@ -79,27 +79,27 @@ const NARITA_TERMINALS = [
 
 const DESTINATIONS: Destination[] = [
   // ── 成田近郊 ──
-  { id: "narita_city", nameJa: "成田市内ホテル", nameEn: "Narita City Hotel",    nameZh: "成田市区酒店",   nameKo: "나리타 시내 호텔", area: "Narita",           distanceKm: 10,  etaMin: 20,  priceJpy: 1800, emoji: "🏨", lat: 35.7720, lng: 140.3188 },
+  { id: "narita_city", nameJa: "成田市内ホテル", nameEn: "Narita City Hotel",    nameZh: "成田市区酒店",   nameKo: "나리타 시내 호텔", area: "Narita",           distanceKm: 10,  etaMin: 20,  priceJpy: 2500, emoji: "🏨", lat: 35.7720, lng: 140.3188 },
   // ── 千葉 ──
-  { id: "chiba",       nameJa: "千葉市内",       nameEn: "Chiba City",           nameZh: "千叶市区",       nameKo: "지바시",           area: "Chiba",            distanceKm: 35,  etaMin: 45,  priceJpy: 3700, emoji: "🌊", lat: 35.6073, lng: 140.1063 },
-  { id: "makuhari",    nameJa: "幕張・海浜幕張", nameEn: "Makuhari / Mihama",    nameZh: "幕张新都心",     nameKo: "마쿠하리",         area: "Chiba",            distanceKm: 40,  etaMin: 50,  priceJpy: 4200, emoji: "🏟️", lat: 35.6488, lng: 140.0432 },
+  { id: "chiba",       nameJa: "千葉市内",       nameEn: "Chiba City",           nameZh: "千叶市区",       nameKo: "지바시",           area: "Chiba",            distanceKm: 35,  etaMin: 45,  priceJpy: 4800, emoji: "🌊", lat: 35.6073, lng: 140.1063 },
+  { id: "makuhari",    nameJa: "幕張・海浜幕張", nameEn: "Makuhari / Mihama",    nameZh: "幕张新都心",     nameKo: "마쿠하리",         area: "Chiba",            distanceKm: 40,  etaMin: 50,  priceJpy: 5200, emoji: "🏟️", lat: 35.6488, lng: 140.0432 },
   // ── 東京東側 ──
-  { id: "asakusa",     nameJa: "浅草・上野",     nameEn: "Asakusa / Ueno",       nameZh: "浅草/上野",      nameKo: "아사쿠사/우에노",  area: "East Tokyo",       distanceKm: 58,  etaMin: 65,  priceJpy: 5200, emoji: "⛩️", lat: 35.7147, lng: 139.7967 },
-  { id: "akihabara",   nameJa: "秋葉原・神田",   nameEn: "Akihabara / Kanda",    nameZh: "秋叶原/神田",    nameKo: "아키하바라/간다",  area: "East Tokyo",       distanceKm: 60,  etaMin: 68,  priceJpy: 5400, emoji: "🎮", lat: 35.6984, lng: 139.7731 },
+  { id: "asakusa",     nameJa: "浅草・上野",     nameEn: "Asakusa / Ueno",       nameZh: "浅草/上野",      nameKo: "아사쿠사/우에노",  area: "East Tokyo",       distanceKm: 58,  etaMin: 65,  priceJpy: 6500, emoji: "⛩️", lat: 35.7147, lng: 139.7967 },
+  { id: "akihabara",   nameJa: "秋葉原・神田",   nameEn: "Akihabara / Kanda",    nameZh: "秋叶原/神田",    nameKo: "아키하바라/간다",  area: "East Tokyo",       distanceKm: 60,  etaMin: 68,  priceJpy: 6800, emoji: "🎮", lat: 35.6984, lng: 139.7731 },
   // ── 東京中心 ──
-  { id: "ginza",       nameJa: "銀座・東京駅",   nameEn: "Ginza / Tokyo Sta.",   nameZh: "银座/东京站",    nameKo: "긴자/도쿄역",      area: "Central Tokyo",    distanceKm: 63,  etaMin: 70,  priceJpy: 5700, emoji: "🗼", lat: 35.6762, lng: 139.7649 },
-  { id: "odaiba",      nameJa: "お台場・有明",   nameEn: "Odaiba / Ariake",      nameZh: "台场/有明",      nameKo: "오다이바/아리아케", area: "Central Tokyo",    distanceKm: 67,  etaMin: 75,  priceJpy: 5900, emoji: "🌉", lat: 35.6268, lng: 139.7754 },
+  { id: "ginza",       nameJa: "銀座・東京駅",   nameEn: "Ginza / Tokyo Sta.",   nameZh: "银座/东京站",    nameKo: "긴자/도쿄역",      area: "Central Tokyo",    distanceKm: 63,  etaMin: 70,  priceJpy: 7200, emoji: "🗼", lat: 35.6762, lng: 139.7649 },
+  { id: "odaiba",      nameJa: "お台場・有明",   nameEn: "Odaiba / Ariake",      nameZh: "台场/有明",      nameKo: "오다이바/아리아케", area: "Central Tokyo",    distanceKm: 67,  etaMin: 75,  priceJpy: 7500, emoji: "🌉", lat: 35.6268, lng: 139.7754 },
   // ── 東京西側 ──
-  { id: "shinjuku",    nameJa: "新宿・渋谷",     nameEn: "Shinjuku / Shibuya",   nameZh: "新宿/涩谷",      nameKo: "신주쿠/시부야",    area: "West Tokyo",       distanceKm: 68,  etaMin: 75,  priceJpy: 6200, emoji: "🏙️", lat: 35.6896, lng: 139.6921 },
-  { id: "roppongi",    nameJa: "六本木・麻布",   nameEn: "Roppongi / Azabu",     nameZh: "六本木/麻布",    nameKo: "롯폰기/아자부",    area: "West Tokyo",       distanceKm: 65,  etaMin: 72,  priceJpy: 5800, emoji: "🌃", lat: 35.6628, lng: 139.7314 },
-  { id: "ikebukuro",   nameJa: "池袋・板橋",     nameEn: "Ikebukuro / Itabashi", nameZh: "池袋/板桥",      nameKo: "이케부쿠로/이타바시", area: "North Tokyo",     distanceKm: 70,  etaMin: 78,  priceJpy: 6300, emoji: "🎡", lat: 35.7295, lng: 139.7109 },
+  { id: "shinjuku",    nameJa: "新宿・渋谷",     nameEn: "Shinjuku / Shibuya",   nameZh: "新宿/涩谷",      nameKo: "신주쿠/시부야",    area: "West Tokyo",       distanceKm: 68,  etaMin: 75,  priceJpy: 7800, emoji: "🏙️", lat: 35.6896, lng: 139.6921 },
+  { id: "roppongi",    nameJa: "六本木・麻布",   nameEn: "Roppongi / Azabu",     nameZh: "六本木/麻布",    nameKo: "롯폰기/아자부",    area: "West Tokyo",       distanceKm: 65,  etaMin: 72,  priceJpy: 7500, emoji: "🌃", lat: 35.6628, lng: 139.7314 },
+  { id: "ikebukuro",   nameJa: "池袋・板橋",     nameEn: "Ikebukuro / Itabashi", nameZh: "池袋/板桥",      nameKo: "이케부쿠로/이타바시", area: "North Tokyo",     distanceKm: 70,  etaMin: 78,  priceJpy: 8200, emoji: "🎡", lat: 35.7295, lng: 139.7109 },
   // ── 埼玉・神奈川 ──
-  { id: "saitama",     nameJa: "さいたま・川越", nameEn: "Saitama / Kawagoe",    nameZh: "埼玉/川越",      nameKo: "사이타마/가와고에", area: "Saitama",          distanceKm: 80,  etaMin: 90,  priceJpy: 7300, emoji: "🌿", lat: 35.8617, lng: 139.6455 },
-  { id: "yokohama",    nameJa: "横浜",           nameEn: "Yokohama",             nameZh: "横滨",           nameKo: "요코하마",          area: "Kanagawa",         distanceKm: 90,  etaMin: 100, priceJpy: 7800, emoji: "🚢", lat: 35.4437, lng: 139.6380 },
+  { id: "saitama",     nameJa: "さいたま・川越", nameEn: "Saitama / Kawagoe",    nameZh: "埼玉/川越",      nameKo: "사이타마/가와고에", area: "Saitama",          distanceKm: 80,  etaMin: 90,  priceJpy: 8500, emoji: "🌿", lat: 35.8617, lng: 139.6455 },
+  { id: "yokohama",    nameJa: "横浜",           nameEn: "Yokohama",             nameZh: "横滨",           nameKo: "요코하마",          area: "Kanagawa",         distanceKm: 90,  etaMin: 100, priceJpy: 9500, emoji: "🚢", lat: 35.4437, lng: 139.6380 },
   // ── 空港間エクスプレス（プレミアム） ──
-  { id: "haneda1",     nameJa: "羽田空港 T1 (JAL)",  nameEn: "Haneda T1 — JAL",  nameZh: "羽田机场 T1 (JAL)",  nameKo: "하네다 T1 (JAL)",   area: "Airport Express",  distanceKm: 90,  etaMin: 95,  priceJpy: 12000, emoji: "✈️", lat: 35.5533, lng: 139.7811 },
-  { id: "haneda2",     nameJa: "羽田空港 T2 (ANA)",  nameEn: "Haneda T2 — ANA",  nameZh: "羽田机场 T2 (ANA)",  nameKo: "하네다 T2 (ANA)",   area: "Airport Express",  distanceKm: 90,  etaMin: 95,  priceJpy: 12000, emoji: "✈️", lat: 35.5494, lng: 139.7798 },
-  { id: "haneda3",     nameJa: "羽田空港 T3 (国際)",  nameEn: "Haneda T3 — Intl", nameZh: "羽田机场 T3 (国际)", nameKo: "하네다 T3 (국제선)", area: "Airport Express",  distanceKm: 91,  etaMin: 97,  priceJpy: 12000, emoji: "🌏", lat: 35.5456, lng: 139.7802 },
+  { id: "haneda1",     nameJa: "羽田空港 T1 (JAL)",  nameEn: "Haneda T1 — JAL",  nameZh: "羽田机场 T1 (JAL)",  nameKo: "하네다 T1 (JAL)",   area: "Airport Express",  distanceKm: 90,  etaMin: 95,  priceJpy: 9500, emoji: "✈️", lat: 35.5533, lng: 139.7811 },
+  { id: "haneda2",     nameJa: "羽田空港 T2 (ANA)",  nameEn: "Haneda T2 — ANA",  nameZh: "羽田机场 T2 (ANA)",  nameKo: "하네다 T2 (ANA)",   area: "Airport Express",  distanceKm: 90,  etaMin: 95,  priceJpy: 9500, emoji: "✈️", lat: 35.5494, lng: 139.7798 },
+  { id: "haneda3",     nameJa: "羽田空港 T3 (国際)",  nameEn: "Haneda T3 — Intl", nameZh: "羽田机场 T3 (国际)", nameKo: "하네다 T3 (국제선)", area: "Airport Express",  distanceKm: 91,  etaMin: 97,  priceJpy: 9500, emoji: "🌏", lat: 35.5456, lng: 139.7802 },
 ];
 
 // ─────────────────────────────────────────────
@@ -107,72 +107,72 @@ const DESTINATIONS: Destination[] = [
 // ─────────────────────────────────────────────
 const HOTELS: Destination[] = [
   // ── 成田近郊 ──
-  { id: "h-narita-excel",    nameJa: "成田エクセルホテル東急",            nameEn: "Narita Excel Hotel Tokyu",            nameZh: "成田东急卓越酒店",        nameKo: "나리타 엑셀 호텔 도큐",           area: "Narita",         distanceKm: 10,  etaMin: 20,  priceJpy: 1800,  emoji: "🏨", lat: 35.7695, lng: 140.3185 },
-  { id: "h-narita-hilton",   nameJa: "ヒルトン成田",                      nameEn: "Hilton Tokyo Narita Airport",         nameZh: "成田希尔顿酒店",          nameKo: "힐튼 나리타 공항",                area: "Narita",         distanceKm: 8,   etaMin: 18,  priceJpy: 1800,  emoji: "🏨", lat: 35.7820, lng: 140.3650 },
-  { id: "h-narita-apa",      nameJa: "アパホテル成田",                    nameEn: "APA Hotel Narita",                    nameZh: "APA酒店成田",             nameKo: "APA 호텔 나리타",                 area: "Narita",         distanceKm: 10,  etaMin: 20,  priceJpy: 1800,  emoji: "🏨", lat: 35.7710, lng: 140.3198 },
-  { id: "h-narita-monterey", nameJa: "ホテルモントレ成田",                nameEn: "Hotel Monterey Narita",               nameZh: "成田蒙特雷酒店",          nameKo: "호텔 몬테레이 나리타",            area: "Narita",         distanceKm: 10,  etaMin: 20,  priceJpy: 1800,  emoji: "🏨", lat: 35.7720, lng: 140.3188 },
+  { id: "h-narita-excel",    nameJa: "成田エクセルホテル東急",            nameEn: "Narita Excel Hotel Tokyu",            nameZh: "成田东急卓越酒店",        nameKo: "나리타 엑셀 호텔 도큐",           area: "Narita",         distanceKm: 10,  etaMin: 20,  priceJpy: 2500,  emoji: "🏨", lat: 35.7695, lng: 140.3185 },
+  { id: "h-narita-hilton",   nameJa: "ヒルトン成田",                      nameEn: "Hilton Tokyo Narita Airport",         nameZh: "成田希尔顿酒店",          nameKo: "힐튼 나리타 공항",                area: "Narita",         distanceKm: 8,   etaMin: 18,  priceJpy: 2500,  emoji: "🏨", lat: 35.7820, lng: 140.3650 },
+  { id: "h-narita-apa",      nameJa: "アパホテル成田",                    nameEn: "APA Hotel Narita",                    nameZh: "APA酒店成田",             nameKo: "APA 호텔 나리타",                 area: "Narita",         distanceKm: 10,  etaMin: 20,  priceJpy: 2500,  emoji: "🏨", lat: 35.7710, lng: 140.3198 },
+  { id: "h-narita-monterey", nameJa: "ホテルモントレ成田",                nameEn: "Hotel Monterey Narita",               nameZh: "成田蒙特雷酒店",          nameKo: "호텔 몬테레이 나리타",            area: "Narita",         distanceKm: 10,  etaMin: 20,  priceJpy: 2500,  emoji: "🏨", lat: 35.7720, lng: 140.3188 },
   // ── 千葉・舞浜 ──
-  { id: "h-hilton-tokyobay", nameJa: "ヒルトン東京ベイ",                  nameEn: "Hilton Tokyo Bay",                    nameZh: "东京湾希尔顿酒店",        nameKo: "힐튼 도쿄 베이",                  area: "Chiba",          distanceKm: 50,  etaMin: 60,  priceJpy: 4200,  emoji: "🏨", lat: 35.6300, lng: 139.8900 },
-  { id: "h-sheraton-tb",     nameJa: "シェラトン・グランデ・トーキョーベイ", nameEn: "Sheraton Grande Tokyo Bay",          nameZh: "东京湾喜来登大酒店",      nameKo: "셰라톤 그란데 도쿄 베이",         area: "Chiba",          distanceKm: 51,  etaMin: 62,  priceJpy: 4200,  emoji: "🏨", lat: 35.6296, lng: 139.8873 },
-  { id: "h-apa-makuhari",    nameJa: "アパホテル幕張",                    nameEn: "APA Hotel Makuhari",                  nameZh: "APA酒店幕张",             nameKo: "APA 호텔 마쿠하리",               area: "Chiba",          distanceKm: 40,  etaMin: 50,  priceJpy: 3700,  emoji: "🏨", lat: 35.6488, lng: 140.0432 },
+  { id: "h-hilton-tokyobay", nameJa: "ヒルトン東京ベイ",                  nameEn: "Hilton Tokyo Bay",                    nameZh: "东京湾希尔顿酒店",        nameKo: "힐튼 도쿄 베이",                  area: "Chiba",          distanceKm: 50,  etaMin: 60,  priceJpy: 5500,  emoji: "🏨", lat: 35.6300, lng: 139.8900 },
+  { id: "h-sheraton-tb",     nameJa: "シェラトン・グランデ・トーキョーベイ", nameEn: "Sheraton Grande Tokyo Bay",          nameZh: "东京湾喜来登大酒店",      nameKo: "셰라톤 그란데 도쿄 베이",         area: "Chiba",          distanceKm: 51,  etaMin: 62,  priceJpy: 5500,  emoji: "🏨", lat: 35.6296, lng: 139.8873 },
+  { id: "h-apa-makuhari",    nameJa: "アパホテル幕張",                    nameEn: "APA Hotel Makuhari",                  nameZh: "APA酒店幕张",             nameKo: "APA 호텔 마쿠하리",               area: "Chiba",          distanceKm: 40,  etaMin: 50,  priceJpy: 4800,  emoji: "🏨", lat: 35.6488, lng: 140.0432 },
   // ── 浅草・上野 ──
-  { id: "h-asakusa-view",    nameJa: "浅草ビューホテル",                  nameEn: "Asakusa View Hotel",                  nameZh: "浅草观景酒店",            nameKo: "아사쿠사 뷰 호텔",                area: "East Tokyo",     distanceKm: 58,  etaMin: 65,  priceJpy: 5200,  emoji: "🏨", lat: 35.7189, lng: 139.7956 },
-  { id: "h-gate-kaminarimon",nameJa: "ザ・ゲートホテル雷門",              nameEn: "The Gate Hotel Kaminarimon",          nameZh: "雷门之门酒店",            nameKo: "더 게이트 호텔 가미나리몬",       area: "East Tokyo",     distanceKm: 58,  etaMin: 65,  priceJpy: 5200,  emoji: "🏨", lat: 35.7107, lng: 139.7963 },
-  { id: "h-ueno-tobu",       nameJa: "上野東武ホテル",                    nameEn: "Ueno Tobu Hotel",                     nameZh: "上野东武酒店",            nameKo: "우에노 도부 호텔",                area: "East Tokyo",     distanceKm: 58,  etaMin: 65,  priceJpy: 5200,  emoji: "🏨", lat: 35.7116, lng: 139.7764 },
+  { id: "h-asakusa-view",    nameJa: "浅草ビューホテル",                  nameEn: "Asakusa View Hotel",                  nameZh: "浅草观景酒店",            nameKo: "아사쿠사 뷰 호텔",                area: "East Tokyo",     distanceKm: 58,  etaMin: 65,  priceJpy: 6500,  emoji: "🏨", lat: 35.7189, lng: 139.7956 },
+  { id: "h-gate-kaminarimon",nameJa: "ザ・ゲートホテル雷門",              nameEn: "The Gate Hotel Kaminarimon",          nameZh: "雷门之门酒店",            nameKo: "더 게이트 호텔 가미나리몬",       area: "East Tokyo",     distanceKm: 58,  etaMin: 65,  priceJpy: 6500,  emoji: "🏨", lat: 35.7107, lng: 139.7963 },
+  { id: "h-ueno-tobu",       nameJa: "上野東武ホテル",                    nameEn: "Ueno Tobu Hotel",                     nameZh: "上野东武酒店",            nameKo: "우에노 도부 호텔",                area: "East Tokyo",     distanceKm: 58,  etaMin: 65,  priceJpy: 6500,  emoji: "🏨", lat: 35.7116, lng: 139.7764 },
   // ── 秋葉原・神田 ──
-  { id: "h-dormy-akihabara", nameJa: "ドーミーイン秋葉原",                nameEn: "Dormy Inn Akihabara",                 nameZh: "多米旅馆秋叶原",          nameKo: "도미 인 아키하바라",              area: "East Tokyo",     distanceKm: 60,  etaMin: 68,  priceJpy: 5400,  emoji: "🏨", lat: 35.6989, lng: 139.7731 },
-  { id: "h-remm-akihabara",  nameJa: "レム秋葉原",                        nameEn: "Remm Plus Akihabara",                 nameZh: "Remm Plus秋叶原",         nameKo: "렘 플러스 아키하바라",            area: "East Tokyo",     distanceKm: 60,  etaMin: 68,  priceJpy: 5400,  emoji: "🏨", lat: 35.6991, lng: 139.7713 },
+  { id: "h-dormy-akihabara", nameJa: "ドーミーイン秋葉原",                nameEn: "Dormy Inn Akihabara",                 nameZh: "多米旅馆秋叶原",          nameKo: "도미 인 아키하바라",              area: "East Tokyo",     distanceKm: 60,  etaMin: 68,  priceJpy: 6800,  emoji: "🏨", lat: 35.6989, lng: 139.7731 },
+  { id: "h-remm-akihabara",  nameJa: "レム秋葉原",                        nameEn: "Remm Plus Akihabara",                 nameZh: "Remm Plus秋叶原",         nameKo: "렘 플러스 아키하바라",            area: "East Tokyo",     distanceKm: 60,  etaMin: 68,  priceJpy: 6800,  emoji: "🏨", lat: 35.6991, lng: 139.7713 },
   // ── 銀座・丸の内・日本橋 ──
-  { id: "h-peninsula",       nameJa: "ザ・ペニンシュラ東京",              nameEn: "The Peninsula Tokyo",                 nameZh: "东京半岛酒店",            nameKo: "더 페닌슐라 도쿄",                area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 5700,  emoji: "🏨", lat: 35.6755, lng: 139.7600 },
-  { id: "h-aman-tokyo",      nameJa: "アマン東京",                        nameEn: "Aman Tokyo",                          nameZh: "东京安缦",                nameKo: "아만 도쿄",                       area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 5700,  emoji: "🏨", lat: 35.6841, lng: 139.7639 },
-  { id: "h-mandarin",        nameJa: "マンダリン オリエンタル 東京",      nameEn: "Mandarin Oriental Tokyo",             nameZh: "东京文华东方酒店",        nameKo: "만다린 오리엔탈 도쿄",            area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 5700,  emoji: "🏨", lat: 35.6892, lng: 139.7729 },
-  { id: "h-palace-tokyo",    nameJa: "パレスホテル東京",                  nameEn: "Palace Hotel Tokyo",                  nameZh: "东京皇宫大酒店",          nameKo: "팰리스 호텔 도쿄",                area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 5700,  emoji: "🏨", lat: 35.6848, lng: 139.7565 },
-  { id: "h-andaz",           nameJa: "アンダーズ 東京",                   nameEn: "Andaz Tokyo Toranomon Hills",         nameZh: "东京虎之门安达仕酒店",    nameKo: "안다즈 도쿄 토라노몬",            area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 5700,  emoji: "🏨", lat: 35.6684, lng: 139.7494 },
-  { id: "h-park-hotel",      nameJa: "パークホテル東京",                  nameEn: "Park Hotel Tokyo",                    nameZh: "东京公园酒店",            nameKo: "파크 호텔 도쿄",                  area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 5700,  emoji: "🏨", lat: 35.6642, lng: 139.7582 },
-  { id: "h-conrad",          nameJa: "コンラッド東京",                    nameEn: "Conrad Tokyo",                        nameZh: "东京康莱德酒店",          nameKo: "콘래드 도쿄",                     area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 5700,  emoji: "🏨", lat: 35.6628, lng: 139.7568 },
+  { id: "h-peninsula",       nameJa: "ザ・ペニンシュラ東京",              nameEn: "The Peninsula Tokyo",                 nameZh: "东京半岛酒店",            nameKo: "더 페닌슐라 도쿄",                area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 7200,  emoji: "🏨", lat: 35.6755, lng: 139.7600 },
+  { id: "h-aman-tokyo",      nameJa: "アマン東京",                        nameEn: "Aman Tokyo",                          nameZh: "东京安缦",                nameKo: "아만 도쿄",                       area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 7200,  emoji: "🏨", lat: 35.6841, lng: 139.7639 },
+  { id: "h-mandarin",        nameJa: "マンダリン オリエンタル 東京",      nameEn: "Mandarin Oriental Tokyo",             nameZh: "东京文华东方酒店",        nameKo: "만다린 오리엔탈 도쿄",            area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 7200,  emoji: "🏨", lat: 35.6892, lng: 139.7729 },
+  { id: "h-palace-tokyo",    nameJa: "パレスホテル東京",                  nameEn: "Palace Hotel Tokyo",                  nameZh: "东京皇宫大酒店",          nameKo: "팰리스 호텔 도쿄",                area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 7200,  emoji: "🏨", lat: 35.6848, lng: 139.7565 },
+  { id: "h-andaz",           nameJa: "アンダーズ 東京",                   nameEn: "Andaz Tokyo Toranomon Hills",         nameZh: "东京虎之门安达仕酒店",    nameKo: "안다즈 도쿄 토라노몬",            area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 7200,  emoji: "🏨", lat: 35.6684, lng: 139.7494 },
+  { id: "h-park-hotel",      nameJa: "パークホテル東京",                  nameEn: "Park Hotel Tokyo",                    nameZh: "东京公园酒店",            nameKo: "파크 호텔 도쿄",                  area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 7200,  emoji: "🏨", lat: 35.6642, lng: 139.7582 },
+  { id: "h-conrad",          nameJa: "コンラッド東京",                    nameEn: "Conrad Tokyo",                        nameZh: "东京康莱德酒店",          nameKo: "콘래드 도쿄",                     area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 7200,  emoji: "🏨", lat: 35.6628, lng: 139.7568 },
   // ── お台場・有明 ──
-  { id: "h-hilton-odaiba",   nameJa: "ヒルトン東京お台場",               nameEn: "Hilton Tokyo Odaiba",                 nameZh: "东京台场希尔顿酒店",      nameKo: "힐튼 도쿄 오다이바",              area: "Central Tokyo",  distanceKm: 67,  etaMin: 75,  priceJpy: 5900,  emoji: "🏨", lat: 35.6272, lng: 139.7762 },
-  { id: "h-intercontinental-tb", nameJa: "インターコンチネンタル東京ベイ", nameEn: "InterContinental Tokyo Bay",        nameZh: "东京湾洲际酒店",          nameKo: "인터컨티넨탈 도쿄 베이",          area: "Central Tokyo",  distanceKm: 67,  etaMin: 75,  priceJpy: 5900,  emoji: "🏨", lat: 35.6435, lng: 139.7635 },
+  { id: "h-hilton-odaiba",   nameJa: "ヒルトン東京お台場",               nameEn: "Hilton Tokyo Odaiba",                 nameZh: "东京台场希尔顿酒店",      nameKo: "힐튼 도쿄 오다이바",              area: "Central Tokyo",  distanceKm: 67,  etaMin: 75,  priceJpy: 7500,  emoji: "🏨", lat: 35.6272, lng: 139.7762 },
+  { id: "h-intercontinental-tb", nameJa: "インターコンチネンタル東京ベイ", nameEn: "InterContinental Tokyo Bay",        nameZh: "东京湾洲际酒店",          nameKo: "인터컨티넨탈 도쿄 베이",          area: "Central Tokyo",  distanceKm: 67,  etaMin: 75,  priceJpy: 7500,  emoji: "🏨", lat: 35.6435, lng: 139.7635 },
   // ── 新宿 ──
-  { id: "h-park-hyatt",      nameJa: "パークハイアット東京",              nameEn: "Park Hyatt Tokyo",                    nameZh: "东京柏悦酒店",            nameKo: "파크 하얏트 도쿄",                area: "West Tokyo",     distanceKm: 68,  etaMin: 75,  priceJpy: 6200,  emoji: "🏨", lat: 35.6889, lng: 139.6917 },
-  { id: "h-hyatt-regency",   nameJa: "ハイアット リージェンシー 東京",   nameEn: "Hyatt Regency Tokyo",                 nameZh: "东京凯悦酒店",            nameKo: "하얏트 리젠시 도쿄",              area: "West Tokyo",     distanceKm: 68,  etaMin: 75,  priceJpy: 6200,  emoji: "🏨", lat: 35.6950, lng: 139.6915 },
-  { id: "h-hilton-shinjuku",  nameJa: "ヒルトン東京",                    nameEn: "Hilton Tokyo (Shinjuku)",             nameZh: "东京希尔顿酒店",          nameKo: "힐튼 도쿄 (신주쿠)",              area: "West Tokyo",     distanceKm: 68,  etaMin: 75,  priceJpy: 6200,  emoji: "🏨", lat: 35.6931, lng: 139.6909 },
-  { id: "h-gracery",         nameJa: "ホテルグレイスリー新宿",            nameEn: "Hotel Gracery Shinjuku",              nameZh: "新宿格雷斯利酒店",        nameKo: "호텔 그레이서리 신주쿠",          area: "West Tokyo",     distanceKm: 68,  etaMin: 75,  priceJpy: 6200,  emoji: "🏨", lat: 35.6942, lng: 139.7005 },
-  { id: "h-keio-plaza",      nameJa: "京王プラザホテル",                  nameEn: "Keio Plaza Hotel Tokyo",              nameZh: "东京京王广场大酒店",      nameKo: "게이오 플라자 호텔 도쿄",         area: "West Tokyo",     distanceKm: 68,  etaMin: 75,  priceJpy: 6200,  emoji: "🏨", lat: 35.6934, lng: 139.6970 },
+  { id: "h-park-hyatt",      nameJa: "パークハイアット東京",              nameEn: "Park Hyatt Tokyo",                    nameZh: "东京柏悦酒店",            nameKo: "파크 하얏트 도쿄",                area: "West Tokyo",     distanceKm: 68,  etaMin: 75,  priceJpy: 9500,  emoji: "🏨", lat: 35.6889, lng: 139.6917 },
+  { id: "h-hyatt-regency",   nameJa: "ハイアット リージェンシー 東京",   nameEn: "Hyatt Regency Tokyo",                 nameZh: "东京凯悦酒店",            nameKo: "하얏트 리젠시 도쿄",              area: "West Tokyo",     distanceKm: 68,  etaMin: 75,  priceJpy: 9500,  emoji: "🏨", lat: 35.6950, lng: 139.6915 },
+  { id: "h-hilton-shinjuku",  nameJa: "ヒルトン東京",                    nameEn: "Hilton Tokyo (Shinjuku)",             nameZh: "东京希尔顿酒店",          nameKo: "힐튼 도쿄 (신주쿠)",              area: "West Tokyo",     distanceKm: 68,  etaMin: 75,  priceJpy: 9500,  emoji: "🏨", lat: 35.6931, lng: 139.6909 },
+  { id: "h-gracery",         nameJa: "ホテルグレイスリー新宿",            nameEn: "Hotel Gracery Shinjuku",              nameZh: "新宿格雷斯利酒店",        nameKo: "호텔 그레이서리 신주쿠",          area: "West Tokyo",     distanceKm: 68,  etaMin: 75,  priceJpy: 9500,  emoji: "🏨", lat: 35.6942, lng: 139.7005 },
+  { id: "h-keio-plaza",      nameJa: "京王プラザホテル",                  nameEn: "Keio Plaza Hotel Tokyo",              nameZh: "东京京王广场大酒店",      nameKo: "게이오 플라자 호텔 도쿄",         area: "West Tokyo",     distanceKm: 68,  etaMin: 75,  priceJpy: 9500,  emoji: "🏨", lat: 35.6934, lng: 139.6970 },
   // ── 渋谷 ──
-  { id: "h-cerulean",        nameJa: "セルリアンタワー東急ホテル",        nameEn: "Cerulean Tower Tokyu Hotel",          nameZh: "涩谷东急蔚蓝塔酒店",     nameKo: "세루리안 타워 도큐 호텔",         area: "West Tokyo",     distanceKm: 68,  etaMin: 75,  priceJpy: 6200,  emoji: "🏨", lat: 35.6543, lng: 139.6997 },
-  { id: "h-trunk",           nameJa: "トランクホテル",                    nameEn: "Trunk Hotel",                         nameZh: "Trunk酒店",               nameKo: "트렁크 호텔",                     area: "West Tokyo",     distanceKm: 68,  etaMin: 75,  priceJpy: 6200,  emoji: "🏨", lat: 35.6622, lng: 139.7079 },
+  { id: "h-cerulean",        nameJa: "セルリアンタワー東急ホテル",        nameEn: "Cerulean Tower Tokyu Hotel",          nameZh: "涩谷东急蔚蓝塔酒店",     nameKo: "세루리안 타워 도큐 호텔",         area: "West Tokyo",     distanceKm: 68,  etaMin: 75,  priceJpy: 9500,  emoji: "🏨", lat: 35.6543, lng: 139.6997 },
+  { id: "h-trunk",           nameJa: "トランクホテル",                    nameEn: "Trunk Hotel",                         nameZh: "Trunk酒店",               nameKo: "트렁크 호텔",                     area: "West Tokyo",     distanceKm: 68,  etaMin: 75,  priceJpy: 9500,  emoji: "🏨", lat: 35.6622, lng: 139.7079 },
   // ── 六本木・麻布 ──
-  { id: "h-ritz-carlton",    nameJa: "ザ・リッツ・カールトン東京",        nameEn: "The Ritz-Carlton Tokyo",              nameZh: "东京丽思卡尔顿酒店",      nameKo: "더 리츠칼튼 도쿄",                area: "West Tokyo",     distanceKm: 65,  etaMin: 72,  priceJpy: 5800,  emoji: "🏨", lat: 35.6658, lng: 139.7307 },
-  { id: "h-grand-hyatt",     nameJa: "グランドハイアット東京",            nameEn: "Grand Hyatt Tokyo",                   nameZh: "东京君悦大酒店",          nameKo: "그랜드 하얏트 도쿄",              area: "West Tokyo",     distanceKm: 65,  etaMin: 72,  priceJpy: 5800,  emoji: "🏨", lat: 35.6601, lng: 139.7308 },
+  { id: "h-ritz-carlton",    nameJa: "ザ・リッツ・カールトン東京",        nameEn: "The Ritz-Carlton Tokyo",              nameZh: "东京丽思卡尔顿酒店",      nameKo: "더 리츠칼튼 도쿄",                area: "West Tokyo",     distanceKm: 65,  etaMin: 72,  priceJpy: 7500,  emoji: "🏨", lat: 35.6658, lng: 139.7307 },
+  { id: "h-grand-hyatt",     nameJa: "グランドハイアット東京",            nameEn: "Grand Hyatt Tokyo",                   nameZh: "东京君悦大酒店",          nameKo: "그랜드 하얏트 도쿄",              area: "West Tokyo",     distanceKm: 65,  etaMin: 72,  priceJpy: 7500,  emoji: "🏨", lat: 35.6601, lng: 139.7308 },
   // ── 品川・港南 ──
-  { id: "h-tokyo-marriott",  nameJa: "東京マリオットホテル",              nameEn: "Tokyo Marriott Hotel",                nameZh: "东京万豪酒店",            nameKo: "도쿄 메리어트 호텔",              area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 5700,  emoji: "🏨", lat: 35.6360, lng: 139.7150 },
-  { id: "h-shinagawa-prince",nameJa: "品川プリンスホテル",                nameEn: "Shinagawa Prince Hotel",              nameZh: "品川王子大饭店",          nameKo: "시나가와 프린스 호텔",            area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 5700,  emoji: "🏨", lat: 35.6291, lng: 139.7388 },
-  { id: "h-grand-prince-tk", nameJa: "グランドプリンスホテル高輪",        nameEn: "Grand Prince Hotel Takanawa",         nameZh: "高輪格兰王子大酒店",      nameKo: "그랜드 프린스 호텔 다카나와",     area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 5700,  emoji: "🏨", lat: 35.6356, lng: 139.7330 },
-  { id: "h-strings",         nameJa: "ストリングスホテル東京",            nameEn: "The Strings by InterContinental",     nameZh: "东京洲际弦酒店",          nameKo: "더 스트링스 인터컨티넨탈",        area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 5700,  emoji: "🏨", lat: 35.6273, lng: 139.7403 },
+  { id: "h-tokyo-marriott",  nameJa: "東京マリオットホテル",              nameEn: "Tokyo Marriott Hotel",                nameZh: "东京万豪酒店",            nameKo: "도쿄 메리어트 호텔",              area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 7200,  emoji: "🏨", lat: 35.6360, lng: 139.7150 },
+  { id: "h-shinagawa-prince",nameJa: "品川プリンスホテル",                nameEn: "Shinagawa Prince Hotel",              nameZh: "品川王子大饭店",          nameKo: "시나가와 프린스 호텔",            area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 7200,  emoji: "🏨", lat: 35.6291, lng: 139.7388 },
+  { id: "h-grand-prince-tk", nameJa: "グランドプリンスホテル高輪",        nameEn: "Grand Prince Hotel Takanawa",         nameZh: "高輪格兰王子大酒店",      nameKo: "그랜드 프린스 호텔 다카나와",     area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 7200,  emoji: "🏨", lat: 35.6356, lng: 139.7330 },
+  { id: "h-strings",         nameJa: "ストリングスホテル東京",            nameEn: "The Strings by InterContinental",     nameZh: "东京洲际弦酒店",          nameKo: "더 스트링스 인터컨티넨탈",        area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 7200,  emoji: "🏨", lat: 35.6273, lng: 139.7403 },
   // ── 目黒・恵比寿 ──
-  { id: "h-westin-tokyo",    nameJa: "ウェスティンホテル東京",            nameEn: "The Westin Tokyo",                    nameZh: "东京威斯汀酒店",          nameKo: "더 웨스틴 도쿄",                  area: "West Tokyo",     distanceKm: 66,  etaMin: 73,  priceJpy: 5800,  emoji: "🏨", lat: 35.6461, lng: 139.7145 },
-  { id: "h-gajoen",          nameJa: "ホテル雅叙園東京",                  nameEn: "Hotel Gajoen Tokyo",                  nameZh: "雅叙园东京酒店",          nameKo: "호텔 가죠엔 도쿄",                area: "West Tokyo",     distanceKm: 66,  etaMin: 73,  priceJpy: 5800,  emoji: "🏨", lat: 35.6341, lng: 139.7047 },
+  { id: "h-westin-tokyo",    nameJa: "ウェスティンホテル東京",            nameEn: "The Westin Tokyo",                    nameZh: "东京威斯汀酒店",          nameKo: "더 웨스틴 도쿄",                  area: "West Tokyo",     distanceKm: 66,  etaMin: 73,  priceJpy: 7500,  emoji: "🏨", lat: 35.6461, lng: 139.7145 },
+  { id: "h-gajoen",          nameJa: "ホテル雅叙園東京",                  nameEn: "Hotel Gajoen Tokyo",                  nameZh: "雅叙园东京酒店",          nameKo: "호텔 가죠엔 도쿄",                area: "West Tokyo",     distanceKm: 66,  etaMin: 73,  priceJpy: 7500,  emoji: "🏨", lat: 35.6341, lng: 139.7047 },
   // ── 池袋 ──
-  { id: "h-metropolitan-ik", nameJa: "ホテルメトロポリタン東京池袋",      nameEn: "Hotel Metropolitan Tokyo Ikebukuro", nameZh: "东京池袋大都会酒店",      nameKo: "호텔 메트로폴리탄 도쿄 이케부쿠로", area: "North Tokyo",  distanceKm: 70,  etaMin: 78,  priceJpy: 6300,  emoji: "🏨", lat: 35.7287, lng: 139.7122 },
-  { id: "h-sunshine-prince", nameJa: "サンシャインシティプリンスホテル",  nameEn: "Sunshine City Prince Hotel",          nameZh: "阳光城市王子大饭店",      nameKo: "선샤인 시티 프린스 호텔",         area: "North Tokyo",    distanceKm: 70,  etaMin: 78,  priceJpy: 6300,  emoji: "🏨", lat: 35.7298, lng: 139.7191 },
+  { id: "h-metropolitan-ik", nameJa: "ホテルメトロポリタン東京池袋",      nameEn: "Hotel Metropolitan Tokyo Ikebukuro", nameZh: "东京池袋大都会酒店",      nameKo: "호텔 메트로폴리탄 도쿄 이케부쿠로", area: "North Tokyo",  distanceKm: 70,  etaMin: 78,  priceJpy: 8200,  emoji: "🏨", lat: 35.7287, lng: 139.7122 },
+  { id: "h-sunshine-prince", nameJa: "サンシャインシティプリンスホテル",  nameEn: "Sunshine City Prince Hotel",          nameZh: "阳光城市王子大饭店",      nameKo: "선샤인 시티 프린스 호텔",         area: "North Tokyo",    distanceKm: 70,  etaMin: 78,  priceJpy: 8200,  emoji: "🏨", lat: 35.7298, lng: 139.7191 },
   // ── 水道橋・後楽園 ──
-  { id: "h-tokyo-dome",      nameJa: "東京ドームホテル",                  nameEn: "Tokyo Dome Hotel",                    nameZh: "东京巨蛋酒店",            nameKo: "도쿄 돔 호텔",                    area: "East Tokyo",     distanceKm: 61,  etaMin: 69,  priceJpy: 5400,  emoji: "🏨", lat: 35.7068, lng: 139.7516 },
+  { id: "h-tokyo-dome",      nameJa: "東京ドームホテル",                  nameEn: "Tokyo Dome Hotel",                    nameZh: "东京巨蛋酒店",            nameKo: "도쿄 돔 호텔",                    area: "East Tokyo",     distanceKm: 61,  etaMin: 69,  priceJpy: 6800,  emoji: "🏨", lat: 35.7068, lng: 139.7516 },
   // ── 汐留・新橋 ──
-  { id: "h-courtyard-new-tbashi", nameJa: "コートヤード・バイ・マリオット東京銀座",  nameEn: "Courtyard Tokyo Ginza Hotel",    nameZh: "东京银座万怡酒店",        nameKo: "코트야드 도쿄 긴자 호텔",         area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 5700,  emoji: "🏨", lat: 35.6682, lng: 139.7660 },
+  { id: "h-courtyard-new-tbashi", nameJa: "コートヤード・バイ・マリオット東京銀座",  nameEn: "Courtyard Tokyo Ginza Hotel",    nameZh: "东京银座万怡酒店",        nameKo: "코트야드 도쿄 긴자 호텔",         area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 7200,  emoji: "🏨", lat: 35.6682, lng: 139.7660 },
   // ── 埼玉 ──
-  { id: "h-omiya-washington",nameJa: "大宮ワシントンホテル",              nameEn: "Omiya Washington Hotel",              nameZh: "大宫华盛顿大酒店",        nameKo: "오미야 워싱턴 호텔",              area: "Saitama",        distanceKm: 80,  etaMin: 90,  priceJpy: 7300,  emoji: "🏨", lat: 35.9062, lng: 139.6241 },
-  { id: "h-ana-crowne-omiya",nameJa: "ANAクラウンプラザホテル大宮",       nameEn: "ANA Crowne Plaza Omiya",              nameZh: "大宫全日空皇冠假日酒店",  nameKo: "ANA 크라운 플라자 오미야",        area: "Saitama",        distanceKm: 80,  etaMin: 90,  priceJpy: 7300,  emoji: "🏨", lat: 35.9088, lng: 139.6247 },
+  { id: "h-omiya-washington",nameJa: "大宮ワシントンホテル",              nameEn: "Omiya Washington Hotel",              nameZh: "大宫华盛顿大酒店",        nameKo: "오미야 워싱턴 호텔",              area: "Saitama",        distanceKm: 80,  etaMin: 90,  priceJpy: 8500,  emoji: "🏨", lat: 35.9062, lng: 139.6241 },
+  { id: "h-ana-crowne-omiya",nameJa: "ANAクラウンプラザホテル大宮",       nameEn: "ANA Crowne Plaza Omiya",              nameZh: "大宫全日空皇冠假日酒店",  nameKo: "ANA 크라운 플라자 오미야",        area: "Saitama",        distanceKm: 80,  etaMin: 90,  priceJpy: 8500,  emoji: "🏨", lat: 35.9088, lng: 139.6247 },
   // ── 横浜 ──
-  { id: "h-intercontinental-yh", nameJa: "ヨコハマ グランド インターコンチネンタル", nameEn: "Yokohama Grand InterContinental", nameZh: "横滨洲际大酒店",        nameKo: "요코하마 그랜드 인터컨티넨탈",    area: "Kanagawa",       distanceKm: 90,  etaMin: 100, priceJpy: 7800,  emoji: "🏨", lat: 35.4525, lng: 139.6367 },
-  { id: "h-yokohama-royal",  nameJa: "横浜ロイヤルパークホテル",          nameEn: "Yokohama Royal Park Hotel",           nameZh: "横滨皇家公园大酒店",      nameKo: "요코하마 로얄 파크 호텔",         area: "Kanagawa",       distanceKm: 90,  etaMin: 100, priceJpy: 7800,  emoji: "🏨", lat: 35.4554, lng: 139.6317 },
-  { id: "h-yokohama-sheraton", nameJa: "横浜ベイシェラトン ホテル&タワーズ", nameEn: "Yokohama Bay Sheraton Hotel",      nameZh: "横滨湾喜来登酒店",        nameKo: "요코하마 베이 셰라톤 호텔",       area: "Kanagawa",       distanceKm: 90,  etaMin: 100, priceJpy: 7800,  emoji: "🏨", lat: 35.4663, lng: 139.6254 },
-  { id: "h-new-otani-yh",    nameJa: "ホテルニューグランド",              nameEn: "Hotel New Grand Yokohama",            nameZh: "横滨新格兰大饭店",        nameKo: "호텔 뉴 그랜드 요코하마",         area: "Kanagawa",       distanceKm: 90,  etaMin: 100, priceJpy: 7800,  emoji: "🏨", lat: 35.4451, lng: 139.6436 },
+  { id: "h-intercontinental-yh", nameJa: "ヨコハマ グランド インターコンチネンタル", nameEn: "Yokohama Grand InterContinental", nameZh: "横滨洲际大酒店",        nameKo: "요코하마 그랜드 인터컨티넨탈",    area: "Kanagawa",       distanceKm: 90,  etaMin: 100, priceJpy: 9500,  emoji: "🏨", lat: 35.4525, lng: 139.6367 },
+  { id: "h-yokohama-royal",  nameJa: "横浜ロイヤルパークホテル",          nameEn: "Yokohama Royal Park Hotel",           nameZh: "横滨皇家公园大酒店",      nameKo: "요코하마 로얄 파크 호텔",         area: "Kanagawa",       distanceKm: 90,  etaMin: 100, priceJpy: 9500,  emoji: "🏨", lat: 35.4554, lng: 139.6317 },
+  { id: "h-yokohama-sheraton", nameJa: "横浜ベイシェラトン ホテル&タワーズ", nameEn: "Yokohama Bay Sheraton Hotel",      nameZh: "横滨湾喜来登酒店",        nameKo: "요코하마 베이 셰라톤 호텔",       area: "Kanagawa",       distanceKm: 90,  etaMin: 100, priceJpy: 9500,  emoji: "🏨", lat: 35.4663, lng: 139.6254 },
+  { id: "h-new-otani-yh",    nameJa: "ホテルニューグランド",              nameEn: "Hotel New Grand Yokohama",            nameZh: "横滨新格兰大饭店",        nameKo: "호텔 뉴 그랜드 요코하마",         area: "Kanagawa",       distanceKm: 90,  etaMin: 100, priceJpy: 9500,  emoji: "🏨", lat: 35.4451, lng: 139.6436 },
   // ── 追加4件（合計50件） ──
-  { id: "h-tokyo-station",   nameJa: "東京ステーションホテル",            nameEn: "The Tokyo Station Hotel",             nameZh: "东京车站大酒店",          nameKo: "더 도쿄 스테이션 호텔",           area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 5700,  emoji: "🏨", lat: 35.6812, lng: 139.7671 },
-  { id: "h-okura-tokyo",     nameJa: "ホテルオークラ東京",                nameEn: "Hotel Okura Tokyo",                   nameZh: "东京大仓酒店",            nameKo: "호텔 오쿠라 도쿄",                area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 5700,  emoji: "🏨", lat: 35.6698, lng: 139.7424 },
-  { id: "h-new-otani-tokyo", nameJa: "ホテルニューオータニ東京",          nameEn: "Hotel New Otani Tokyo",               nameZh: "东京新大谷大饭店",        nameKo: "호텔 뉴 오타니 도쿄",             area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 5700,  emoji: "🏨", lat: 35.6861, lng: 139.7313 },
-  { id: "h-imperial-tokyo",  nameJa: "帝国ホテル 東京",                   nameEn: "Imperial Hotel Tokyo",                nameZh: "东京帝国大酒店",          nameKo: "임페리얼 호텔 도쿄",              area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 5700,  emoji: "🏨", lat: 35.6732, lng: 139.7584 },
+  { id: "h-tokyo-station",   nameJa: "東京ステーションホテル",            nameEn: "The Tokyo Station Hotel",             nameZh: "东京车站大酒店",          nameKo: "더 도쿄 스테이션 호텔",           area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 7200,  emoji: "🏨", lat: 35.6812, lng: 139.7671 },
+  { id: "h-okura-tokyo",     nameJa: "ホテルオークラ東京",                nameEn: "Hotel Okura Tokyo",                   nameZh: "东京大仓酒店",            nameKo: "호텔 오쿠라 도쿄",                area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 7200,  emoji: "🏨", lat: 35.6698, lng: 139.7424 },
+  { id: "h-new-otani-tokyo", nameJa: "ホテルニューオータニ東京",          nameEn: "Hotel New Otani Tokyo",               nameZh: "东京新大谷大饭店",        nameKo: "호텔 뉴 오타니 도쿄",             area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 7200,  emoji: "🏨", lat: 35.6861, lng: 139.7313 },
+  { id: "h-imperial-tokyo",  nameJa: "帝国ホテル 東京",                   nameEn: "Imperial Hotel Tokyo",                nameZh: "东京帝国大酒店",          nameKo: "임페리얼 호텔 도쿄",              area: "Central Tokyo",  distanceKm: 63,  etaMin: 70,  priceJpy: 7200,  emoji: "🏨", lat: 35.6732, lng: 139.7584 },
 ];
 
 // ─────────────────────────────────────────────
@@ -274,6 +274,8 @@ const TR = {
     hero_sub: "No counter, no cut-off time.",
     step_pickup: "Pickup", step_dest: "Dest.", step_luggage: "Luggage", step_live: "Live",
     pickup_title: "Where are you right now?",
+    pickup_tab_terminal: "Airport Terminal", pickup_tab_hotel: "Hotel / Other",
+    pickup_hotel_placeholder: "Search hotel name…",
     gps_btn: "Use my GPS location", gps_detecting: "Detecting…", gps_success: "Location detected", gps_fail: "GPS unavailable — choose terminal below",
     or_choose: "Or choose your terminal",
     manual_hint: "Or type any location",
@@ -328,6 +330,10 @@ const TR = {
     rs_riders: "riders", rs_save: "Save", rs_badge: "Shared", rs_available: "Shared ride available!",
     name_ph: "Your name", phone_ph: "e.g. +1 234 567 8900",
     email_label: "Email (optional)", email_ph: "your@email.com",
+    pickup_date_label: "Pickup date (for early discount)",
+    early_disc_48: "Early booking −¥2,500 (48h+ advance)",
+    early_disc_24: "Early booking −¥1,500 (24–48h advance)",
+    early_disc_hint: "Book 24h+ in advance for an early discount",
   },
   ja: {
     brand: "KAIROX", tagline: "日本を、手ぶらで。",
@@ -336,6 +342,8 @@ const TR = {
     hero_sub: "荷物はホテルへ先着。カウンター不要・〆切なし。",
     step_pickup: "場所", step_dest: "届け先", step_luggage: "荷物", step_live: "追跡",
     pickup_title: "今どこにいますか？",
+    pickup_tab_terminal: "空港ターミナル", pickup_tab_hotel: "ホテル・その他",
+    pickup_hotel_placeholder: "ホテル名を検索…",
     gps_btn: "GPS で現在地を使う", gps_detecting: "検出中…", gps_success: "現在地を取得しました", gps_fail: "GPS が使えません — 下からターミナルを選択",
     or_choose: "またはターミナルを選択",
     manual_hint: "または場所を直接入力",
@@ -390,6 +398,10 @@ const TR = {
     rs_riders: "人相乗り", rs_save: "節約", rs_badge: "相乗り", rs_available: "相乗りチャンス！",
     name_ph: "お名前を入力", phone_ph: "例）+81 90-0000-0000",
     email_label: "メール（任意）", email_ph: "your@email.com",
+    pickup_date_label: "集荷日（早割適用）",
+    early_disc_48: "早割 −¥2,500（48時間以上前）",
+    early_disc_24: "早割 −¥1,500（24〜48時間前）",
+    early_disc_hint: "24時間以上前の予約で早割が適用されます",
   },
   zh: {
     brand: "KAIROX", tagline: "畅游日本，轻装出行。",
@@ -397,6 +409,8 @@ const TR = {
     hero: "抵达成田，立刻出发。行李先到酒店。", hero_sub: "无需柜台，无截止时间。",
     step_pickup: "取件", step_dest: "目的地", step_luggage: "行李", step_live: "追踪",
     pickup_title: "您现在在哪里？",
+    pickup_tab_terminal: "机场航站楼", pickup_tab_hotel: "酒店/其他",
+    pickup_hotel_placeholder: "搜索酒店名称…",
     gps_btn: "使用GPS定位", gps_detecting: "定位中…", gps_success: "已获取位置", gps_fail: "GPS不可用 — 请选择航站楼",
     or_choose: "或选择航站楼",
     manual_hint: "或手动输入位置",
@@ -444,6 +458,10 @@ const TR = {
     rs_riders: "人拼车", rs_save: "省", rs_badge: "拼车", rs_available: "可拼车！",
     name_ph: "请输入姓名", phone_ph: "例如 +86 138 0000 0000",
     email_label: "邮箱（选填）", email_ph: "your@email.com",
+    pickup_date_label: "取件日期（早鸟优惠）",
+    early_disc_48: "早鸟优惠 −¥2,500（提前48小时以上）",
+    early_disc_24: "早鸟优惠 −¥1,500（提前24–48小时）",
+    early_disc_hint: "提前24小时以上预订可享早鸟优惠",
   },
   ko: {
     brand: "KAIROX", tagline: "일본을 손 가볍게.",
@@ -451,6 +469,8 @@ const TR = {
     hero: "나리타 도착, 바로 여행 시작. 짐은 호텔에서 만나요.", hero_sub: "카운터 불필요, 마감 없음.",
     step_pickup: "위치", step_dest: "목적지", step_luggage: "짐", step_live: "추적",
     pickup_title: "지금 어디 계세요?",
+    pickup_tab_terminal: "공항 터미널", pickup_tab_hotel: "호텔/기타",
+    pickup_hotel_placeholder: "호텔명 검색…",
     gps_btn: "GPS 위치 사용", gps_detecting: "감지 중…", gps_success: "위치 감지 완료", gps_fail: "GPS 사용 불가 — 터미널을 선택하세요",
     or_choose: "또는 터미널 선택",
     manual_hint: "또는 직접 입력",
@@ -498,6 +518,10 @@ const TR = {
     rs_riders: "명 합승", rs_save: "절약", rs_badge: "합승", rs_available: "합승 가능!",
     name_ph: "이름을 입력하세요", phone_ph: "예) +82 10-0000-0000",
     email_label: "이메일 (선택)", email_ph: "your@email.com",
+    pickup_date_label: "픽업 날짜（얼리버드 할인）",
+    early_disc_48: "얼리버드 −¥2,500（48시간 이상 전）",
+    early_disc_24: "얼리버드 −¥1,500（24–48시간 전）",
+    early_disc_hint: "24시간 이상 전 예약 시 얼리버드 할인 적용",
   },
 } as const;
 
@@ -951,6 +975,9 @@ export default function NaritaApp() {
   const [terminal, setTerminal] = useState("T1");
   const [spot, setSpot] = useState<string>("t1-arrival");
   const [manualLoc, setManualLoc] = useState("");
+  const [pickupMode, setPickupMode] = useState<"terminal" | "hotel">("terminal");
+  const [pickupHotel, setPickupHotel] = useState<Destination | null>(null);
+  const [pickupHotelSearch, setPickupHotelSearch] = useState("");
 
   // Destination
   const [dest, setDest] = useState<Destination | null>(null);
@@ -970,6 +997,7 @@ export default function NaritaApp() {
   // Luggage + payment
   const [bags, setBags] = useState(1);
   const [payMethod, setPayMethod] = useState<PayMethod>("credit");
+  const [pickupDate, setPickupDate] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -990,19 +1018,24 @@ export default function NaritaApp() {
 
   // Derived pickup coords + label
   const terminalData = NARITA_TERMINALS.find((t) => t.id === terminal) ?? NARITA_TERMINALS[0];
-  const pickupLat = gpsCoord?.lat ?? terminalData.lat;
-  const pickupLng = gpsCoord?.lng ?? terminalData.lng;
+  const pickupLat = gpsCoord?.lat ?? (pickupMode === "hotel" && pickupHotel ? pickupHotel.lat : terminalData.lat);
+  const pickupLng = gpsCoord?.lng ?? (pickupMode === "hotel" && pickupHotel ? pickupHotel.lng : terminalData.lng);
   const terminalSpot = terminalData.spots.find((s) => s.id === spot) ?? terminalData.spots[0];
   const spotLabel = locale === "ja" ? terminalSpot.ja : locale === "zh" ? terminalSpot.zh : locale === "ko" ? terminalSpot.ko : terminalSpot.en;
+  const hotelPickupName = pickupHotel ? (locale === "ja" ? pickupHotel.nameJa : locale === "zh" ? pickupHotel.nameZh : locale === "ko" ? pickupHotel.nameKo : pickupHotel.nameEn) : "";
   const pickupLabel =
     gpsStatus === "ok" && gpsCoord ? `GPS (${gpsCoord.lat.toFixed(4)}, ${gpsCoord.lng.toFixed(4)})` :
     manualLoc.trim() ? manualLoc.trim() :
+    pickupMode === "hotel" && pickupHotel ? hotelPickupName :
     `${terminalData.labelEn} — ${spotLabel}`;
 
   // Price
   const base = dest ? dest.priceJpy + (bags - 1) * EXTRA_BAG : 0;
-  const cryptoDisc = payMethod !== "credit" ? Math.floor(base * CRYPTO_DISC) : 0;
-  const afterDisc = base - cryptoDisc;
+  const hoursUntilPickup = pickupDate ? (new Date(pickupDate).getTime() - Date.now()) / 3600000 : 0;
+  const earlyDisc = pickupDate && hoursUntilPickup >= 48 ? 2500 : pickupDate && hoursUntilPickup >= 24 ? 1500 : 0;
+  const afterEarlyDisc = Math.max(0, base - earlyDisc);
+  const cryptoDisc = payMethod !== "credit" ? Math.floor(afterEarlyDisc * CRYPTO_DISC) : 0;
+  const afterDisc = afterEarlyDisc - cryptoDisc;
   const cardFee = payMethod === "credit" ? Math.floor(afterDisc * CARD_FEE) : 0;
   const total = afterDisc + cardFee;
 
@@ -1049,7 +1082,7 @@ export default function NaritaApp() {
     else if (step === "confirm") setStep("luggage");
   }
   function reset() {
-    setStep("pickup"); setGpsStatus("idle"); setGpsCoord(null); setManualLoc(""); setTerminal("T1"); setSpot("t1-arrival");
+    setStep("pickup"); setGpsStatus("idle"); setGpsCoord(null); setManualLoc(""); setTerminal("T1"); setSpot("t1-arrival"); setPickupDate("");
     setDest(null); setDestMode("area"); setHotelSearch(""); setBags(1); setPayMethod("credit"); setName(""); setPhone(""); setMatchPhase("searching");
     setBookingId("NRT-" + Math.random().toString(36).slice(2, 8).toUpperCase());
   }
@@ -1086,6 +1119,7 @@ export default function NaritaApp() {
           hotel_name: destName,
           pay_method: payMethod,
           total_amount: total,
+          pickup_date: pickupDate || undefined,
         }),
       });
       if (res.ok) {
@@ -1170,9 +1204,7 @@ export default function NaritaApp() {
         {/* ─── STEP: PICKUP ─── */}
         {step === "pickup" && (
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 space-y-5">
-            <div className="flex items-center gap-3">
-              <h2 className="text-base font-bold text-white">{tr.pickup_title}</h2>
-            </div>
+            <h2 className="text-base font-bold text-white">{tr.pickup_title}</h2>
 
             {/* Active drivers */}
             {activeDrivers !== null && (
@@ -1184,68 +1216,110 @@ export default function NaritaApp() {
               </div>
             )}
 
-            {/* GPS button */}
-            <button type="button" onClick={handleGps} disabled={gpsStatus === "detecting"}
-              className={`w-full flex items-center justify-center gap-3 py-4 rounded-xl border-2 font-semibold text-sm transition-all ${
-                gpsStatus === "ok" ? "border-green-500 bg-green-950/30 text-green-300" :
-                gpsStatus === "fail" ? "border-gray-700 bg-gray-800/50 text-gray-500" :
-                gpsStatus === "detecting" ? "border-amber-600 bg-amber-950/20 text-amber-300 cursor-wait" :
-                "border-amber-500 bg-amber-950/30 text-amber-200 hover:bg-amber-950/50"
-              }`}>
-              <span className="text-xl">{gpsStatus === "ok" ? "✅" : gpsStatus === "fail" ? "📵" : gpsStatus === "detecting" ? "🔍" : "📍"}</span>
-              <span>{gpsStatus === "detecting" ? tr.gps_detecting : gpsStatus === "ok" ? tr.gps_success : gpsStatus === "fail" ? tr.gps_fail : tr.gps_btn}</span>
-              {gpsStatus === "detecting" && <PulseDots />}
-            </button>
+            {/* Pickup mode tabs */}
+            <div className="flex gap-1.5 bg-gray-800 p-1 rounded-xl">
+              {(["terminal", "hotel"] as const).map((mode) => (
+                <button key={mode} type="button"
+                  onClick={() => { setPickupMode(mode); setGpsStatus("idle"); setGpsCoord(null); setManualLoc(""); setPickupHotel(null); setPickupHotelSearch(""); }}
+                  className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${pickupMode === mode ? "bg-amber-500 text-gray-950" : "text-gray-400 hover:text-gray-200"}`}>
+                  {mode === "terminal" ? tr.pickup_tab_terminal : tr.pickup_tab_hotel}
+                </button>
+              ))}
+            </div>
 
-            {/* Map: show when GPS detected */}
-            {gpsStatus === "ok" && gpsCoord && (
-              <MapPickup lat={gpsCoord.lat} lng={gpsCoord.lng} label={tr.map_label} locale={locale} />
-            )}
+            {pickupMode === "terminal" ? (<>
+              {/* GPS button */}
+              <button type="button" onClick={handleGps} disabled={gpsStatus === "detecting"}
+                className={`w-full flex items-center justify-center gap-3 py-4 rounded-xl border-2 font-semibold text-sm transition-all ${
+                  gpsStatus === "ok" ? "border-green-500 bg-green-950/30 text-green-300" :
+                  gpsStatus === "fail" ? "border-gray-700 bg-gray-800/50 text-gray-500" :
+                  gpsStatus === "detecting" ? "border-amber-600 bg-amber-950/20 text-amber-300 cursor-wait" :
+                  "border-amber-500 bg-amber-950/30 text-amber-200 hover:bg-amber-950/50"
+                }`}>
+                <span className="text-xl">{gpsStatus === "ok" ? "✅" : gpsStatus === "fail" ? "📵" : gpsStatus === "detecting" ? "🔍" : "📍"}</span>
+                <span>{gpsStatus === "detecting" ? tr.gps_detecting : gpsStatus === "ok" ? tr.gps_success : gpsStatus === "fail" ? tr.gps_fail : tr.gps_btn}</span>
+                {gpsStatus === "detecting" && <PulseDots />}
+              </button>
 
-            {/* Terminal selector */}
-            {gpsStatus !== "ok" && (
-              <div className="space-y-3">
-                <p className="text-xs text-gray-500">{tr.or_choose}</p>
-                <div className="grid grid-cols-3 gap-1.5">
-                  {NARITA_TERMINALS.map((t) => (
-                    <button key={t.id} type="button" onClick={() => { setTerminal(t.id); setSpot(t.spots[0].id); setManualLoc(""); }}
-                      className={`px-2 py-2.5 rounded-xl border text-left transition-all ${terminal === t.id ? "border-amber-500 bg-amber-950/40" : "border-gray-700 bg-gray-800/50 hover:border-gray-600"}`}>
-                      <p className={`text-xs font-semibold leading-tight ${terminal === t.id ? "text-amber-300" : "text-gray-300"}`}>{t.labelEn}</p>
-                      <p className="text-[9px] text-gray-600 mt-0.5 leading-tight">{t.hint}</p>
-                    </button>
-                  ))}
-                </div>
+              {/* Map: show when GPS detected */}
+              {gpsStatus === "ok" && gpsCoord && (
+                <MapPickup lat={gpsCoord.lat} lng={gpsCoord.lng} label={tr.map_label} locale={locale} />
+              )}
 
-                {/* Spot selector */}
-                <div className="space-y-1.5">
-                  <p className="text-xs text-gray-500">{tr.spot_title}</p>
+              {/* Terminal selector */}
+              {gpsStatus !== "ok" && (
+                <div className="space-y-3">
+                  <p className="text-xs text-gray-500">{tr.or_choose}</p>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {NARITA_TERMINALS.map((t) => (
+                      <button key={t.id} type="button" onClick={() => { setTerminal(t.id); setSpot(t.spots[0].id); setManualLoc(""); }}
+                        className={`px-2 py-2.5 rounded-xl border text-left transition-all ${terminal === t.id ? "border-amber-500 bg-amber-950/40" : "border-gray-700 bg-gray-800/50 hover:border-gray-600"}`}>
+                        <p className={`text-xs font-semibold leading-tight ${terminal === t.id ? "text-amber-300" : "text-gray-300"}`}>{t.labelEn}</p>
+                        <p className="text-[9px] text-gray-600 mt-0.5 leading-tight">{t.hint}</p>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Spot selector */}
                   <div className="space-y-1.5">
-                    {terminalData.spots.map((s) => {
-                      const label = locale === "ja" ? s.ja : locale === "zh" ? s.zh : locale === "ko" ? s.ko : s.en;
-                      const active = spot === s.id;
-                      return (
-                        <button key={s.id} type="button" onClick={() => { setSpot(s.id); setManualLoc(""); }}
-                          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all ${active ? "border-amber-500 bg-amber-950/40" : "border-gray-700 bg-gray-800/50 hover:border-gray-600"}`}>
-                          <span className="text-base flex-shrink-0">{s.icon}</span>
-                          <span className={`text-xs font-medium leading-tight ${active ? "text-amber-300" : "text-gray-300"}`}>{label}</span>
-                          {active && <span className="ml-auto text-amber-500 text-xs flex-shrink-0">✓</span>}
-                        </button>
-                      );
-                    })}
+                    <p className="text-xs text-gray-500">{tr.spot_title}</p>
+                    <div className="space-y-1.5">
+                      {terminalData.spots.map((s) => {
+                        const label = locale === "ja" ? s.ja : locale === "zh" ? s.zh : locale === "ko" ? s.ko : s.en;
+                        const active = spot === s.id;
+                        return (
+                          <button key={s.id} type="button" onClick={() => { setSpot(s.id); setManualLoc(""); }}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all ${active ? "border-amber-500 bg-amber-950/40" : "border-gray-700 bg-gray-800/50 hover:border-gray-600"}`}>
+                            <span className="text-base flex-shrink-0">{s.icon}</span>
+                            <span className={`text-xs font-medium leading-tight ${active ? "text-amber-300" : "text-gray-300"}`}>{label}</span>
+                            {active && <span className="ml-auto text-amber-500 text-xs flex-shrink-0">✓</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Manual input */}
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">{tr.manual_hint}</p>
-              <input type="text" value={manualLoc}
-                onChange={(e) => { setManualLoc(e.target.value); setGpsStatus("idle"); setGpsCoord(null); }}
-                placeholder={tr.manual_placeholder}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-amber-500 transition-colors"
+              {/* Manual input */}
+              <div className="space-y-1">
+                <p className="text-xs text-gray-500">{tr.manual_hint}</p>
+                <input type="text" value={manualLoc}
+                  onChange={(e) => { setManualLoc(e.target.value); setGpsStatus("idle"); setGpsCoord(null); }}
+                  placeholder={tr.manual_placeholder}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-amber-500 transition-colors"
+                />
+              </div>
+            </>) : (<>
+              {/* Hotel pickup search */}
+              <input type="text" value={pickupHotelSearch}
+                onChange={(e) => setPickupHotelSearch(e.target.value)}
+                placeholder={tr.pickup_hotel_placeholder}
+                autoFocus
+                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-amber-500 transition-colors"
               />
-            </div>
+              <div className="space-y-1.5 max-h-72 overflow-y-auto">
+                {HOTELS.filter((h) => {
+                  if (!pickupHotelSearch.trim()) return true;
+                  const q = pickupHotelSearch.toLowerCase();
+                  return h.nameEn.toLowerCase().includes(q) || h.nameJa.includes(pickupHotelSearch) || h.nameZh.includes(pickupHotelSearch) || h.nameKo.includes(pickupHotelSearch) || h.area.toLowerCase().includes(q);
+                }).map((h) => {
+                  const active = pickupHotel?.id === h.id;
+                  const hName = locale === "ja" ? h.nameJa : locale === "zh" ? h.nameZh : locale === "ko" ? h.nameKo : h.nameEn;
+                  return (
+                    <button key={h.id} type="button" onClick={() => setPickupHotel(h)}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all ${active ? "border-amber-500 bg-amber-950/40" : "border-gray-700 bg-gray-800/50 hover:border-gray-600"}`}>
+                      <span className="text-xl flex-shrink-0">{h.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-xs font-semibold leading-tight truncate ${active ? "text-amber-300" : "text-gray-200"}`}>{hName}</p>
+                        <p className="text-[10px] text-gray-600 mt-0.5">{h.area}</p>
+                      </div>
+                      {active && <span className="text-amber-500 flex-shrink-0 text-xs">✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </>)}
           </div>
         )}
 
@@ -1336,6 +1410,28 @@ export default function NaritaApp() {
               </div>
             </div>
 
+            {/* Pickup date for early discount */}
+            <div className="space-y-2">
+              <label className="text-xs text-gray-400">{tr.pickup_date_label}</label>
+              <input
+                type="date"
+                value={pickupDate}
+                min={new Date().toISOString().slice(0, 10)}
+                onChange={(e) => setPickupDate(e.target.value)}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-amber-500"
+              />
+              {pickupDate && earlyDisc > 0 && (
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="inline-flex items-center gap-1 bg-green-500/15 border border-green-500/40 text-green-400 text-[11px] font-bold px-2.5 py-1 rounded-full">
+                    🎉 {earlyDisc === 2500 ? tr.early_disc_48 : tr.early_disc_24}
+                  </span>
+                </div>
+              )}
+              {pickupDate && earlyDisc === 0 && (
+                <p className="text-[10px] text-gray-600 mt-1">{tr.early_disc_hint}</p>
+              )}
+            </div>
+
             {/* Payment */}
             <div className="space-y-2">
               <label className="text-xs text-gray-400">{tr.pay_title}</label>
@@ -1370,13 +1466,19 @@ export default function NaritaApp() {
                   <span className={`text-gray-300 ${row.small ? "text-xs max-w-[160px] truncate text-right" : ""}`}>{row.val}</span>
                 </div>
               ))}
+              {earlyDisc > 0 && <div className="flex items-center justify-between"><span className="text-green-400 text-xs">🎉 {earlyDisc === 2500 ? tr.early_disc_48 : tr.early_disc_24}</span><span className="text-green-400">−¥{earlyDisc.toLocaleString()}</span></div>}
               {cryptoDisc > 0 && <div className="flex items-center justify-between"><span className="text-green-400">JPYC/USDC discount</span><span className="text-green-400">−¥{cryptoDisc.toLocaleString()}</span></div>}
               <div className="border-t border-gray-700 pt-2 flex items-end justify-between">
                 <div>
                   <p className="text-[10px] text-amber-500/80 uppercase tracking-wide font-semibold">{tr.summary_total}</p>
                   <p className="text-[10px] text-gray-600">{tr.total_incl}</p>
                 </div>
-                <p className="text-3xl font-black text-white">¥{total.toLocaleString()}</p>
+                <div className="text-right">
+                  {earlyDisc > 0 && (
+                    <p className="text-sm text-gray-600 line-through">¥{base.toLocaleString()}</p>
+                  )}
+                  <p className="text-3xl font-black text-white">¥{total.toLocaleString()}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -1417,6 +1519,7 @@ export default function NaritaApp() {
               <div className="flex justify-between"><span className="text-gray-400">{tr.summary_pickup}</span><span className="text-gray-300 max-w-[160px] truncate text-right">{pickupLabel}</span></div>
               <div className="flex justify-between"><span className="text-gray-400">{tr.summary_dest}</span><span className="text-gray-300">{destName}</span></div>
               <div className="flex justify-between"><span className="text-gray-400">{tr.summary_bags}</span><span className="text-gray-300">{bags} {tr.pieces}</span></div>
+              {earlyDisc > 0 && <div className="flex justify-between"><span className="text-green-400 text-xs">🎉 {earlyDisc === 2500 ? tr.early_disc_48 : tr.early_disc_24}</span><span className="text-green-400">−¥{earlyDisc.toLocaleString()}</span></div>}
               {cryptoDisc > 0 && <div className="flex justify-between"><span className="text-green-400">JPYC/USDC −5%</span><span className="text-green-400">−¥{cryptoDisc.toLocaleString()}</span></div>}
               <div className="border-t border-gray-700 pt-2 flex justify-between items-center">
                 <span className="text-gray-400">{tr.summary_total}</span>
