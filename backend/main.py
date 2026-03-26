@@ -518,6 +518,60 @@ def get_route_stats_summary(db: Session = Depends(get_db)):
     return get_route_stats_all(db)
 
 
+@app.post("/debug/inject-gps-test")
+def inject_gps_test(
+    payload: dict,
+    db: Session = Depends(get_db),
+):
+    """
+    テスト走行データを1件注入（AdminViewのGPS学習タブから呼び出し）。
+    成田→新宿ルートのモックGPSトラックを生成し RouteStats に蓄積する。
+    """
+    route_type = payload.get("route_type", "local")
+    booking_id = "TEST-" + "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
+
+    # 成田空港→新宿 の代表座標
+    start_lat, start_lng = 35.7647, 140.3864
+    end_lat,   end_lng   = 35.6896, 139.6921
+
+    # モックGPSトラック（出発〜到着まで約60〜90分）
+    jst_now = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=9)))
+    actual_min = 65.0 + random.uniform(-10, 25)  # 55〜90分のばらつき
+    steps = 20
+    for i in range(steps + 1):
+        t = i / steps
+        lat = start_lat + (end_lat - start_lat) * t
+        lng = start_lng + (end_lng - start_lng) * t
+        recorded_at = datetime.now(timezone.utc) - timedelta(minutes=actual_min * (1 - t))
+        db.add(GpsTrackPoint(
+            booking_id=booking_id,
+            lat=lat, lng=lng,
+            driver_status="loaded" if t > 0.1 else "at_pickup",
+            route_type=route_type,
+            recorded_at=recorded_at,
+        ))
+    db.commit()
+
+    # RouteStats に蓄積
+    pickup_grid = f"{round(start_lat, 1)},{round(start_lng, 1)}"
+    dest_grid   = f"{round(end_lat,   1)},{round(end_lng,   1)}"
+    hour = jst_now.hour
+    upsert_route_stats(db, pickup_grid, dest_grid, hour, actual_min, route_type)
+
+    # 20件到達チェック
+    from .database import RouteStats as RS
+    total_samples = sum(
+        r.sample_count for r in
+        db.query(RS).filter_by(pickup_grid=pickup_grid, dest_grid=dest_grid, route_type=route_type).all()
+    )
+    if total_samples >= 20:
+        aggregate_route_to_bands(db, pickup_grid, dest_grid, route_type)
+        log.info(f"[BandLearn] テスト投入で20件達成 → 時間帯別集約実行")
+
+    log.info(f"[TestInject] {booking_id} [{route_type}] {actual_min:.1f}min")
+    return {"booking_id": booking_id, "route_type": route_type, "actual_min": round(actual_min, 1)}
+
+
 @app.get("/drivers/active")
 def list_active_drivers(db: Session = Depends(get_db)):
     """現在稼働中のドライバー位置一覧（GPSテロップ用・認証不要）"""

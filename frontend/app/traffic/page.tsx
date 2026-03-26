@@ -446,6 +446,20 @@ export default function TrafficPage() {
           </div>
         </div>
 
+        {/* ─── 詳細ページリンク ─── */}
+        <div className="px-4 pt-2">
+          <div className="max-w-2xl mx-auto grid grid-cols-2 gap-2">
+            <a href="/traffic/narita" className="bg-gray-900 border border-gray-800 rounded-xl px-3.5 py-3 hover:border-amber-500/40 transition-colors">
+              <p className="text-xs font-bold text-gray-200">✈️ 成田空港</p>
+              <p className="text-[10px] text-gray-600 mt-0.5">東関東道・国道51号 詳細 →</p>
+            </a>
+            <a href="/traffic/haneda" className="bg-gray-900 border border-gray-800 rounded-xl px-3.5 py-3 hover:border-amber-500/40 transition-colors">
+              <p className="text-xs font-bold text-gray-200">✈️ 羽田空港</p>
+              <p className="text-[10px] text-gray-600 mt-0.5">首都高・湾岸線 詳細 →</p>
+            </a>
+          </div>
+        </div>
+
         {/* ─── CTA：手ぶら配送 ─── */}
         <div className="px-4 py-4">
           <div className="max-w-2xl mx-auto">

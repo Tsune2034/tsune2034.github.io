@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     title: "KAIROX — Japan Luggage Freedom",
     description:
       "Land at Narita. Start exploring. Your luggage meets you at the hotel.",
-    url: "https://kairox.app/narita",
+    url: "https://kairox.jp/narita",
     siteName: "KAIROX",
     type: "website",
     locale: "en_US",
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     site: "@kairox_jp",
   },
   alternates: {
-    canonical: "https://kairox.app/narita",
+    canonical: "https://kairox.jp/narita",
   },
 };
 

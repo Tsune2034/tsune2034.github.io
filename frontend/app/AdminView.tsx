@@ -333,15 +333,41 @@ function GpsStatsTab() {
     total_samples: number;
     band_routes: number;
   } | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]       = useState(true);
+  const [injecting, setInjecting]   = useState(false);
+  const [injectMsg, setInjectMsg]   = useState("");
   const API = process.env.NEXT_PUBLIC_API_URL ?? "";
 
-  useEffect(() => {
+  const loadStats = () => {
     fetch(`${API}/route-stats/summary`)
       .then((r) => r.ok ? r.json() : null)
       .then(setData)
       .finally(() => setLoading(false));
-  }, [API]);
+  };
+
+  useEffect(() => { loadStats(); }, [API]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function injectTestRun(routeType: "highway" | "local") {
+    setInjecting(true); setInjectMsg("");
+    try {
+      const res = await fetch(`${API}/debug/inject-gps-test`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ route_type: routeType }),
+      });
+      if (res.ok) {
+        const d = await res.json();
+        setInjectMsg(`✓ ${d.booking_id} [${routeType}] ${d.actual_min}分`);
+        setTimeout(() => { setInjectMsg(""); loadStats(); }, 1500);
+      } else {
+        setInjectMsg("エラー: " + res.status);
+      }
+    } catch {
+      setInjectMsg("接続エラー");
+    } finally {
+      setInjecting(false);
+    }
+  }
 
   if (loading) return <p className="text-center text-gray-500 py-12 text-sm">読込中…</p>;
 
@@ -378,6 +404,30 @@ function GpsStatsTab() {
             </p>
             <p className="text-[9px] text-gray-500">Phase4</p>
           </div>
+        </div>
+
+        {/* テスト投入 */}
+        <div className="border-t border-gray-800 pt-3 space-y-2">
+          <p className="text-[10px] text-gray-600 font-semibold">テストデータ投入（実走前の動作確認用）</p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => injectTestRun("highway")}
+              disabled={injecting}
+              className="flex-1 py-2 rounded-xl bg-sky-500/15 border border-sky-500/40 text-sky-400 text-[11px] font-bold hover:bg-sky-500/25 transition-colors disabled:opacity-40"
+            >
+              🛣️ 高速テスト走行
+            </button>
+            <button
+              type="button"
+              onClick={() => injectTestRun("local")}
+              disabled={injecting}
+              className="flex-1 py-2 rounded-xl bg-orange-500/15 border border-orange-500/40 text-orange-400 text-[11px] font-bold hover:bg-orange-500/25 transition-colors disabled:opacity-40"
+            >
+              🏘️ 一般道テスト走行
+            </button>
+          </div>
+          {injectMsg && <p className="text-[10px] text-green-400 text-center">{injectMsg}</p>}
         </div>
       </div>
 

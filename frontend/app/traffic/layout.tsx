@@ -12,7 +12,12 @@ export const metadata: Metadata = {
   openGraph: {
     title: "成田・羽田 リアルタイム渋滞マップ | KAIROX Traffic",
     description: "実配送GPSデータから生成した空港ルート渋滞情報。東関東道・首都高・国道357号をリアルタイム表示。",
+    url: "https://kairox.jp/traffic",
+    siteName: "KAIROX",
     type: "website",
+  },
+  alternates: {
+    canonical: "https://kairox.jp/traffic",
   },
 };
 
