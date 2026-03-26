@@ -336,6 +336,9 @@ function GpsStatsTab() {
   const [loading, setLoading]       = useState(true);
   const [injecting, setInjecting]   = useState(false);
   const [injectMsg, setInjectMsg]   = useState("");
+  const [testForm, setTestForm]     = useState({ pickup: "成田空港 第1ターミナル", dest: "新宿駅西口", routeType: "highway" as "highway" | "local" });
+  const [creating, setCreating]     = useState(false);
+  const [createMsg, setCreateMsg]   = useState("");
   const API = process.env.NEXT_PUBLIC_API_URL ?? "";
 
   const loadStats = () => {
@@ -366,6 +369,44 @@ function GpsStatsTab() {
       setInjectMsg("接続エラー");
     } finally {
       setInjecting(false);
+    }
+  }
+
+  async function createTestBooking() {
+    setCreating(true); setCreateMsg("");
+    const today = new Date().toISOString().slice(0, 10);
+    try {
+      const res = await fetch(`${API}/bookings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "テスト走行",
+          email: "test@kairox.jp",
+          phone: "000-0000-0000",
+          locale: "ja",
+          plan: "solo",
+          extra_bags: 0,
+          pickup_location: testForm.pickup,
+          pickup_date: today,
+          destination: "test",
+          hotel_name: testForm.dest,
+          zone: "chitose",
+          pay_method: "credit",
+          total_amount: 0,
+          share_ride: false,
+        }),
+      });
+      if (res.ok) {
+        const d = await res.json();
+        setCreateMsg(`✓ 予約ID: ${d.booking_id} — DriverViewで確認してください`);
+      } else {
+        const e = await res.json().catch(() => ({}));
+        setCreateMsg("エラー: " + (e.detail ?? res.status));
+      }
+    } catch {
+      setCreateMsg("接続エラー");
+    } finally {
+      setCreating(false);
     }
   }
 
@@ -428,6 +469,48 @@ function GpsStatsTab() {
             </button>
           </div>
           {injectMsg && <p className="text-[10px] text-green-400 text-center">{injectMsg}</p>}
+        </div>
+
+        {/* 実走テスト予約 */}
+        <div className="border-t border-gray-800 pt-3 space-y-2">
+          <p className="text-[10px] text-gray-500 font-semibold">実走テスト予約（DriverViewでGPS走行）</p>
+          <div className="space-y-1.5">
+            <input
+              type="text"
+              value={testForm.pickup}
+              onChange={(e) => setTestForm((p) => ({ ...p, pickup: e.target.value }))}
+              placeholder="出発地（例: 成田空港T1）"
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-gray-500"
+            />
+            <input
+              type="text"
+              value={testForm.dest}
+              onChange={(e) => setTestForm((p) => ({ ...p, dest: e.target.value }))}
+              placeholder="目的地（例: 新宿駅西口）"
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-gray-500"
+            />
+            <div className="flex gap-1.5">
+              {(["highway", "local"] as const).map((rt) => (
+                <button
+                  key={rt}
+                  type="button"
+                  onClick={() => setTestForm((p) => ({ ...p, routeType: rt }))}
+                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold border transition-colors ${testForm.routeType === rt ? "bg-sky-500/20 border-sky-500/50 text-sky-400" : "bg-gray-800 border-gray-700 text-gray-500"}`}
+                >
+                  {rt === "highway" ? "🛣️ 高速" : "🏘️ 一般道"}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={createTestBooking}
+              disabled={creating || !testForm.pickup || !testForm.dest}
+              className="w-full py-2 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-400 text-[11px] font-bold hover:bg-amber-500/25 transition-colors disabled:opacity-40"
+            >
+              {creating ? "作成中…" : "テスト予約を作成 →"}
+            </button>
+          </div>
+          {createMsg && <p className="text-[10px] text-green-400 text-center">{createMsg}</p>}
         </div>
       </div>
 
