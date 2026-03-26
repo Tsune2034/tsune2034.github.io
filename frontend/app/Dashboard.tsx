@@ -1400,7 +1400,7 @@ function DriverNearbyTicker({ discount, locale }: { discount: number; locale: Lo
 }
 
 // ───────────────────────── Main Component ─────────────────────────
-type View = "book" | "track" | "business" | "driver_register" | "driver" | "admin";
+type View = "book" | "track" | "business" | "driver_register" | "driver" | "admin" | "player";
 
 export default function Dashboard() {
   const stripe = useStripe();
@@ -1815,21 +1815,21 @@ export default function Dashboard() {
         <button
           type="button"
           onClick={() => setView("driver")}
-          className="text-[10px] text-gray-800 hover:text-gray-600 transition-colors"
+          className="text-[10px] text-gray-600 hover:text-gray-400 transition-colors"
         >
           🚐
         </button>
         <button
           type="button"
           onClick={() => setView("player")}
-          className="text-[10px] text-gray-800 hover:text-gray-600 transition-colors"
+          className="text-[10px] text-gray-600 hover:text-gray-400 transition-colors"
         >
           🧳
         </button>
         <button
           type="button"
           onClick={() => setView("admin")}
-          className="text-[10px] text-gray-800 hover:text-gray-600 transition-colors"
+          className="text-[10px] text-gray-600 hover:text-gray-400 transition-colors"
         >
           ⚙️
         </button>
