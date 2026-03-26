@@ -5,11 +5,11 @@
     {
       "id": 26,
       "role": "engineer",
-      "task": "GPS学習モード Phase3: 時間帯別補正係数の自動更新",
-      "detail": "sample_count >= 20 になったルートは hour_of_day を 朝(6-9)/昼(10-16)/夜(17-23)/深夜(0-5) の4帯に集約して精度向上。AdminViewにルート統計タブ追加",
-      "status": "pending",
+      "task": "GPS学習モード Phase4: 時間帯別補正係数の自動更新",
+      "detail": "RouteStatsBand テーブル追加。sample_count>=20 で朝/昼/夜/深夜4帯に自動集約。AdminViewにGPS学習タブ追加（進捗バー・補正テーブル）。コード実装済み・データ蓄積で自動起動",
+      "status": "done",
       "priority": "P2",
-      "blocked_by": "実走データ20件以上蓄積後"
+      "blocked_by": null
     },
     {
       "id": 1,
