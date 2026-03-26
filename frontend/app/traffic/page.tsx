@@ -430,7 +430,8 @@ export default function TrafficPage() {
                                level === "slow"  ? "bg-amber-500/20 border-amber-500/50 text-amber-400" :
                                level === "clear" ? "bg-green-500/20 border-green-500/50 text-green-400" :
                                                    "bg-gray-800/50 border-gray-700 text-gray-500";
-              const labelText = level === "unknown" ? tr.unknown : (tr as Record<string, string>)[level] ?? level;
+              const levelLabels: Record<string, string> = { jam: tr.jam, slow: tr.slow, clear: tr.clear };
+              const labelText = level === "unknown" ? tr.unknown : levelLabels[level] ?? level;
               return (
                 <div key={route} className="flex items-center justify-between bg-gray-900/60 border border-gray-800 rounded-xl px-3.5 py-2.5">
                   <div>
