@@ -13,6 +13,7 @@ type BookingRow = {
   total_amount: number;
   pay_method: string;
   created_at: string;
+  pickup_date: string;
 };
 
 type DriverRow = {
@@ -317,6 +318,121 @@ function AiOpsTab() {
   );
 }
 
+// ───────────────────────── GPS Stats Tab ─────────────────────────
+const BAND_LABEL: Record<string, string> = {
+  morning:  "朝 6-9時",
+  daytime:  "昼 10-16時",
+  evening:  "夜 17-23時",
+  midnight: "深夜 0-5時",
+};
+
+function GpsStatsTab() {
+  const [data, setData] = useState<{
+    hourly: { pickup_grid: string; dest_grid: string; route_type: string; hour_of_day: number; avg_actual_min: number; correction_factor: number; sample_count: number }[];
+    bands:  { pickup_grid: string; dest_grid: string; route_type: string; time_band: string; avg_actual_min: number; correction_factor: number; sample_count: number }[];
+    total_samples: number;
+    band_routes: number;
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const API = process.env.NEXT_PUBLIC_API_URL ?? "";
+
+  useEffect(() => {
+    fetch(`${API}/route-stats/summary`)
+      .then((r) => r.ok ? r.json() : null)
+      .then(setData)
+      .finally(() => setLoading(false));
+  }, [API]);
+
+  if (loading) return <p className="text-center text-gray-500 py-12 text-sm">読込中…</p>;
+
+  const totalSamples = data?.total_samples ?? 0;
+  const bandRoutes   = data?.band_routes ?? 0;
+  const progress     = Math.min(100, Math.round((totalSamples / 20) * 100));
+
+  return (
+    <div className="space-y-4">
+      {/* 進捗バー */}
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-bold text-white">GPS学習進捗</p>
+          <span className="text-[10px] text-gray-500">{totalSamples} / 20件で時間帯別補正が起動</span>
+        </div>
+        <div className="w-full bg-gray-800 rounded-full h-2">
+          <div
+            className={`h-2 rounded-full transition-all ${totalSamples >= 20 ? "bg-green-500" : "bg-amber-500"}`}
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="bg-gray-800/60 rounded-xl py-2">
+            <p className="text-lg font-black text-white">{totalSamples}</p>
+            <p className="text-[9px] text-gray-500">走行サンプル</p>
+          </div>
+          <div className="bg-gray-800/60 rounded-xl py-2">
+            <p className="text-lg font-black text-white">{bandRoutes}</p>
+            <p className="text-[9px] text-gray-500">時間帯補正済みルート</p>
+          </div>
+          <div className={`rounded-xl py-2 ${totalSamples >= 20 ? "bg-green-500/20" : "bg-gray-800/60"}`}>
+            <p className={`text-lg font-black ${totalSamples >= 20 ? "text-green-400" : "text-gray-600"}`}>
+              {totalSamples >= 20 ? "ON" : "待機"}
+            </p>
+            <p className="text-[9px] text-gray-500">Phase4</p>
+          </div>
+        </div>
+      </div>
+
+      {/* 時間帯別補正テーブル */}
+      {(data?.bands ?? []).length > 0 ? (
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 space-y-2">
+          <p className="text-xs font-bold text-white">時間帯別補正係数（高精度）</p>
+          <div className="space-y-1.5">
+            {(data?.bands ?? []).map((b, i) => (
+              <div key={i} className="flex items-center justify-between bg-gray-800/50 rounded-xl px-3 py-2">
+                <div>
+                  <p className="text-[10px] font-semibold text-gray-200">
+                    {b.pickup_grid} → {b.dest_grid}
+                  </p>
+                  <p className="text-[9px] text-gray-600">
+                    {BAND_LABEL[b.time_band] ?? b.time_band} · {b.route_type === "highway" ? "🛣️高速" : "🏘️一般道"}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-bold text-amber-400">×{b.correction_factor.toFixed(2)}</p>
+                  <p className="text-[9px] text-gray-600">{b.avg_actual_min}分 · {b.sample_count}件</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-center space-y-2">
+          <p className="text-2xl">🛣️</p>
+          <p className="text-xs font-semibold text-gray-400">時間帯別データなし</p>
+          <p className="text-[10px] text-gray-600">走行データが20件蓄積すると自動で時間帯別補正が起動します</p>
+        </div>
+      )}
+
+      {/* 時刻別データ（生データ） */}
+      {(data?.hourly ?? []).length > 0 && (
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 space-y-2">
+          <p className="text-xs font-bold text-white">時刻別生データ（上位10件）</p>
+          <div className="space-y-1">
+            {(data?.hourly ?? []).slice(0, 10).map((r, i) => (
+              <div key={i} className="flex items-center justify-between text-[10px] py-1 border-b border-gray-800/50">
+                <span className="text-gray-400 font-mono">{r.pickup_grid}→{r.dest_grid}</span>
+                <span className="text-gray-500">{r.hour_of_day}時 · {r.route_type === "highway" ? "高速" : "一般"}</span>
+                <span className="text-amber-400 font-semibold">×{r.correction_factor.toFixed(2)}</span>
+                <span className="text-gray-600">{r.sample_count}件</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 // ───────────────────────── PIN Gate ─────────────────────────
 function PinGate({ onUnlock }: { onUnlock: () => void }) {
   const [pin, setPin] = useState("");
@@ -367,7 +483,7 @@ function PinGate({ onUnlock }: { onUnlock: () => void }) {
 // ───────────────────────── Main ─────────────────────────
 export default function AdminView() {
   const [unlocked, setUnlocked]     = useState(false);
-  const [tab, setTab]               = useState<"bookings" | "drivers" | "players" | "ai">("bookings");
+  const [tab, setTab]               = useState<"bookings" | "drivers" | "players" | "ai" | "gps">("bookings");
   const [bookings, setBookings]     = useState<BookingRow[]>([]);
   const [drivers, setDrivers]       = useState<DriverRow[]>([]);
   const [players, setPlayers]       = useState<PlayerRow[]>([]);
@@ -431,13 +547,43 @@ export default function AdminView() {
       {/* Stats */}
       <StatsRow bookings={bookings} drivers={drivers} players={players} />
 
+      {/* 翌日KAIROX優先バナー */}
+      {(() => {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+        const tomorrowBookings = bookings.filter(
+          (b) => b.pickup_date?.startsWith(tomorrowStr) && !["delivered", "cancelled"].includes(b.status)
+        );
+        if (tomorrowBookings.length === 0) return null;
+        return (
+          <div className="bg-amber-500/15 border border-amber-500/50 rounded-2xl px-4 py-3 flex items-start gap-3">
+            <span className="text-2xl">🚗</span>
+            <div>
+              <p className="text-sm font-bold text-amber-300">明日はKAIROX優先です</p>
+              <p className="text-xs text-amber-400/80 mt-0.5">
+                {tomorrowBookings.length}件の予約があります。下請けはお断りください。
+              </p>
+              <div className="mt-2 space-y-1">
+                {tomorrowBookings.map((b) => (
+                  <p key={b.booking_id} className="text-[10px] text-amber-300/70 font-mono">
+                    {b.booking_id} · {b.name} · ¥{b.total_amount.toLocaleString()}
+                  </p>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Tabs */}
-      <div className="grid grid-cols-4 gap-1.5">
+      <div className="grid grid-cols-5 gap-1.5">
         {([
           { key: "bookings", icon: "📦", label: `予約(${bookings.length})`,  active: "border-amber-500 bg-amber-500/10 text-amber-300" },
           { key: "drivers",  icon: "🚐", label: `運転(${drivers.length})`,   active: "border-sky-500 bg-sky-500/10 text-sky-300"   },
           { key: "players",  icon: "🧳", label: `PL(${players.length})`,     active: "border-green-500 bg-green-500/10 text-green-300" },
           { key: "ai",       icon: "🤖", label: "AI Ops",                     active: "border-purple-500 bg-purple-500/10 text-purple-300" },
+          { key: "gps",      icon: "🛰️", label: "GPS学習",                   active: "border-orange-500 bg-orange-500/10 text-orange-300" },
         ] as const).map((t) => (
           <button
             key={t.key}
@@ -456,6 +602,7 @@ export default function AdminView() {
       {tab === "bookings" ? <BookingsTab bookings={bookings} /> :
        tab === "drivers"  ? <DriversTab  drivers={drivers}   /> :
        tab === "players"  ? <PlayersTab  players={players}   /> :
+       tab === "gps"      ? <GpsStatsTab /> :
        <AiOpsTab />}
     </div>
   );

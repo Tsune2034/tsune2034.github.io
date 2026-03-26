@@ -24,7 +24,7 @@ from sqlalchemy.orm import Session
 
 from .models import BriefingRequest, BriefingResponse, Industry, Language, BookingCreate, BookingResponse, MatchResult, DriverLocationUpdate, DriverRegistrationCreate, PlayerCreate, PlayerReviewCreate, PlayerResponse, PlayerLocationUpdate, DispatchResult, MonitorAlert
 from .briefing import generate_briefing
-from .database import SessionLocal, init_db, save_briefing, get_latest_briefing, BookingRecord, get_booking, save_booking, list_bookings, get_active_drivers, DriverRegistrationRecord, save_driver_registration, list_driver_registrations, PlayerRecord, PlayerReviewRecord, save_player, get_player, get_player_by_email, list_players, save_review, get_reviews_for_player, update_player_score, update_player_location, get_available_players_near, assign_player_to_booking, get_active_bookings_for_monitor, GpsTrackPoint, RouteStats, save_gps_point, get_gps_track, upsert_route_stats, get_route_correction, CongestionSegment, upsert_congestion, get_congestion_data
+from .database import SessionLocal, init_db, save_briefing, get_latest_briefing, BookingRecord, get_booking, save_booking, list_bookings, get_active_drivers, DriverRegistrationRecord, save_driver_registration, list_driver_registrations, PlayerRecord, PlayerReviewRecord, save_player, get_player, get_player_by_email, list_players, save_review, get_reviews_for_player, update_player_score, update_player_location, get_available_players_near, assign_player_to_booking, get_active_bookings_for_monitor, GpsTrackPoint, RouteStats, RouteStatsBand, save_gps_point, get_gps_track, upsert_route_stats, get_route_correction, aggregate_route_to_bands, get_route_stats_all, CongestionSegment, upsert_congestion, get_congestion_data
 from .trust_score import calculate, recalculate_from_reviews
 from .matching import find_and_match
 from .scheduler import TARGET_JOBS, run_daily_briefings
@@ -409,6 +409,19 @@ def _analyze_route_on_complete(db: Session, booking: BookingRecord) -> None:
     upsert_route_stats(db, pickup_grid, dest_grid, jst_hour, actual_min, route_type)
     log.info(f"[RouteLearn] {booking.booking_id}: {pickup_grid}→{dest_grid} [{route_type}] {actual_min:.1f}min (JST{jst_hour}h)")
 
+    # sample_count >= 20 になったら時間帯別集約を実行
+    from .database import RouteStats as RS
+    total_samples = (
+        db.query(RS)
+        .filter_by(pickup_grid=pickup_grid, dest_grid=dest_grid, route_type=route_type)
+        .with_entities(RS.sample_count)
+        .all()
+    )
+    total = sum(r.sample_count for r in total_samples)
+    if total >= 20:
+        aggregate_route_to_bands(db, pickup_grid, dest_grid, route_type)
+        log.info(f"[BandLearn] {pickup_grid}→{dest_grid} [{route_type}] 時間帯別集約完了 ({total}件)")
+
     # 渋滞セグメント解析（速度データをグリッドに蓄積）
     n = _calculate_congestion_from_track(db, booking.booking_id)
     if n:
@@ -497,6 +510,12 @@ def get_route_stats_list(db: Session = Depends(get_db)):
         }
         for r in rows
     ]
+
+
+@app.get("/route-stats/summary")
+def get_route_stats_summary(db: Session = Depends(get_db)):
+    """時間帯別集約済みルート統計サマリー（AdminView GPS学習タブ用）"""
+    return get_route_stats_all(db)
 
 
 @app.get("/drivers/active")

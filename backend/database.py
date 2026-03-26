@@ -178,22 +178,137 @@ def upsert_route_stats(
     db.commit()
 
 
+def _hour_to_band(hour: int) -> str:
+    """時刻を4つの時間帯に変換"""
+    if 6  <= hour <= 9:  return "morning"   # 朝 6-9時
+    if 10 <= hour <= 16: return "daytime"   # 昼 10-16時
+    if 17 <= hour <= 23: return "evening"   # 夜 17-23時
+    return "midnight"                        # 深夜 0-5時
+
+
+class RouteStatsBand(Base):
+    """sample_count >= 20 になったルートの時間帯別集約統計（高精度補正）"""
+    __tablename__ = "route_stats_bands"
+
+    id                = Column(Integer, primary_key=True, autoincrement=True)
+    pickup_grid       = Column(String(32), nullable=False, index=True)
+    dest_grid         = Column(String(32), nullable=False, index=True)
+    route_type        = Column(String(16), default="local", index=True)
+    time_band         = Column(String(16), nullable=False)   # morning/daytime/evening/midnight
+    avg_actual_min    = Column(Float, nullable=False)
+    correction_factor = Column(Float, default=1.0)
+    sample_count      = Column(Integer, default=0)
+    updated_at        = Column(DateTime(timezone=True), nullable=False)
+
+
+def aggregate_route_to_bands(db: Session, pickup_grid: str, dest_grid: str,
+                              route_type: str) -> None:
+    """
+    同一ルートの RouteStats を時間帯別に集約し RouteStatsBand を更新。
+    sample_count >= 20 のルートに対して呼び出す。
+    """
+    rows = (
+        db.query(RouteStats)
+        .filter_by(pickup_grid=pickup_grid, dest_grid=dest_grid, route_type=route_type)
+        .all()
+    )
+    # 時間帯別に集約
+    band_data: dict[str, list[float]] = {"morning": [], "daytime": [], "evening": [], "midnight": []}
+    band_factors: dict[str, list[float]] = {"morning": [], "daytime": [], "evening": [], "midnight": []}
+    for r in rows:
+        band = _hour_to_band(r.hour_of_day)
+        band_data[band].append(r.avg_actual_min)
+        if r.correction_factor:
+            band_factors[band].append(r.correction_factor)
+
+    for band, mins in band_data.items():
+        if not mins:
+            continue
+        avg_min    = sum(mins) / len(mins)
+        avg_factor = sum(band_factors[band]) / len(band_factors[band]) if band_factors[band] else 1.0
+        existing = (
+            db.query(RouteStatsBand)
+            .filter_by(pickup_grid=pickup_grid, dest_grid=dest_grid,
+                       route_type=route_type, time_band=band)
+            .first()
+        )
+        if existing:
+            existing.avg_actual_min    = avg_min
+            existing.correction_factor = avg_factor
+            existing.sample_count      = len(mins)
+            existing.updated_at        = datetime.now(timezone.utc)
+        else:
+            db.add(RouteStatsBand(
+                pickup_grid=pickup_grid, dest_grid=dest_grid,
+                route_type=route_type, time_band=band,
+                avg_actual_min=avg_min, correction_factor=avg_factor,
+                sample_count=len(mins),
+                updated_at=datetime.now(timezone.utc),
+            ))
+    db.commit()
+
+
 def get_route_correction(db: Session, pickup_lat: float, pickup_lng: float,
                          dest_lat: float, dest_lng: float, hour: int,
                          route_type: str = "local") -> float | None:
-    """学習済みの補正係数を返す。データ不足なら None"""
+    """
+    学習済みの補正係数を返す。
+    sample_count >= 20 なら時間帯別（高精度）、それ以外は時刻別、どちらもなければ None。
+    """
     pickup_grid = f"{round(pickup_lat, 1)},{round(pickup_lng, 1)}"
     dest_grid   = f"{round(dest_lat,   1)},{round(dest_lng,   1)}"
+
+    # 時間帯別（高精度）を優先
+    band = _hour_to_band(hour)
+    band_row = (
+        db.query(RouteStatsBand)
+        .filter_by(pickup_grid=pickup_grid, dest_grid=dest_grid,
+                   route_type=route_type, time_band=band)
+        .first()
+    )
+    if band_row and band_row.sample_count >= 5:
+        return band_row.correction_factor
+
+    # フォールバック: 時刻別
     row = (
         db.query(RouteStats)
         .filter_by(pickup_grid=pickup_grid, dest_grid=dest_grid,
                    route_type=route_type, hour_of_day=hour)
         .first()
     )
-    # サンプル3件未満は信頼性が低いので使わない
     if row and row.sample_count >= 3:
         return row.correction_factor
     return None
+
+
+def get_route_stats_all(db: Session) -> dict:
+    """AdminView 用: RouteStats と RouteStatsBand の全サマリー"""
+    stats = db.query(RouteStats).order_by(RouteStats.sample_count.desc()).limit(50).all()
+    bands = db.query(RouteStatsBand).order_by(RouteStatsBand.sample_count.desc()).all()
+    return {
+        "hourly": [
+            {
+                "pickup_grid": r.pickup_grid, "dest_grid": r.dest_grid,
+                "route_type": r.route_type, "hour_of_day": r.hour_of_day,
+                "avg_actual_min": round(r.avg_actual_min, 1),
+                "correction_factor": round(r.correction_factor, 3),
+                "sample_count": r.sample_count,
+            }
+            for r in stats
+        ],
+        "bands": [
+            {
+                "pickup_grid": b.pickup_grid, "dest_grid": b.dest_grid,
+                "route_type": b.route_type, "time_band": b.time_band,
+                "avg_actual_min": round(b.avg_actual_min, 1),
+                "correction_factor": round(b.correction_factor, 3),
+                "sample_count": b.sample_count,
+            }
+            for b in bands
+        ],
+        "total_samples": sum(r.sample_count for r in stats),
+        "band_routes": len(set((b.pickup_grid, b.dest_grid, b.route_type) for b in bands)),
+    }
 
 
 # ───────────────────────── 渋滞セグメント ─────────────────────────
