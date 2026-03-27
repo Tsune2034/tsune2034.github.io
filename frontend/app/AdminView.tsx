@@ -326,6 +326,82 @@ const BAND_LABEL: Record<string, string> = {
   midnight: "深夜 0-5時",
 };
 
+function SalesTab({ bookings }: { bookings: BookingRow[] }) {
+  const paid = bookings.filter((b) => !["cancelled"].includes(b.status));
+
+  // 日次集計（直近7日）
+  const dayMap: Record<string, number> = {};
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    dayMap[d.toISOString().slice(0, 10)] = 0;
+  }
+  paid.forEach((b) => {
+    const day = b.pickup_date?.slice(0, 10) ?? b.created_at?.slice(0, 10) ?? "";
+    if (day in dayMap) dayMap[day] = (dayMap[day] ?? 0) + b.total_amount;
+  });
+  const days = Object.entries(dayMap);
+  const maxAmt = Math.max(...days.map(([, v]) => v), 1);
+
+  const totalRevenue = paid.reduce((s, b) => s + b.total_amount, 0);
+  const avgOrder     = paid.length > 0 ? Math.round(totalRevenue / paid.length) : 0;
+
+  // プラン別
+  const planCount: Record<string, number> = {};
+  paid.forEach((b) => { planCount[b.plan] = (planCount[b.plan] ?? 0) + 1; });
+
+  return (
+    <div className="space-y-4">
+      {/* KPI */}
+      <div className="grid grid-cols-3 gap-2">
+        {[
+          { label: "総売上", value: `¥${totalRevenue.toLocaleString()}` },
+          { label: "予約件数", value: `${paid.length}件` },
+          { label: "平均単価", value: `¥${avgOrder.toLocaleString()}` },
+        ].map(({ label, value }) => (
+          <div key={label} className="bg-gray-900 border border-gray-800 rounded-xl p-3 text-center">
+            <p className="text-base font-black text-white">{value}</p>
+            <p className="text-[9px] text-gray-500 mt-0.5">{label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* 棒グラフ（直近7日）*/}
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+        <p className="text-xs font-bold text-white mb-3">直近7日 売上</p>
+        <div className="flex items-end gap-1.5 h-24">
+          {days.map(([day, amt]) => (
+            <div key={day} className="flex-1 flex flex-col items-center gap-1">
+              <div
+                className="w-full bg-pink-500/70 rounded-t-sm transition-all"
+                style={{ height: `${Math.round((amt / maxAmt) * 80)}px`, minHeight: amt > 0 ? "4px" : "0" }}
+              />
+              <p className="text-[8px] text-gray-600">{day.slice(5)}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* プラン別 */}
+      {Object.keys(planCount).length > 0 && (
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 space-y-2">
+          <p className="text-xs font-bold text-white">プラン別件数</p>
+          {Object.entries(planCount).map(([plan, cnt]) => (
+            <div key={plan} className="flex items-center justify-between">
+              <span className="text-xs text-gray-400 capitalize">{plan}</span>
+              <div className="flex items-center gap-2">
+                <div className="w-24 bg-gray-800 rounded-full h-1.5">
+                  <div className="bg-pink-500 h-1.5 rounded-full" style={{ width: `${Math.round((cnt / paid.length) * 100)}%` }} />
+                </div>
+                <span className="text-xs text-gray-400 w-6 text-right">{cnt}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function GpsStatsTab() {
   const [data, setData] = useState<{
     hourly: { pickup_grid: string; dest_grid: string; route_type: string; hour_of_day: number; avg_actual_min: number; correction_factor: number; sample_count: number }[];
@@ -616,7 +692,7 @@ function PinGate({ onUnlock }: { onUnlock: () => void }) {
 // ───────────────────────── Main ─────────────────────────
 export default function AdminView() {
   const [unlocked, setUnlocked]     = useState(false);
-  const [tab, setTab]               = useState<"bookings" | "drivers" | "players" | "ai" | "gps">("bookings");
+  const [tab, setTab]               = useState<"bookings" | "drivers" | "players" | "ai" | "gps" | "sales">("bookings");
   const [bookings, setBookings]     = useState<BookingRow[]>([]);
   const [drivers, setDrivers]       = useState<DriverRow[]>([]);
   const [players, setPlayers]       = useState<PlayerRow[]>([]);
@@ -710,11 +786,12 @@ export default function AdminView() {
       })()}
 
       {/* Tabs */}
-      <div className="grid grid-cols-5 gap-1.5">
+      <div className="grid grid-cols-3 gap-1.5 mb-1">
         {([
           { key: "bookings", icon: "📦", label: `予約(${bookings.length})`,  active: "border-amber-500 bg-amber-500/10 text-amber-300" },
           { key: "drivers",  icon: "🚐", label: `運転(${drivers.length})`,   active: "border-sky-500 bg-sky-500/10 text-sky-300"   },
           { key: "players",  icon: "🧳", label: `PL(${players.length})`,     active: "border-green-500 bg-green-500/10 text-green-300" },
+          { key: "sales",    icon: "💴", label: "売上",                       active: "border-pink-500 bg-pink-500/10 text-pink-300"  },
           { key: "ai",       icon: "🤖", label: "AI Ops",                     active: "border-purple-500 bg-purple-500/10 text-purple-300" },
           { key: "gps",      icon: "🛰️", label: "GPS学習",                   active: "border-orange-500 bg-orange-500/10 text-orange-300" },
         ] as const).map((t) => (
@@ -735,6 +812,7 @@ export default function AdminView() {
       {tab === "bookings" ? <BookingsTab bookings={bookings} /> :
        tab === "drivers"  ? <DriversTab  drivers={drivers}   /> :
        tab === "players"  ? <PlayersTab  players={players}   /> :
+       tab === "sales"    ? <SalesTab    bookings={bookings} /> :
        tab === "gps"      ? <GpsStatsTab /> :
        <AiOpsTab />}
     </div>

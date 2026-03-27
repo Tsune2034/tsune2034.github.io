@@ -335,6 +335,13 @@ const TR = {
     early_disc_24: "Early booking −¥1,500 (24–48h advance)",
     early_disc_hint: "Book 24h+ in advance for an early discount",
     reviews_title: "What travelers say",
+    faq_title: "FAQ",
+    faq: [
+      { q: "What's the deadline to book?", a: "No deadline. You can book even after landing. Early booking gets you a discount." },
+      { q: "Where do I hand over my bags?", a: "At the terminal exit / arrival hall. No dedicated counter — just meet our driver." },
+      { q: "How long until bags arrive at my hotel?", a: "Typically 2–4 hours after pickup. Real-time tracking included." },
+      { q: "What if my bags are lost or damaged?", a: "Covered up to ¥100,000 per booking." },
+    ],
   },
   ja: {
     brand: "KAIROX", tagline: "日本を、手ぶらで。",
@@ -404,6 +411,13 @@ const TR = {
     early_disc_24: "早割 −¥1,500（24〜48時間前）",
     early_disc_hint: "24時間以上前の予約で早割が適用されます",
     reviews_title: "利用者の声",
+    faq_title: "よくある質問",
+    faq: [
+      { q: "予約の締め切りはいつですか？", a: "締め切りなし。到着後でも予約できます。早めの予約で早割が適用されます。" },
+      { q: "荷物はどこで渡しますか？", a: "ターミナル出口・到着ロビー。専用カウンター不要 — ドライバーが直接お迎えします。" },
+      { q: "荷物はいつホテルに届きますか？", a: "受け取りから通常2〜4時間。リアルタイム追跡機能付き。" },
+      { q: "荷物が紛失・破損した場合は？", a: "1回の予約につき最大¥100,000まで補償します。" },
+    ],
   },
   zh: {
     brand: "KAIROX", tagline: "畅游日本，轻装出行。",
@@ -465,6 +479,13 @@ const TR = {
     early_disc_24: "早鸟优惠 −¥1,500（提前24–48小时）",
     early_disc_hint: "提前24小时以上预订可享早鸟优惠",
     reviews_title: "旅客评价",
+    faq_title: "常见问题",
+    faq: [
+      { q: "预订截止时间是什么时候？", a: "没有截止时间。落地后也可以预订。提前预订享受早鸟优惠。" },
+      { q: "在哪里交行李？", a: "在航站楼出口/到达大厅。无需专用柜台 — 司机会直接来接。" },
+      { q: "行李多久到达酒店？", a: "取件后通常2–4小时内送达，附实时追踪功能。" },
+      { q: "行李丢失或损坏怎么办？", a: "每次预订最高赔偿¥100,000。" },
+    ],
   },
   ko: {
     brand: "KAIROX", tagline: "일본을 손 가볍게.",
@@ -526,10 +547,17 @@ const TR = {
     early_disc_24: "얼리버드 −¥1,500（24–48시간 전）",
     early_disc_hint: "24시간 이상 전 예약 시 얼리버드 할인 적용",
     reviews_title: "이용 후기",
+    faq_title: "자주 묻는 질문",
+    faq: [
+      { q: "예약 마감은 언제인가요?", a: "마감 없음. 도착 후에도 예약 가능. 일찍 예약하면 얼리버드 할인 적용." },
+      { q: "짐은 어디서 건네나요?", a: "터미널 출구/도착 로비. 전용 카운터 불필요 — 기사님이 직접 만나러 옵니다." },
+      { q: "짐은 언제 호텔에 도착하나요?", a: "수령 후 보통 2~4시간 이내. 실시간 추적 기능 포함." },
+      { q: "짐이 분실되거나 파손되면?", a: "1회 예약당 최대 ¥100,000까지 보상합니다." },
+    ],
   },
 } as const;
 
-type Tr = { [K in keyof typeof TR.en]: string };
+type Tr = Omit<{ [K in keyof typeof TR.en]: string }, "faq"> & { faq: readonly { q: string; a: string }[] };
 
 const LOCALES: { value: Locale; label: string }[] = [
   { value: "en", label: "EN" },
@@ -959,6 +987,37 @@ function ChatWidget({ locale, tr }: { locale: Locale; tr: Tr }) {
         </div>
       )}
     </>
+  );
+}
+
+// ─────────────────────────────────────────────
+// FAQ Accordion
+// ─────────────────────────────────────────────
+function FaqSection({ items, title }: { items: readonly { q: string; a: string }[]; title: string }) {
+  const [open, setOpen] = useState<number | null>(null);
+  return (
+    <section className="px-4 pb-6 max-w-lg mx-auto w-full">
+      <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{title}</h2>
+      <div className="space-y-2">
+        {items.map((item, i) => (
+          <div key={i} className="bg-gray-900/60 border border-gray-800 rounded-xl overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setOpen(open === i ? null : i)}
+              className="w-full flex items-center justify-between px-4 py-3 text-left"
+            >
+              <span className="text-xs font-semibold text-gray-200">{item.q}</span>
+              <span className={`text-gray-500 text-xs transition-transform ${open === i ? "rotate-180" : ""}`}>▼</span>
+            </button>
+            {open === i && (
+              <div className="px-4 pb-3">
+                <p className="text-[11px] text-gray-500 leading-relaxed">{item.a}</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -1678,6 +1737,9 @@ export default function NaritaApp() {
 
 
       </main>
+
+      {/* FAQ */}
+      <FaqSection items={tr.faq} title={tr.faq_title} />
 
       {/* Reviews */}
       <section className="px-4 pb-8 max-w-lg mx-auto w-full">
