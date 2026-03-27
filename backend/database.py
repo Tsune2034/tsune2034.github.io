@@ -372,6 +372,34 @@ def get_congestion_data(db: Session, hour: int | None = None) -> list["Congestio
     return q.order_by(CongestionSegment.sample_count.desc()).limit(500).all()
 
 
+class BookingPhoto(Base):
+    """配送証跡写真（受取時・配達完了時）"""
+    __tablename__ = "booking_photos"
+
+    id          = Column(Integer, primary_key=True, autoincrement=True)
+    booking_id  = Column(String(16), nullable=False, index=True)
+    photo_type  = Column(String(16), nullable=False)   # "pickup" | "delivery"
+    data_url    = Column(Text, nullable=False)          # base64 data URL
+    created_at  = Column(DateTime(timezone=True), nullable=False)
+
+
+def save_photo(db: Session, booking_id: str, photo_type: str, data_url: str) -> BookingPhoto:
+    photo = BookingPhoto(
+        booking_id=booking_id,
+        photo_type=photo_type,
+        data_url=data_url,
+        created_at=datetime.now(timezone.utc),
+    )
+    db.add(photo)
+    db.commit()
+    db.refresh(photo)
+    return photo
+
+
+def get_photos(db: Session, booking_id: str) -> list[BookingPhoto]:
+    return db.query(BookingPhoto).filter_by(booking_id=booking_id).order_by(BookingPhoto.created_at).all()
+
+
 class BriefingRecord(Base):
     __tablename__ = "briefings"
 

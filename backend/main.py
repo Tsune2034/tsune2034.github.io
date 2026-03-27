@@ -24,7 +24,7 @@ from sqlalchemy.orm import Session
 
 from .models import BriefingRequest, BriefingResponse, Industry, Language, BookingCreate, BookingResponse, MatchResult, DriverLocationUpdate, DriverRegistrationCreate, PlayerCreate, PlayerReviewCreate, PlayerResponse, PlayerLocationUpdate, DispatchResult, MonitorAlert
 from .briefing import generate_briefing
-from .database import SessionLocal, init_db, save_briefing, get_latest_briefing, BookingRecord, get_booking, save_booking, list_bookings, get_active_drivers, DriverRegistrationRecord, save_driver_registration, list_driver_registrations, PlayerRecord, PlayerReviewRecord, save_player, get_player, get_player_by_email, list_players, save_review, get_reviews_for_player, update_player_score, update_player_location, get_available_players_near, assign_player_to_booking, get_active_bookings_for_monitor, GpsTrackPoint, RouteStats, RouteStatsBand, save_gps_point, get_gps_track, upsert_route_stats, get_route_correction, aggregate_route_to_bands, get_route_stats_all, CongestionSegment, upsert_congestion, get_congestion_data
+from .database import SessionLocal, init_db, save_briefing, get_latest_briefing, BookingRecord, get_booking, save_booking, list_bookings, get_active_drivers, DriverRegistrationRecord, save_driver_registration, list_driver_registrations, PlayerRecord, PlayerReviewRecord, save_player, get_player, get_player_by_email, list_players, save_review, get_reviews_for_player, update_player_score, update_player_location, get_available_players_near, assign_player_to_booking, get_active_bookings_for_monitor, GpsTrackPoint, RouteStats, RouteStatsBand, save_gps_point, get_gps_track, upsert_route_stats, get_route_correction, aggregate_route_to_bands, get_route_stats_all, CongestionSegment, upsert_congestion, get_congestion_data, BookingPhoto, save_photo, get_photos
 from .trust_score import calculate, recalculate_from_reviews
 from .matching import find_and_match
 from .scheduler import TARGET_JOBS, run_daily_briefings
@@ -516,6 +516,26 @@ def get_route_stats_list(db: Session = Depends(get_db)):
 def get_route_stats_summary(db: Session = Depends(get_db)):
     """時間帯別集約済みルート統計サマリー（AdminView GPS学習タブ用）"""
     return get_route_stats_all(db)
+
+
+@app.post("/bookings/{booking_id}/photos")
+def upload_photo(booking_id: str, payload: dict, db: Session = Depends(get_db)):
+    """配送証跡写真を保存（受取時・配達完了時）"""
+    photo_type = payload.get("photo_type", "pickup")
+    data_url   = payload.get("data_url", "")
+    if not data_url.startswith("data:image/"):
+        raise HTTPException(status_code=400, detail="invalid data_url")
+    if len(data_url) > 2_000_000:
+        raise HTTPException(status_code=413, detail="image too large (max ~1.5MB)")
+    photo = save_photo(db, booking_id, photo_type, data_url)
+    return {"id": photo.id, "booking_id": booking_id, "photo_type": photo_type}
+
+
+@app.get("/bookings/{booking_id}/photos")
+def list_photos(booking_id: str, db: Session = Depends(get_db)):
+    """配送証跡写真一覧取得"""
+    photos = get_photos(db, booking_id)
+    return [{"id": p.id, "photo_type": p.photo_type, "data_url": p.data_url, "created_at": p.created_at} for p in photos]
 
 
 @app.post("/debug/inject-gps-test")
