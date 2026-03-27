@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useId } from "react";
 import type { Translation } from "./i18n";
 import type { FlightInfo } from "./api/flights/route";
 
@@ -290,6 +290,66 @@ function PinGate({ onUnlock }: { onUnlock: () => void }) {
   );
 }
 
+// ───────────────────────── Photo Capture ─────────────────────────
+function PhotoCapture({ bookingId, photoType }: { bookingId: string; photoType: "pickup" | "delivery" }) {
+  const inputId = useId();
+  const [thumb, setThumb] = useState<string | null>(null);
+  const [status, setStatus] = useState<"idle" | "uploading" | "done" | "error">("idle");
+  const API = process.env.NEXT_PUBLIC_API_URL ?? "";
+
+  async function handleFile(file: File) {
+    setStatus("uploading");
+    // canvas で JPEG 圧縮（長辺800px以内）
+    const img = new Image();
+    img.src = URL.createObjectURL(file);
+    await new Promise((r) => { img.onload = r; });
+    const max = 800;
+    const scale = Math.min(1, max / Math.max(img.width, img.height));
+    const canvas = document.createElement("canvas");
+    canvas.width  = Math.round(img.width  * scale);
+    canvas.height = Math.round(img.height * scale);
+    canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.75);
+    setThumb(dataUrl);
+    try {
+      const res = await fetch(`${API}/bookings/${bookingId}/photos`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ photo_type: photoType, data_url: dataUrl }),
+      });
+      setStatus(res.ok ? "done" : "error");
+    } catch {
+      setStatus("error");
+    }
+  }
+
+  const label = photoType === "pickup" ? "📷 受取写真" : "📷 配達完了写真";
+  return (
+    <div className="space-y-1.5">
+      <label htmlFor={inputId} className={`flex items-center justify-center gap-2 w-full py-2 rounded-xl border text-xs font-semibold cursor-pointer transition-colors ${
+        status === "done"      ? "border-green-600 bg-green-900/20 text-green-400" :
+        status === "uploading" ? "border-gray-600 bg-gray-800/50 text-gray-500" :
+        status === "error"     ? "border-red-600 bg-red-900/20 text-red-400" :
+        "border-gray-700 bg-gray-800/50 text-gray-400 hover:border-gray-500"
+      }`}>
+        {status === "done" ? "✓ 送信完了" : status === "uploading" ? "送信中…" : status === "error" ? "再試行" : label}
+      </label>
+      <input
+        id={inputId}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="sr-only"
+        onChange={(e) => { if (e.target.files?.[0]) handleFile(e.target.files[0]); }}
+      />
+      {thumb && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={thumb} alt="証跡" className="w-full rounded-xl object-cover max-h-36 border border-gray-700" />
+      )}
+    </div>
+  );
+}
+
 // ───────────────────────── Delivery Card ─────────────────────────
 function DeliveryCard({
   delivery,
@@ -380,6 +440,14 @@ function DeliveryCard({
         >
           {nextCfg.label} に更新
         </button>
+      )}
+
+      {/* 証跡写真 */}
+      {delivery.status === "arrived" && (
+        <PhotoCapture bookingId={delivery.bookingId} photoType="pickup" />
+      )}
+      {delivery.status === "done" && (
+        <PhotoCapture bookingId={delivery.bookingId} photoType="delivery" />
       )}
     </div>
   );
