@@ -334,6 +334,7 @@ const TR = {
     early_disc_48: "Early booking −¥2,500 (48h+ advance)",
     early_disc_24: "Early booking −¥1,500 (24–48h advance)",
     early_disc_hint: "Book 24h+ in advance for an early discount",
+    reviews_title: "What travelers say",
   },
   ja: {
     brand: "KAIROX", tagline: "日本を、手ぶらで。",
@@ -402,6 +403,7 @@ const TR = {
     early_disc_48: "早割 −¥2,500（48時間以上前）",
     early_disc_24: "早割 −¥1,500（24〜48時間前）",
     early_disc_hint: "24時間以上前の予約で早割が適用されます",
+    reviews_title: "利用者の声",
   },
   zh: {
     brand: "KAIROX", tagline: "畅游日本，轻装出行。",
@@ -462,6 +464,7 @@ const TR = {
     early_disc_48: "早鸟优惠 −¥2,500（提前48小时以上）",
     early_disc_24: "早鸟优惠 −¥1,500（提前24–48小时）",
     early_disc_hint: "提前24小时以上预订可享早鸟优惠",
+    reviews_title: "旅客评价",
   },
   ko: {
     brand: "KAIROX", tagline: "일본을 손 가볍게.",
@@ -522,6 +525,7 @@ const TR = {
     early_disc_48: "얼리버드 −¥2,500（48시간 이상 전）",
     early_disc_24: "얼리버드 −¥1,500（24–48시간 전）",
     early_disc_hint: "24시간 이상 전 예약 시 얼리버드 할인 적용",
+    reviews_title: "이용 후기",
   },
 } as const;
 
@@ -1674,6 +1678,34 @@ export default function NaritaApp() {
 
 
       </main>
+
+      {/* Reviews */}
+      <section className="px-4 pb-8 max-w-lg mx-auto w-full">
+        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{tr.reviews_title}</h2>
+        <div className="space-y-3">
+          {([
+            { flag: "🇺🇸", name: "Sarah M.", from: "New York", stars: 5, text: { en: "Dropped my bags at the terminal and went straight to Shinjuku. Hotel had them before I even checked in. Pure magic.", ja: "ターミナルで荷物を預けてそのまま新宿へ。チェックイン前にホテルに届いていました。魔法みたい。", zh: "在航站楼放下行李直奔新宿，到酒店前行李已经在那里等我了。太神奇了！", ko: "터미널에 짐 맡기고 바로 신주쿠로 갔는데 체크인 전에 이미 호텔에 와 있었어요. 신기해요." } },
+            { flag: "🇨🇳", name: "李 雪梅", from: "Shanghai", stars: 5, text: { en: "No counter, no deadline, no problem. Finally enjoyed arriving in Japan.", ja: "カウンターなし、締め切りなし、問題なし。日本到着をやっと楽しめました。", zh: "没有柜台、没有截止时间，完全无压力。终于享受到了抵达日本的感觉。", ko: "카운터도 없고 마감도 없어서 스트레스 없이 일본 도착을 즐겼어요." } },
+            { flag: "🇰🇷", name: "김 지수", from: "Seoul", stars: 5, text: { en: "Used it with 3 bags. Driver was on time, tracking was real-time. Will use every trip.", ja: "スーツケース3個で利用。ドライバー時間通り、追跡もリアルタイム。毎回使います。", zh: "带了3个行李箱使用。司机准时，追踪是实时的。以后每次来都用。", ko: "캐리어 3개 들고 이용했어요. 기사님 정시에 오시고 실시간 추적도 돼요. 매번 쓸 것 같아요." } },
+          ] as const).map((r) => (
+            <div key={r.name} className="bg-gray-900/60 border border-gray-800 rounded-2xl px-4 py-3 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">{r.flag}</span>
+                  <div>
+                    <p className="text-xs font-bold text-white">{r.name}</p>
+                    <p className="text-[10px] text-gray-600">{r.from}</p>
+                  </div>
+                </div>
+                <span className="text-amber-400 text-xs tracking-tight">{"★".repeat(r.stars)}</span>
+              </div>
+              <p className="text-[11px] text-gray-400 leading-relaxed">
+                "{r.text[locale as keyof typeof r.text] ?? r.text.en}"
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* Footer */}
       <footer className="border-t border-gray-800 mt-8 py-6 px-4 max-w-lg mx-auto w-full">
