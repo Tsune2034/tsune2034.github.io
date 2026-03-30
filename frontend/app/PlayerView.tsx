@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 
 // ───────────────────────── 定数 ─────────────────────────
-const PLAYER_PIN = process.env.NEXT_PUBLIC_PLAYER_PIN ?? "1234";
 const BASE_INTERVAL_MS = 15_000; // 基本15秒
 const TRAIN_SKIP = 4;            // 電車中は4ティック=60秒に1回送信
 
@@ -91,15 +90,31 @@ interface Assignment {
 function PinGate({ onUnlock }: { onUnlock: () => void }) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (pin === PLAYER_PIN) {
-      onUnlock();
-    } else {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/pin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin, role: "player" }),
+      });
+      const { ok } = await res.json();
+      if (ok) {
+        onUnlock();
+      } else {
+        setError(true);
+        setPin("");
+        setTimeout(() => setError(false), 1500);
+      }
+    } catch {
       setError(true);
       setPin("");
       setTimeout(() => setError(false), 1500);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -125,9 +140,10 @@ function PinGate({ onUnlock }: { onUnlock: () => void }) {
         {error && <p className="text-xs text-red-400 text-center">PINが違います</p>}
         <button
           type="submit"
-          className="w-full py-3 rounded-xl bg-green-500 text-gray-950 font-semibold text-sm hover:bg-green-400 transition-colors"
+          disabled={loading}
+          className="w-full py-3 rounded-xl bg-green-500 text-gray-950 font-semibold text-sm hover:bg-green-400 transition-colors disabled:opacity-50"
         >
-          ログイン
+          {loading ? "..." : "ログイン"}
         </button>
       </form>
     </div>

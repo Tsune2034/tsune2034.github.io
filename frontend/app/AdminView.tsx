@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-const ADMIN_PIN = "0000"; // 本番前に変更すること
 
 type BookingRow = {
   booking_id: string;
@@ -235,7 +234,7 @@ function PlayersTab({ players }: { players: PlayerRow[] }) {
 }
 
 // ───────────────────────── AI Ops Tab ─────────────────────────
-function AiOpsTab() {
+function AiOpsTab({ adminPin }: { adminPin: string }) {
   const [alerts, setAlerts] = useState<MonitorAlert[]>([]);
   const [running, setRunning] = useState(false);
   const [lastRun, setLastRun] = useState<Date | null>(null);
@@ -243,7 +242,9 @@ function AiOpsTab() {
   async function runMonitor() {
     setRunning(true);
     try {
-      const res = await fetch("/api/admin?type=monitor");
+      const res = await fetch("/api/admin?type=monitor", {
+        headers: { "X-Admin-Pin": adminPin },
+      });
       if (res.ok) {
         const data = await res.json();
         setAlerts(data.alerts ?? []);
@@ -412,7 +413,7 @@ function GpsStatsTab() {
   const [loading, setLoading]       = useState(true);
   const [injecting, setInjecting]   = useState(false);
   const [injectMsg, setInjectMsg]   = useState("");
-  const [testForm, setTestForm]     = useState({ pickup: "成田空港 第1ターミナル", dest: "新宿駅西口", routeType: "highway" as "highway" | "local" });
+  const [testForm, setTestForm]     = useState({ pickup: "成田空港 第1ターミナル", dest: "新宿駅西口", routeType: "highway" as "highway" | "local", zone: "narita" });
   const [creating, setCreating]     = useState(false);
   const [createMsg, setCreateMsg]   = useState("");
   const API = process.env.NEXT_PUBLIC_API_URL ?? "";
@@ -466,7 +467,7 @@ function GpsStatsTab() {
           pickup_date: today,
           destination: "test",
           hotel_name: testForm.dest,
-          zone: "chitose",
+          zone: testForm.zone,
           pay_method: "credit",
           total_amount: 0,
           share_ride: false,
@@ -551,20 +552,62 @@ function GpsStatsTab() {
         <div className="border-t border-gray-800 pt-3 space-y-2">
           <p className="text-[10px] text-gray-500 font-semibold">実走テスト予約（DriverViewでGPS走行）</p>
           <div className="space-y-1.5">
-            <input
-              type="text"
-              value={testForm.pickup}
-              onChange={(e) => setTestForm((p) => ({ ...p, pickup: e.target.value }))}
-              placeholder="出発地（例: 成田空港T1）"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-gray-500"
-            />
+            <div className="flex gap-1.5">
+              <input
+                type="text"
+                value={testForm.pickup}
+                onChange={(e) => setTestForm((p) => ({ ...p, pickup: e.target.value }))}
+                placeholder="出発地（例: 成田空港T1）"
+                className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-gray-500"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (!navigator.geolocation) return;
+                  navigator.geolocation.getCurrentPosition((pos) => {
+                    const { latitude: lat, longitude: lng } = pos.coords;
+                    setTestForm((p) => ({ ...p, pickup: `${lat.toFixed(5)},${lng.toFixed(5)}` }));
+                  });
+                }}
+                className="px-2 py-1 rounded-lg bg-sky-500/20 border border-sky-500/40 text-sky-400 text-[10px] font-bold hover:bg-sky-500/30 transition-colors flex-shrink-0"
+              >
+                📍現在地
+              </button>
+            </div>
             <input
               type="text"
               value={testForm.dest}
-              onChange={(e) => setTestForm((p) => ({ ...p, dest: e.target.value }))}
-              placeholder="目的地（例: 新宿駅西口）"
+              onChange={(e) => {
+                const v = e.target.value;
+                const zone =
+                  /成田/.test(v)   ? "narita"  :
+                  /千葉/.test(v)   ? "chiba"   :
+                  /新宿/.test(v)   ? "shinjuku":
+                  /東京|丸の内|銀座|浅草|渋谷|品川/.test(v) ? "tokyo" :
+                  /札幌|大通|すすきの/.test(v) ? "sapporo":
+                  /小樽/.test(v)   ? "otaru"   :
+                  /富良野/.test(v) ? "furano"  :
+                  /千歳/.test(v)   ? "chitose" :
+                  null;
+                setTestForm((p) => ({ ...p, dest: v, ...(zone ? { zone } : {}) }));
+              }}
+              placeholder="目的地（住所貼り付けOK）"
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-gray-500"
             />
+            <select
+              value={testForm.zone}
+              onChange={(e) => setTestForm((p) => ({ ...p, zone: e.target.value }))}
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-gray-500"
+            >
+              <option value="narita">成田空港</option>
+              <option value="chiba">千葉市</option>
+              <option value="tokyo">東京都心</option>
+              <option value="shinjuku">新宿</option>
+              <option value="chitose">新千歳</option>
+              <option value="sapporo">札幌</option>
+              <option value="otaru">小樽</option>
+              <option value="furano">富良野</option>
+            </select>
             <div className="flex gap-1.5">
               {(["highway", "local"] as const).map((rt) => (
                 <button
@@ -643,18 +686,34 @@ function GpsStatsTab() {
 
 
 // ───────────────────────── PIN Gate ─────────────────────────
-function PinGate({ onUnlock }: { onUnlock: () => void }) {
+function PinGate({ onUnlock }: { onUnlock: (pin: string) => void }) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (pin === ADMIN_PIN) {
-      onUnlock();
-    } else {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/pin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin, role: "admin" }),
+      });
+      const { ok } = await res.json();
+      if (ok) {
+        onUnlock(pin);
+      } else {
+        setError(true);
+        setPin("");
+        setTimeout(() => setError(false), 1500);
+      }
+    } catch {
       setError(true);
       setPin("");
       setTimeout(() => setError(false), 1500);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -680,9 +739,10 @@ function PinGate({ onUnlock }: { onUnlock: () => void }) {
         {error && <p className="text-xs text-red-400 text-center">PINが違います</p>}
         <button
           type="submit"
-          className="w-full py-3 rounded-xl bg-amber-500 text-gray-950 font-semibold text-sm hover:bg-amber-400 transition-colors"
+          disabled={loading}
+          className="w-full py-3 rounded-xl bg-amber-500 text-gray-950 font-semibold text-sm hover:bg-amber-400 transition-colors disabled:opacity-50"
         >
-          ログイン
+          {loading ? "..." : "ログイン"}
         </button>
       </form>
     </div>
@@ -692,6 +752,7 @@ function PinGate({ onUnlock }: { onUnlock: () => void }) {
 // ───────────────────────── Main ─────────────────────────
 export default function AdminView() {
   const [unlocked, setUnlocked]     = useState(false);
+  const [adminPin, setAdminPin]     = useState("");
   const [tab, setTab]               = useState<"bookings" | "drivers" | "players" | "ai" | "gps" | "sales">("bookings");
   const [bookings, setBookings]     = useState<BookingRow[]>([]);
   const [drivers, setDrivers]       = useState<DriverRow[]>([]);
@@ -699,13 +760,14 @@ export default function AdminView() {
   const [loading, setLoading]       = useState(false);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (pin: string) => {
     setLoading(true);
+    const headers = { "X-Admin-Pin": pin };
     try {
       const [bRes, dRes, pRes] = await Promise.all([
-        fetch("/api/admin?type=bookings"),
-        fetch("/api/admin?type=drivers"),
-        fetch("/api/admin?type=players"),
+        fetch("/api/admin?type=bookings", { headers }),
+        fetch("/api/admin?type=drivers",  { headers }),
+        fetch("/api/admin?type=players",  { headers }),
       ]);
       if (bRes.ok) setBookings(await bRes.json());
       if (dRes.ok) setDrivers(await dRes.json());
@@ -717,10 +779,10 @@ export default function AdminView() {
   }, []);
 
   useEffect(() => {
-    if (unlocked) fetchData();
-  }, [unlocked, fetchData]);
+    if (unlocked && adminPin) fetchData(adminPin);
+  }, [unlocked, adminPin, fetchData]);
 
-  if (!unlocked) return <PinGate onUnlock={() => setUnlocked(true)} />;
+  if (!unlocked) return <PinGate onUnlock={(pin) => { setAdminPin(pin); setUnlocked(true); }} />;
 
   return (
     <div className="space-y-5">
@@ -737,7 +799,7 @@ export default function AdminView() {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={fetchData}
+            onClick={() => fetchData(adminPin)}
             disabled={loading}
             className="text-xs text-gray-400 hover:text-white transition-colors disabled:opacity-40"
           >
@@ -814,7 +876,7 @@ export default function AdminView() {
        tab === "players"  ? <PlayersTab  players={players}   /> :
        tab === "sales"    ? <SalesTab    bookings={bookings} /> :
        tab === "gps"      ? <GpsStatsTab /> :
-       <AiOpsTab />}
+       <AiOpsTab adminPin={adminPin} />}
     </div>
   );
 }

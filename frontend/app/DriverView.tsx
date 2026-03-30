@@ -5,7 +5,6 @@ import type { Translation } from "./i18n";
 import type { FlightInfo } from "./api/flights/route";
 
 // ───────────────────────── 定数 ─────────────────────────
-const DRIVER_PIN = process.env.NEXT_PUBLIC_DRIVER_PIN ?? "1234";
 const GPS_INTERVAL_MS = 30_000; // 30秒ごとに送信
 const FLIGHT_REFRESH_MS = 600_000; // フライト情報10分ごと更新（Vercel Data Cacheに合わせる）
 
@@ -247,15 +246,31 @@ function FlightRow({ f, highlight = false }: { f: FlightInfo; highlight?: boolea
 function PinGate({ onUnlock }: { onUnlock: () => void }) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (pin === DRIVER_PIN) {
-      onUnlock();
-    } else {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/pin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin, role: "driver" }),
+      });
+      const { ok } = await res.json();
+      if (ok) {
+        onUnlock();
+      } else {
+        setError(true);
+        setPin("");
+        setTimeout(() => setError(false), 1500);
+      }
+    } catch {
       setError(true);
       setPin("");
       setTimeout(() => setError(false), 1500);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -281,9 +296,10 @@ function PinGate({ onUnlock }: { onUnlock: () => void }) {
         {error && <p className="text-xs text-red-400 text-center">PINが違います</p>}
         <button
           type="submit"
-          className="w-full py-3 rounded-xl bg-amber-500 text-gray-950 font-semibold text-sm hover:bg-amber-400 transition-colors"
+          disabled={loading}
+          className="w-full py-3 rounded-xl bg-amber-500 text-gray-950 font-semibold text-sm hover:bg-amber-400 transition-colors disabled:opacity-50"
         >
-          ログイン
+          {loading ? "..." : "ログイン"}
         </button>
       </form>
     </div>
@@ -470,17 +486,21 @@ export default function DriverView({ tr }: { tr: Translation }) {
     };
   }, []);
 
-  // 翌日KAIROX予約を取得
+  // 当日・翌日のKAIROX予約を取得
   useEffect(() => {
     if (!unlocked) return;
     fetch("/api/admin?type=bookings")
       .then((r) => r.ok ? r.json() : [])
       .then((rows: { booking_id: string; name: string; total_amount: number; pickup_date: string; status: string }[]) => {
+        const today = new Date().toISOString().slice(0, 10);
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         const tStr = tomorrow.toISOString().slice(0, 10);
         setTomorrowBookings(
-          rows.filter((b) => b.pickup_date?.startsWith(tStr) && !["delivered", "cancelled"].includes(b.status))
+          rows.filter((b) => {
+            const d = b.pickup_date?.slice(0, 10);
+            return (d === today || d === tStr) && !["delivered", "cancelled"].includes(b.status);
+          })
         );
       })
       .catch(() => {});
@@ -599,7 +619,7 @@ export default function DriverView({ tr }: { tr: Translation }) {
         <div className="bg-amber-500/15 border border-amber-500/50 rounded-2xl px-4 py-3 flex items-start gap-3">
           <span className="text-2xl">🚗</span>
           <div>
-            <p className="text-sm font-bold text-amber-300">明日はKAIROX優先！</p>
+            <p className="text-sm font-bold text-amber-300">本日・翌日のKAIROX予約</p>
             <p className="text-xs text-amber-400/80 mt-0.5">下請けはお断りしてください</p>
             <div className="mt-2 space-y-0.5">
               {tomorrowBookings.map((b) => (

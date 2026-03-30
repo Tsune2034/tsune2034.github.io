@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KAIROX — rev2 (Blue / 9 slides)</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:     #09090f;
+      --accent: #0052ff;
+      --telop:  #FFD600;
+      --muted:  rgba(255,255,255,0.5);
+    }
+
+    body {
+      background: var(--bg);
+      color: #fff;
+      font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #rev-badge {
+      position: fixed;
+      top: 14px; left: 14px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      z-index: 300;
+    }
+
+    #stage {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 80px 60px 100px;
+      opacity: 0;
+      pointer-events: none;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .slide.active { opacity: 1; pointer-events: all; }
+
+    .slide[data-anim="fade"].entering  { animation: fadeIn  0.6s ease forwards; }
+    .slide[data-anim="fade"].leaving   { animation: fadeOut 0.4s ease forwards; }
+    .slide[data-anim="slide"].entering { animation: slideInRight 0.55s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
+    .slide[data-anim="slide"].leaving  { animation: slideOutLeft  0.4s cubic-bezier(0.55,0,1,0.45) forwards; }
+    .slide[data-anim="zoom"].entering  { animation: zoomIn  0.6s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+    .slide[data-anim="zoom"].leaving   { animation: zoomOut 0.4s ease forwards; }
+
+    @keyframes fadeIn       { from{opacity:0}                        to{opacity:1} }
+    @keyframes fadeOut      { from{opacity:1}                        to{opacity:0} }
+    @keyframes slideInRight { from{opacity:0;transform:translateX(80px)}  to{opacity:1;transform:translateX(0)} }
+    @keyframes slideOutLeft { from{opacity:1;transform:translateX(0)}     to{opacity:0;transform:translateX(-80px)} }
+    @keyframes zoomIn       { from{opacity:0;transform:scale(0.85)}  to{opacity:1;transform:scale(1)} }
+    @keyframes zoomOut      { from{opacity:1;transform:scale(1)}     to{opacity:0;transform:scale(1.1)} }
+
+    .bg-dark,
+    .bg-blue,
+    .bg-teal,
+    .bg-purple { background: var(--bg); }
+
+    .slide-tag {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--telop);
+      background: #000;
+      padding: 4px 14px;
+      border-radius: 20px;
+      display: inline-block;
+      margin-bottom: 18px;
+    }
+
+    .slide-title {
+      font-size: clamp(2.2rem,5.5vw,4.5rem);
+      font-weight: 800;
+      line-height: 1.1;
+      text-align: center;
+      margin-bottom: 20px;
+      background: linear-gradient(140deg,#fff 30%,rgba(255,255,255,0.65));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .slide-body {
+      font-size: clamp(0.9rem,1.8vw,1.15rem);
+      color: rgba(255,255,255,0.65);
+      text-align: center;
+      max-width: 680px;
+      line-height: 1.75;
+    }
+
+    .slide-body strong { color: #fff; }
+
+    .logo {
+      font-size: clamp(4rem,11vw,8.5rem);
+      font-weight: 900;
+      letter-spacing: -3px;
+      background: linear-gradient(135deg, #0052ff, #00b8d9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+
+    .divider {
+      width: 50px;
+      height: 3px;
+      background: var(--accent);
+      border-radius: 2px;
+      margin: 18px auto;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(190px,1fr));
+      gap: 16px;
+      width: 100%;
+      max-width: 880px;
+      margin-top: 36px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 16px;
+      padding: 26px 18px;
+      text-align: center;
+      backdrop-filter: blur(8px);
+    }
+
+    .card-icon  { font-size: 2.2rem; margin-bottom: 10px; }
+    .card-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; }
+    .card-desc  { font-size: 0.82rem; color: rgba(255,255,255,0.5); line-height: 1.5; }
+
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 580px;
+      width: 100%;
+      margin-top: 28px;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      background: rgba(255,255,255,0.04);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 12px 12px 0;
+      padding: 16px 22px;
+    }
+
+    .step-num  { font-size: 2rem; font-weight: 900; color: var(--accent); min-width: 44px; }
+    .step-text strong { display: block; font-size: 1rem; margin-bottom: 3px; }
+    .step-text span   { font-size: 0.85rem; color: rgba(255,255,255,0.55); }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 28px;
+      max-width: 780px;
+      margin-top: 36px;
+    }
+
+    .stat-num   { font-size: clamp(2.2rem,4.5vw,3.8rem); font-weight: 900; color: var(--accent); line-height: 1; }
+    .stat-label { font-size: 0.82rem; color: rgba(255,255,255,0.5); margin-top: 7px; }
+
+    .cta-btn {
+      display: inline-block;
+      margin-top: 38px;
+      padding: 17px 52px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 1.05rem;
+      font-weight: 800;
+      border-radius: 50px;
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,82,255,0.4); }
+
+    #progress {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px;
+      background: var(--accent);
+      transition: width 0.35s ease;
+      z-index: 200;
+    }
+
+    #ui {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      padding: 18px 40px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(to top,rgba(0,0,0,0.75) 0%,transparent 100%);
+      z-index: 100;
+    }
+
+    #dots { display: flex; gap: 7px; align-items: center; }
+
+    .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .dot.active {
+      background: var(--accent);
+      width: 22px;
+      border-radius: 4px;
+      box-shadow: 0 0 6px var(--accent);
+    }
+
+    #counter {
+      font-size: 12px;
+      color: rgba(255,255,255,0.35);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 1px;
+    }
+
+    #autoplay-btn {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: rgba(255,255,255,0.7);
+      padding: 7px 18px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      transition: all 0.2s;
+    }
+
+    #autoplay-btn:hover   { background: rgba(255,255,255,0.15); color: #fff; }
+    #autoplay-btn.playing { border-color: var(--accent); color: var(--accent); }
+
+    .nav-arrow {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.45);
+      width: 44px; height: 80px;
+      border-radius: 8px;
+      font-size: 1.4rem;
+      cursor: pointer;
+      z-index: 100;
+      transition: all 0.2s;
+    }
+
+    .nav-arrow:hover { background: rgba(255,255,255,0.14); color: #fff; }
+    #prev { left: 14px; }
+    #next { right: 14px; }
+
+    #hint {
+      position: fixed;
+      top: 20px; right: 20px;
+      font-size: 10px;
+      color: rgba(255,255,255,0.18);
+      letter-spacing: 1px;
+      z-index: 100;
+    }
+
+    /* Diff table */
+    .diff-table {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 680px;
+      margin-top: 28px;
+    }
+
+    .diff-row {
+      display: grid;
+      grid-template-columns: 28px 180px 1fr;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+    }
+
+    .diff-no  { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.45); }
+    .diff-yes { background: rgba(0,82,255,0.15); border: 1px solid rgba(0,82,255,0.4); color: #fff; }
+    .diff-icon  { font-size: 1rem; font-weight: 900; }
+    .diff-no  .diff-icon  { color: rgba(255,255,255,0.25); }
+    .diff-yes .diff-icon  { color: var(--accent); }
+    .diff-label { font-weight: 700; }
+    .diff-value { opacity: 0.85; }
+
+    @media (max-width: 768px) {
+      .slide        { padding: 56px 20px 88px; }
+      .nav-arrow    { display: none; }
+      #hint         { display: none; }
+      .card-grid    { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .stats-grid   { gap: 12px; }
+      .step         { padding: 12px 16px; gap: 14px; }
+      .diff-row     { grid-template-columns: 22px 1fr; gap: 10px; padding: 11px 14px; }
+      .diff-value   { display: none; }
+      #ui           { padding: 12px 20px 16px; }
+    }
+
+    @media (max-width: 480px) {
+      .card-grid    { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .card         { padding: 16px 10px; }
+      .card-icon    { font-size: 1.6rem; }
+      .stat-num     { font-size: 1.6rem; }
+      .stats-grid   { grid-template-columns: repeat(3,1fr); gap: 8px; }
+      #autoplay-btn { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="rev-badge">REV 2</div>
+<div id="progress"></div>
+<div id="stage"></div>
+<div id="hint">← → KEY / SWIPE</div>
+
+<div id="ui">
+  <div id="dots"></div>
+  <div id="counter">1 / 9</div>
+  <button id="autoplay-btn">▶ AUTO</button>
+</div>
+
+<button class="nav-arrow" id="prev">‹</button>
+<button class="nav-arrow" id="next">›</button>
+
+<script>
+const slides = [
+  {
+    id: 1, anim: "fade", bg: "bg-blue", type: "cover",
+    content: {
+      tag: "KAIROX — Japan Luggage Freedom",
+      logo: "KAIROX",
+      title: "手ぶらで、もっと自由に。",
+      body: "訪日外国人向け手ぶら配送サービス<br>Narita → Hotel / Station / Anywhere"
+    }
+  },
+  {
+    id: 2, anim: "slide", bg: "bg-dark", type: "problem",
+    content: {
+      tag: "THE PROBLEM",
+      title: "旅行中、荷物は邪魔だ。",
+      body: "成田空港から移動する旅行者の多くが<br>「重い荷物のせいで観光を諦めた経験がある」",
+      stats: [
+        { num: "82%", label: "荷物で観光を制限された" },
+        { num: "3.4kg", label: "平均荷物重量" },
+        { num: "¥0",    label: "現状の解決策" }
+      ]
+    }
+  },
+  {
+    id: 3, anim: "zoom", bg: "bg-teal", type: "solution",
+    content: {
+      tag: "THE SOLUTION",
+      title: "KAIROXが届ける。",
+      body: "空港・ホテル・駅間の荷物配送を<br>スマホ1つで完結。<br>リアルタイムGPS追跡付き。4言語対応。"
+    }
+  },
+  {
+    id: 4, anim: "slide", bg: "bg-dark", type: "steps",
+    content: {
+      tag: "HOW IT WORKS",
+      title: "3ステップで完結",
+      steps: [
+        { num: "01", title: "予約する", desc: "スマホで集荷場所・届け先・時間を入力" },
+        { num: "02", title: "渡すだけ", desc: "ドライバーが指定場所に到着、荷物を預ける" },
+        { num: "03", title: "GPS追跡",  desc: "リアルタイムで位置確認、届いたらレビュー" }
+      ]
+    }
+  },
+  {
+    id: 5, anim: "fade", bg: "bg-purple", type: "features",
+    content: {
+      tag: "FEATURES",
+      title: "なぜKAIROXか",
+      cards: [
+        { icon: "📍", title: "リアルタイムGPS", desc: "荷物の位置をスマホで常時確認" },
+        { icon: "🌏", title: "4言語対応",       desc: "EN / JA / ZH / KO" },
+        { icon: "💳", title: "スマホ決済",       desc: "Stripe対応、現金不要" },
+        { icon: "⭐", title: "レビュー制度",     desc: "信頼スコアで安心のドライバー" }
+      ]
+    }
+  },
+  {
+    id: 6, anim: "slide", bg: "bg-dark", type: "coverage",
+    content: {
+      tag: "COVERAGE",
+      title: "対応エリア",
+      body: "現在：成田 / 千葉 / 東京 / 新宿",
+      cards: [
+        { icon: "✈️", title: "成田空港", desc: "第1・第2・第3ターミナル" },
+        { icon: "🏙️", title: "東京都内", desc: "新宿・銀座・浅草・渋谷" },
+        { icon: "🌊", title: "千葉市内", desc: "幕張・千葉駅周辺" },
+        { icon: "🗾", title: "拡張予定", desc: "羽田・大阪・札幌" }
+      ]
+    }
+  },
+  {
+    id: 7, anim: "zoom", bg: "bg-blue", type: "pricing",
+    content: {
+      tag: "PRICING",
+      title: "シンプルな料金",
+      stats: [
+        { num: "¥1,500", label: "成田→市内（基本）" },
+        { num: "¥500",   label: "追加荷物 / 個" },
+        { num: "¥300",   label: "速達オプション" }
+      ],
+      body: "クレジットカード・PayPay・Apple Pay対応"
+    }
+  },
+  {
+    id: 8, anim: "slide", bg: "bg-dark", type: "diff",
+    content: {
+      tag: "DIFFERENTIATION",
+      title: "迎えに来て、届けてくれる。",
+      rows: [
+        { label: "コインロッカー", value: "自分で持って行く・取りに戻る",   ok: false },
+        { label: "ホテル預かり",   value: "フロントに自分で持って行く",     ok: false },
+        { label: "宅急便",         value: "コンビニや窓口に持って行く",     ok: false },
+        { label: "KAIROX",         value: "指定場所に来る → ホテルに届く", ok: true  }
+      ]
+    }
+  },
+  {
+    id: 9, anim: "fade", bg: "bg-dark", type: "cta",
+    content: {
+      tag: "GET STARTED",
+      title: "今すぐ予約する",
+      body: "成田空港到着後、すぐ使えます。<br>スマホでアクセスするだけ。",
+      url: "https://kairox.jp/narita",
+      cta: "kairox.jp/narita →"
+    }
+  }
+];
+
+let current = 0;
+let autoTimer = null;
+let animLock = false;
+
+const stage      = document.getElementById('stage');
+const dotsEl     = document.getElementById('dots');
+const counterEl  = document.getElementById('counter');
+const progressEl = document.getElementById('progress');
+const autoBtn    = document.getElementById('autoplay-btn');
+
+function renderSlide(data) {
+  const el = document.createElement('div');
+  el.className = `slide ${data.bg}`;
+  el.dataset.anim = data.anim;
+
+  const { type, content: c } = data;
+  let html = '';
+
+  const tag   = `<div class="slide-tag">${c.tag}</div>`;
+  const title = `<div class="slide-title">${c.title}</div>`;
+  const body  = c.body ? `<div class="slide-body">${c.body}</div>` : '';
+  const div   = `<div class="divider"></div>`;
+
+  const stats = c.stats ? `<div class="stats-grid">
+    ${c.stats.map(s=>`<div class="stat">
+      <div class="stat-num">${s.num}</div>
+      <div class="stat-label">${s.label}</div>
+    </div>`).join('')}
+  </div>` : '';
+
+  const cards = c.cards ? `<div class="card-grid">
+    ${c.cards.map(cd=>`<div class="card">
+      <div class="card-icon">${cd.icon}</div>
+      <div class="card-title">${cd.title}</div>
+      <div class="card-desc">${cd.desc}</div>
+    </div>`).join('')}
+  </div>` : '';
+
+  const steps = c.steps ? `<div class="steps">
+    ${c.steps.map(s=>`<div class="step">
+      <div class="step-num">${s.num}</div>
+      <div class="step-text"><strong>${s.title}</strong><span>${s.desc}</span></div>
+    </div>`).join('')}
+  </div>` : '';
+
+  if (type === 'cover')    html = `${tag}<div class="logo">${c.logo}</div>${div}${title}${body}`;
+  if (type === 'problem')  html = `${tag}${title}${body}${stats}`;
+  if (type === 'solution') html = `${tag}${title}${div}${body}`;
+  if (type === 'steps')    html = `${tag}${title}${steps}`;
+  if (type === 'pricing')  html = `${tag}${title}${stats}<div class="slide-body" style="margin-top:28px">${c.body}</div>`;
+  if (type === 'cta')      html = `${tag}${title}${body}<a class="cta-btn" href="${c.url}" target="_blank">${c.cta}</a>`;
+  if (['features','coverage','trust'].includes(type)) html = `${tag}${title}${body}${cards}`;
+  if (type === 'diff') {
+    const rows = c.rows.map(r => `
+      <div class="diff-row ${r.ok ? 'diff-yes' : 'diff-no'}">
+        <span class="diff-icon">${r.ok ? '✓' : '✗'}</span>
+        <span class="diff-label">${r.label}</span>
+        <span class="diff-value">${r.value}</span>
+      </div>
+    `).join('');
+    html = `${tag}${title}<div class="diff-table">${rows}</div>`;
+  }
+
+  el.innerHTML = html;
+  return el;
+}
+
+function buildDots() {
+  dotsEl.innerHTML = '';
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  });
+}
+
+function updateUI() {
+  document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+  counterEl.textContent = `${current + 1} / ${slides.length}`;
+  progressEl.style.width = `${((current + 1) / slides.length) * 100}%`;
+}
+
+function goTo(idx) {
+  if (animLock || idx === current) return;
+  animLock = true;
+
+  const old  = stage.querySelector('.slide.active');
+  const next = stage.children[idx];
+
+  if (old) { old.classList.add('leaving'); old.classList.remove('active'); }
+  next.classList.add('active', 'entering');
+
+  const clean = () => {
+    if (old) old.classList.remove('leaving');
+    next.classList.remove('entering');
+    animLock = false;
+  };
+  next.addEventListener('animationend', clean, { once: true });
+  setTimeout(clean, 800);
+
+  current = idx;
+  updateUI();
+}
+
+function next() { goTo(current < slides.length - 1 ? current + 1 : 0); }
+function prev() { goTo(current > 0 ? current - 1 : slides.length - 1); }
+
+slides.forEach(s => stage.appendChild(renderSlide(s)));
+stage.children[0].classList.add('active');
+buildDots();
+updateUI();
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') next();
+  if (e.key === 'ArrowLeft')  prev();
+});
+
+document.getElementById('prev').onclick = prev;
+document.getElementById('next').onclick = next;
+
+let tx = 0, ty = 0;
+document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - tx;
+  const dy = e.changedTouches[0].clientY - ty;
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) { dx < 0 ? next() : prev(); }
+});
+
+autoBtn.onclick = () => {
+  if (autoTimer) { clearInterval(autoTimer); autoTimer = null; autoBtn.classList.remove('playing'); autoBtn.textContent = '▶ AUTO'; }
+  else { autoTimer = setInterval(next, 4000); autoBtn.classList.add('playing'); autoBtn.textContent = '⏸ AUTO'; }
+};
+</script>
+</body>
+</html>

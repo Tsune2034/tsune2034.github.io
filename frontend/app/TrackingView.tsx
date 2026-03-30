@@ -35,6 +35,7 @@ interface TrackingInfo {
   eta: string;
   updatedAt: string;
   driver?: DriverInfo;
+  player_id?: number;
 }
 
 // ───────────────────────── Helpers ─────────────────────────
@@ -43,6 +44,10 @@ const ZONE_COORDS: Record<string, { lat: number; lng: number }> = {
   sapporo: { lat: 43.0621, lng: 141.3544 },
   otaru:   { lat: 43.1907, lng: 140.9947 },
   furano:  { lat: 43.3499, lng: 142.3834 }, // 新富良野プリンスホテル付近
+  narita:  { lat: 35.7720, lng: 140.3929 }, // 成田空港
+  chiba:   { lat: 35.6073, lng: 140.1063 }, // 千葉市
+  tokyo:   { lat: 35.6895, lng: 139.6917 }, // 東京都心
+  shinjuku: { lat: 35.6896, lng: 139.7006 }, // 新宿
 };
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -475,6 +480,109 @@ function NearbyPlayersPanel({
   );
 }
 
+// ───────────────────────── ReviewForm ─────────────────────────
+const REVIEW_LABELS: Record<string, { title: string; on_time: string; comment: string; submit: string; done: string }> = {
+  en: { title: "Rate your carrier", on_time: "On time?", comment: "Comment (optional)", submit: "Submit review", done: "Thank you for your review!" },
+  ja: { title: "配送担当を評価する", on_time: "時間通りでしたか？", comment: "コメント（任意）", submit: "レビューを送信", done: "レビューありがとうございました！" },
+  zh: { title: "评价配送员", on_time: "是否准时？", comment: "评论（可选）", submit: "提交评价", done: "感谢您的评价！" },
+  ko: { title: "배송원 평가", on_time: "제시간에 도착했나요?", comment: "코멘트 (선택)", submit: "리뷰 제출", done: "리뷰 감사합니다!" },
+};
+
+function ReviewForm({ bookingId, playerId, locale }: { bookingId: string; playerId: number; locale: string }) {
+  const L = REVIEW_LABELS[locale] ?? REVIEW_LABELS.en;
+  const [rating, setRating]     = useState(0);
+  const [hover, setHover]       = useState(0);
+  const [onTime, setOnTime]     = useState<boolean | null>(null);
+  const [comment, setComment]   = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function submit() {
+    if (rating === 0) return;
+    setSubmitting(true);
+    try {
+      await fetch("/api/review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          player_id: playerId,
+          booking_id: bookingId,
+          rating,
+          on_time: onTime ?? true,
+          comment: comment.trim() || undefined,
+        }),
+      });
+      setSubmitted(true);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (submitted) {
+    return (
+      <div className="bg-green-950 border border-green-800 rounded-2xl p-5 text-center">
+        <p className="text-2xl mb-2">⭐</p>
+        <p className="text-sm font-semibold text-green-400">{L.done}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-gray-800/60 border border-gray-700 rounded-2xl p-5 space-y-4">
+      <p className="text-sm font-semibold text-gray-200">{L.title}</p>
+
+      {/* Star rating */}
+      <div className="flex gap-2">
+        {[1, 2, 3, 4, 5].map((s) => (
+          <button
+            key={s}
+            type="button"
+            className={`text-2xl transition-transform hover:scale-110 ${(hover || rating) >= s ? "text-amber-400" : "text-gray-700"}`}
+            onClick={() => setRating(s)}
+            onMouseEnter={() => setHover(s)}
+            onMouseLeave={() => setHover(0)}
+          >
+            ★
+          </button>
+        ))}
+      </div>
+
+      {/* On-time */}
+      <div className="flex items-center gap-3">
+        <p className="text-xs text-gray-400">{L.on_time}</p>
+        <button
+          type="button"
+          onClick={() => setOnTime(true)}
+          className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${onTime === true ? "bg-green-700 text-green-100" : "bg-gray-700 text-gray-400"}`}
+        >👍</button>
+        <button
+          type="button"
+          onClick={() => setOnTime(false)}
+          className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${onTime === false ? "bg-red-800 text-red-200" : "bg-gray-700 text-gray-400"}`}
+        >👎</button>
+      </div>
+
+      {/* Comment */}
+      <textarea
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+        placeholder={L.comment}
+        rows={2}
+        className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-gray-200 placeholder-gray-600 resize-none focus:outline-none focus:border-amber-600"
+      />
+
+      <button
+        type="button"
+        onClick={submit}
+        disabled={rating === 0 || submitting}
+        className="w-full py-2.5 rounded-xl bg-amber-500 text-gray-950 font-bold text-sm hover:bg-amber-400 transition-colors disabled:opacity-40"
+      >
+        {submitting ? "…" : L.submit}
+      </button>
+    </div>
+  );
+}
+
 // ───────────────────────── Main ─────────────────────────
 export default function TrackingView({ tr, initialNumber, locale = "en" }: { tr: Translation; initialNumber?: string; locale?: string }) {
   const [input, setInput]     = useState(initialNumber ?? "");
@@ -531,6 +639,7 @@ export default function TrackingView({ tr, initialNumber, locale = "en" }: { tr:
             }),
         updatedAt: now.toLocaleString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
         driver,
+        player_id: data.player_id ?? undefined,
       });
       setNotFound(false);
       return true;
@@ -639,6 +748,10 @@ export default function TrackingView({ tr, initialNumber, locale = "en" }: { tr:
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
             <Timeline info={info} tr={tr} />
           </div>
+
+          {info.status === "delivered" && info.player_id && (
+            <ReviewForm bookingId={info.trackingNumber} playerId={info.player_id} locale={locale} />
+          )}
         </div>
       )}
 

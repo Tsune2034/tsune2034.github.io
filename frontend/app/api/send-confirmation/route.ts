@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const FROM_EMAIL = process.env.RESEND_FROM ?? "KAIROX <noreply@kairox.app>";
-const STATUS_BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://frontend-psi-seven-15.vercel.app";
+const FROM_EMAIL = process.env.RESEND_FROM ?? "KAIROX <noreply@kairox.jp>";
+const STATUS_BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://kairox.jp";
 
 const SUBJECTS: Record<string, string> = {
   en: "KAIROX — Booking Confirmed",

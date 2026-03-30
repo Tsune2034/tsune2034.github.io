@@ -2,8 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 
 const BACKEND = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const API_KEY = process.env.API_KEY ?? "";
+const ADMIN_PIN = process.env.ADMIN_PIN ?? "";
+
+function authorized(req: NextRequest): boolean {
+  if (!ADMIN_PIN) return false;
+  return req.headers.get("X-Admin-Pin") === ADMIN_PIN;
+}
 
 export async function GET(req: NextRequest) {
+  if (!authorized(req)) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
   const type = req.nextUrl.searchParams.get("type");
   const validTypes = ["bookings", "drivers", "players", "monitor"];
   if (!validTypes.includes(type ?? "")) {
@@ -26,6 +35,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  if (!authorized(req)) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
   const type = req.nextUrl.searchParams.get("type");
   if (type !== "monitor") {
     return NextResponse.json({ error: "invalid type" }, { status: 400 });

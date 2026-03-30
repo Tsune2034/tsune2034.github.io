@@ -1,6 +1,6 @@
 {
   "project": "KAIROX",
-  "updated": "2026-03-25T12:00",
+  "updated": "2026-03-28T09:00",
   "tasks": [
     {
       "id": 26,
@@ -46,15 +46,6 @@
       "status": "pending",
       "priority": "P1",
       "blocked_by": "task:4（ドライバー確保後）"
-    },
-    {
-      "id": 7,
-      "role": "ceo",
-      "task": "独自ドメイン取得（kairox.jp または kairox.app）",
-      "detail": "取得後 Vercel > Domains に追加。layout.tsx の canonical URL も更新が必要",
-      "status": "pending",
-      "priority": "P1",
-      "blocked_by": null
     },
     {
       "id": 20,
@@ -241,6 +232,12 @@
       "task": "バックアップ作成 + リストアスクリプト",
       "detail": "docs/backup_kairox_20260325.zip（336KB・108ファイル）。frontend/app/ + backend/ + agents/ + docs/ 収録。docs/restore.sh で復元可能",
       "done": "2026-03-25"
+    },
+    {
+      "id": 7,
+      "task": "独自ドメイン取得・設定（kairox.jp）",
+      "detail": "お名前.com で取得。Vercel DNS（ns1/ns2.vercel-dns.com）に移管。kairox.jp / www.kairox.jp 追加。SSL自動発行。middleware.ts で旧URL 301リダイレクト済み",
+      "done": "2026-03-27"
     }
   ]
 }

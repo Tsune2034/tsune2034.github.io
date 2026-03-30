@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KAIROX — 使い方ガイド</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --blue:   #0052ff;
+      --teal:   #00b8d9;
+      --telop:  #FFD600;
+      --text:   #111;
+      --muted:  #666;
+      --light:  #f4f6fa;
+      --border: #e0e4ef;
+      --accent: #0052ff;
+    }
+
+    body {
+      background: #fff;
+      color: var(--text);
+      font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* ── Stage ── */
+    #stage {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 70px 60px 90px;
+      opacity: 0;
+      pointer-events: none;
+      background: #fff;
+    }
+
+    .slide.active { opacity: 1; pointer-events: all; }
+
+    /* ── Animations ── */
+    .slide[data-anim="fade"].entering   { animation: fadeIn  0.55s ease forwards; }
+    .slide[data-anim="fade"].leaving    { animation: fadeOut 0.35s ease forwards; }
+    .slide[data-anim="slide"].entering  { animation: slideUp   0.5s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
+    .slide[data-anim="slide"].leaving   { animation: slideDown 0.35s cubic-bezier(0.55,0,1,0.45) forwards; }
+    .slide[data-anim="zoom"].entering   { animation: zoomIn  0.55s cubic-bezier(0.34,1.4,0.64,1) forwards; }
+    .slide[data-anim="zoom"].leaving    { animation: zoomOut 0.35s ease forwards; }
+
+    @keyframes fadeIn    { from{opacity:0}                      to{opacity:1} }
+    @keyframes fadeOut   { from{opacity:1}                      to{opacity:0} }
+    @keyframes slideUp   { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes slideDown { from{opacity:1;transform:translateY(0)}    to{opacity:0;transform:translateY(-30px)} }
+    @keyframes zoomIn    { from{opacity:0;transform:scale(0.9)}  to{opacity:1;transform:scale(1)} }
+    @keyframes zoomOut   { from{opacity:1;transform:scale(1)}    to{opacity:0;transform:scale(1.05)} }
+
+    /* ── Typography ── */
+    .slide-tag {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--telop);
+      background: #000;
+      padding: 4px 14px;
+      border-radius: 20px;
+      display: inline-block;
+      margin-bottom: 14px;
+    }
+
+    .slide-title {
+      font-size: clamp(2rem, 4.5vw, 3.8rem);
+      font-weight: 800;
+      line-height: 1.15;
+      text-align: center;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+
+    .slide-title span { color: var(--blue); }
+
+    .slide-body {
+      font-size: clamp(0.9rem, 1.6vw, 1.1rem);
+      color: var(--muted);
+      text-align: center;
+      max-width: 640px;
+      line-height: 1.8;
+    }
+
+    .slide-body strong { color: var(--text); }
+
+    .logo-text {
+      font-size: clamp(3.5rem, 10vw, 7.5rem);
+      font-weight: 900;
+      letter-spacing: -2px;
+      background: linear-gradient(135deg, var(--blue), var(--teal));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+
+    .divider {
+      width: 44px;
+      height: 3px;
+      background: var(--blue);
+      border-radius: 2px;
+      margin: 16px auto;
+    }
+
+    /* ── Step flow ── */
+    .step-flow {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      width: 100%;
+      max-width: 620px;
+      margin-top: 24px;
+    }
+
+    .step-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 18px;
+      padding: 16px 22px;
+      background: var(--light);
+      border-radius: 14px;
+      border-left: 4px solid var(--blue);
+    }
+
+    .step-badge {
+      min-width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .step-info strong { display: block; font-size: 0.95rem; color: var(--text); margin-bottom: 3px; }
+    .step-info span   { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+
+    /* ── Phone mockup ── */
+    .phone-wrap {
+      display: flex;
+      gap: 32px;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    .phone {
+      width: 220px;
+      background: #f8f9fc;
+      border: 2px solid var(--border);
+      border-radius: 32px;
+      padding: 20px 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+    }
+
+    .phone-bar {
+      width: 60px;
+      height: 5px;
+      background: #ddd;
+      border-radius: 3px;
+      margin: 0 auto 16px;
+    }
+
+    .phone-screen {
+      background: #fff;
+      border-radius: 18px;
+      padding: 16px 12px;
+      min-height: 160px;
+    }
+
+    .phone-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--blue);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .phone-field {
+      background: var(--light);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .phone-field strong { display: block; font-size: 0.65rem; color: #999; margin-bottom: 2px; }
+
+    .phone-btn {
+      background: var(--blue);
+      color: #fff;
+      border-radius: 8px;
+      padding: 9px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .phone-map {
+      background: linear-gradient(135deg, #e8f0fe, #cfe8ff);
+      border-radius: 10px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      margin-bottom: 8px;
+    }
+
+    .phone-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      background: #e6f9f0;
+      border-radius: 8px;
+      margin-bottom: 6px;
+    }
+
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #22c55e;
+      flex-shrink: 0;
+    }
+
+    .status-text { font-size: 0.68rem; color: #166534; font-weight: 600; }
+
+    /* ── Info aside ── */
+    .phone-aside {
+      max-width: 280px;
+    }
+
+    .phone-aside h3 {
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .phone-aside ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .phone-aside li {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .phone-aside li::before {
+      content: '✓';
+      color: var(--blue);
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    /* ── Cards ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      width: 100%;
+      max-width: 860px;
+      margin-top: 28px;
+    }
+
+    .card {
+      background: var(--light);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 16px;
+      text-align: center;
+    }
+
+    .card-icon  { font-size: 2rem; margin-bottom: 10px; }
+    .card-title { font-size: 0.9rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .card-desc  { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+
+    /* ── Track timeline ── */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      max-width: 520px;
+      width: 100%;
+      margin-top: 24px;
+    }
+
+    .tl-item {
+      display: flex;
+      gap: 16px;
+      padding-bottom: 20px;
+      position: relative;
+    }
+
+    .tl-item:last-child { padding-bottom: 0; }
+
+    .tl-dot-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .tl-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--blue);
+      flex-shrink: 0;
+    }
+
+    .tl-dot.done  { background: #22c55e; }
+    .tl-dot.active{ background: var(--blue); box-shadow: 0 0 0 4px rgba(0,82,255,0.15); }
+    .tl-dot.wait  { background: #ddd; }
+
+    .tl-line {
+      width: 2px;
+      flex: 1;
+      background: var(--border);
+      margin-top: 4px;
+    }
+
+    .tl-content { padding-top: 0; }
+    .tl-content strong { font-size: 0.9rem; display: block; color: var(--text); margin-bottom: 2px; }
+    .tl-content span   { font-size: 0.8rem; color: var(--muted); }
+
+    /* ── QR code placeholder ── */
+    .qr-box {
+      width: 140px; height: 140px;
+      background: var(--light);
+      border: 2px dashed var(--border);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      margin: 20px auto 10px;
+    }
+
+    .qr-label {
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--blue);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── CTA ── */
+    .cta-btn {
+      display: inline-block;
+      margin-top: 28px;
+      padding: 15px 48px;
+      background: var(--blue);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 800;
+      border-radius: 50px;
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      box-shadow: 0 8px 30px rgba(0,82,255,0.25);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(0,82,255,0.35); }
+
+    /* ── Progress bar ── */
+    #progress {
+      position: fixed;
+      top: 0; left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--blue), var(--teal));
+      transition: width 0.35s ease;
+      z-index: 200;
+    }
+
+    /* ── Top bar ── */
+    #topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 48px;
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      z-index: 150;
+    }
+
+    #topbar-logo {
+      font-size: 1.1rem;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--blue), var(--teal));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    #topbar-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* ── Bottom UI ── */
+    #ui {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      padding: 14px 36px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.95);
+      border-top: 1px solid var(--border);
+      z-index: 100;
+    }
+
+    #dots { display: flex; gap: 7px; align-items: center; }
+
+    .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #ddd;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .dot.active {
+      background: var(--blue);
+      width: 22px;
+      border-radius: 4px;
+    }
+
+    #counter {
+      font-size: 12px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 1px;
+    }
+
+    #autoplay-btn {
+      background: var(--light);
+      border: 1.5px solid var(--border);
+      color: var(--muted);
+      padding: 6px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      transition: all 0.2s;
+    }
+
+    #autoplay-btn:hover   { border-color: var(--blue); color: var(--blue); }
+    #autoplay-btn.playing { border-color: var(--blue); color: var(--blue); background: #eef2ff; }
+
+    /* ── Nav arrows ── */
+    .nav-arrow {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--light);
+      border: 1.5px solid var(--border);
+      color: var(--muted);
+      width: 40px; height: 70px;
+      border-radius: 10px;
+      font-size: 1.3rem;
+      cursor: pointer;
+      z-index: 100;
+      transition: all 0.2s;
+    }
+
+    .nav-arrow:hover { border-color: var(--blue); color: var(--blue); background: #eef2ff; }
+    #prev { left: 14px; }
+    #next { right: 14px; }
+
+    /* ── Hint ── */
+    #hint {
+      position: fixed;
+      bottom: 68px; right: 20px;
+      font-size: 10px;
+      color: #bbb;
+      letter-spacing: 1px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .slide       { padding: 60px 20px 80px; }
+      .nav-arrow   { display: none; }
+      .phone-wrap  { flex-direction: column; gap: 20px; }
+      .phone-aside { max-width: 100%; text-align: center; }
+      .phone-aside ul { align-items: center; }
+      #hint        { display: none; }
+    }
+
+    @media (max-width: 480px) {
+      .card-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<div id="topbar">
+  <div id="topbar-logo">KAIROX</div>
+  <div id="topbar-label">使い方ガイド</div>
+</div>
+
+<div id="stage"></div>
+
+<div id="hint">← → KEY</div>
+
+<div id="ui">
+  <div id="dots"></div>
+  <div id="counter">1 / 8</div>
+  <button id="autoplay-btn">▶ AUTO</button>
+</div>
+
+<button class="nav-arrow" id="prev">‹</button>
+<button class="nav-arrow" id="next">›</button>
+
+<script>
+// ============================================================
+// SLIDES DATA
+// ============================================================
+const slides = [
+  {
+    id: 1,
+    anim: "fade",
+    type: "cover",
+    content: {
+      tag: "KAIROX — 使い方ガイド",
+      logo: "KAIROX",
+      title: "アプリの使い方",
+      body: "スマホだけで荷物を預けて、<br>観光に集中しよう。"
+    }
+  },
+  {
+    id: 2,
+    anim: "slide",
+    type: "overview",
+    content: {
+      tag: "OVERVIEW",
+      title: "全体の流れ",
+      steps: [
+        { num: "01", title: "サイトにアクセス",   desc: "kairox.jp/narita をスマホで開く" },
+        { num: "02", title: "予約フォームを入力", desc: "集荷場所・届け先・日時・荷物数を選択" },
+        { num: "03", title: "お支払い",           desc: "カード・Apple Pay・PayPayで支払い" },
+        { num: "04", title: "荷物を渡す",         desc: "ドライバーが到着したら荷物を手渡し" },
+        { num: "05", title: "GPSで追跡",          desc: "届け先に届くまでリアルタイム追跡" }
+      ]
+    }
+  },
+  {
+    id: 3,
+    anim: "zoom",
+    type: "access",
+    content: {
+      tag: "STEP 1",
+      title: "アクセス方法",
+      phone: "form",
+      aside: {
+        heading: "スマホで開くだけ",
+        points: [
+          "アプリのインストール不要",
+          "QRコードをスキャンしてすぐ開く",
+          "4言語切替（EN / JA / ZH / KO）",
+          "成田空港内のWi-Fiで利用可"
+        ]
+      }
+    }
+  },
+  {
+    id: 4,
+    anim: "slide",
+    type: "booking",
+    content: {
+      tag: "STEP 2",
+      title: "予約フォーム",
+      phone: "booking",
+      aside: {
+        heading: "入力項目",
+        points: [
+          "集荷場所（ターミナル番号）",
+          "届け先の住所またはホテル名",
+          "希望日時",
+          "荷物の個数・サイズ",
+          "お名前・メールアドレス"
+        ]
+      }
+    }
+  },
+  {
+    id: 5,
+    anim: "fade",
+    type: "payment",
+    content: {
+      tag: "STEP 3",
+      title: "お支払い",
+      cards: [
+        { icon: "💳", title: "クレジットカード",  desc: "Visa / Mastercard / AMEX" },
+        { icon: "🍎", title: "Apple Pay",         desc: "iPhoneですぐ決済" },
+        { icon: "📱", title: "Google Pay",        desc: "Androidですぐ決済" },
+        { icon: "🔵", title: "PayPay",            desc: "日本のQRコード決済" }
+      ]
+    }
+  },
+  {
+    id: 6,
+    anim: "slide",
+    type: "handover",
+    content: {
+      tag: "STEP 4",
+      title: "荷物を渡す",
+      phone: "status",
+      aside: {
+        heading: "当日の流れ",
+        points: [
+          "確認メールに予約番号が届く",
+          "ドライバーが指定場所に到着",
+          "予約番号を見せて荷物を手渡し",
+          "受取時に写真を撮影・記録"
+        ]
+      }
+    }
+  },
+  {
+    id: 7,
+    anim: "zoom",
+    type: "tracking",
+    content: {
+      tag: "STEP 5",
+      title: "GPS追跡",
+      timeline: [
+        { status: "done",   label: "予約完了",     desc: "確認メールを送信済み" },
+        { status: "done",   label: "集荷完了",     desc: "ドライバーが荷物を受け取った" },
+        { status: "active", label: "配送中",       desc: "現在地をリアルタイム表示" },
+        { status: "wait",   label: "配達完了",     desc: "届け先に到着次第通知" },
+        { status: "wait",   label: "レビュー",     desc: "★評価とコメントを投稿" }
+      ]
+    }
+  },
+  {
+    id: 8,
+    anim: "fade",
+    type: "cta",
+    content: {
+      tag: "GET STARTED",
+      title: "今すぐ使ってみる",
+      body: "成田空港に着いたら、このQRコードをスキャン。<br>荷物を預けて、手ぶらで観光スタート。",
+      url: "https://kairox.jp/narita",
+      cta: "kairox.jp/narita を開く"
+    }
+  }
+];
+
+// ============================================================
+// PHONE SCREENS
+// ============================================================
+function phoneScreen(type) {
+  if (type === 'form') {
+    return `
+      <div class="phone-bar"></div>
+      <div class="phone-screen">
+        <div style="font-size:0.7rem;font-weight:800;color:var(--blue);margin-bottom:10px">KAIROX / 予約</div>
+        <div class="phone-field"><strong>言語 / Language</strong>🌏 English</div>
+        <div class="phone-field"><strong>集荷場所</strong>成田空港 第2ターミナル</div>
+        <div class="phone-field"><strong>届け先</strong>東京都新宿区...</div>
+        <div class="phone-btn">次へ →</div>
+      </div>
+      <div class="phone-label">kairox.jp/narita</div>
+    `;
+  }
+  if (type === 'booking') {
+    return `
+      <div class="phone-bar"></div>
+      <div class="phone-screen">
+        <div style="font-size:0.7rem;font-weight:800;color:var(--blue);margin-bottom:8px">予約詳細</div>
+        <div class="phone-field"><strong>日時</strong>3月31日 14:00</div>
+        <div class="phone-field"><strong>荷物</strong>スーツケース × 2</div>
+        <div class="phone-field"><strong>お名前</strong>Tsune Daisuke</div>
+        <div class="phone-field"><strong>メール</strong>tsune@example.com</div>
+        <div class="phone-btn">¥3,000 → 支払いへ</div>
+      </div>
+      <div class="phone-label">フォーム入力</div>
+    `;
+  }
+  if (type === 'status') {
+    return `
+      <div class="phone-bar"></div>
+      <div class="phone-screen">
+        <div class="phone-map">📍</div>
+        <div class="phone-status">
+          <div class="status-dot"></div>
+          <div class="status-text">ドライバー到着 — 3分後</div>
+        </div>
+        <div class="phone-field"><strong>予約番号</strong>#KRX-20260331-001</div>
+        <div style="font-size:0.7rem;color:var(--muted);padding:4px 2px">荷物を手渡ししてください ✓</div>
+      </div>
+      <div class="phone-label">通知・受け渡し</div>
+    `;
+  }
+  return '';
+}
+
+// ============================================================
+// ENGINE
+// ============================================================
+let current = 0;
+let autoTimer = null;
+let animLock = false;
+
+const stage     = document.getElementById('stage');
+const dotsEl    = document.getElementById('dots');
+const counterEl = document.getElementById('counter');
+const progressEl= document.getElementById('progress');
+const autoBtn   = document.getElementById('autoplay-btn');
+
+function renderSlide(data) {
+  const el = document.createElement('div');
+  el.className = 'slide';
+  el.dataset.anim = data.anim;
+
+  const { type, content: c } = data;
+  let html = '';
+
+  const tag   = `<div class="slide-tag">${c.tag}</div>`;
+  const title = `<div class="slide-title">${c.title}</div>`;
+  const body  = c.body ? `<div class="slide-body">${c.body}</div>` : '';
+  const div   = `<div class="divider"></div>`;
+
+  if (type === 'cover') {
+    html = `
+      ${tag}
+      <div class="logo-text">${c.logo}</div>
+      ${div}
+      ${title}
+      ${body}
+    `;
+  }
+
+  else if (type === 'overview') {
+    const steps = c.steps.map(s => `
+      <div class="step-row">
+        <div class="step-badge">${s.num}</div>
+        <div class="step-info">
+          <strong>${s.title}</strong>
+          <span>${s.desc}</span>
+        </div>
+      </div>
+    `).join('');
+    html = `${tag}${title}<div class="step-flow">${steps}</div>`;
+  }
+
+  else if (['access','booking','handover'].includes(type)) {
+    const ph = c.phone ? `
+      <div class="phone">
+        ${phoneScreen(c.phone)}
+      </div>
+    ` : '';
+    const aside = c.aside ? `
+      <div class="phone-aside">
+        <h3>${c.aside.heading}</h3>
+        <ul>${c.aside.points.map(p=>`<li>${p}</li>`).join('')}</ul>
+      </div>
+    ` : '';
+    html = `${tag}${title}<div class="phone-wrap">${ph}${aside}</div>`;
+  }
+
+  else if (type === 'payment') {
+    const cards = c.cards.map(cd => `
+      <div class="card">
+        <div class="card-icon">${cd.icon}</div>
+        <div class="card-title">${cd.title}</div>
+        <div class="card-desc">${cd.desc}</div>
+      </div>
+    `).join('');
+    html = `${tag}${title}<div class="card-grid">${cards}</div>`;
+  }
+
+  else if (type === 'tracking') {
+    const items = c.timeline.map((t, i) => `
+      <div class="tl-item">
+        <div class="tl-dot-wrap">
+          <div class="tl-dot ${t.status}"></div>
+          ${i < c.timeline.length - 1 ? '<div class="tl-line"></div>' : ''}
+        </div>
+        <div class="tl-content">
+          <strong>${t.label}</strong>
+          <span>${t.desc}</span>
+        </div>
+      </div>
+    `).join('');
+    html = `${tag}${title}<div class="timeline">${items}</div>`;
+  }
+
+  else if (type === 'cta') {
+    html = `
+      ${tag}
+      ${title}
+      ${body}
+      <div class="qr-box">📱</div>
+      <div class="qr-label">${c.url}</div>
+      <a class="cta-btn" href="${c.url}" target="_blank">${c.cta}</a>
+    `;
+  }
+
+  el.innerHTML = html;
+  return el;
+}
+
+function goTo(idx) {
+  if (animLock || idx === current || idx < 0 || idx >= slides.length) return;
+  animLock = true;
+
+  const old = stage.querySelector('.slide.active');
+  const neo = renderSlide(slides[idx]);
+  stage.appendChild(neo);
+
+  old?.classList.add('leaving');
+  neo.classList.add('active', 'entering');
+
+  setTimeout(() => {
+    old?.remove();
+    neo.classList.remove('entering');
+    current = idx;
+    updateUI();
+    animLock = false;
+  }, 580);
+}
+
+function next() { current < slides.length - 1 ? goTo(current + 1) : stopAuto(); }
+function prev() { goTo(current - 1); }
+
+function startAuto() {
+  if (autoTimer) return;
+  autoTimer = setInterval(next, 4500);
+  autoBtn.textContent = '⏸ AUTO';
+  autoBtn.classList.add('playing');
+}
+
+function stopAuto() {
+  clearInterval(autoTimer);
+  autoTimer = null;
+  autoBtn.textContent = '▶ AUTO';
+  autoBtn.classList.remove('playing');
+}
+
+function updateUI() {
+  progressEl.style.width = ((current + 1) / slides.length * 100) + '%';
+  counterEl.textContent  = `${current + 1} / ${slides.length}`;
+  document.querySelectorAll('.dot').forEach((d, i) => {
+    d.className = 'dot' + (i === current ? ' active' : '');
+  });
+}
+
+function buildDots() {
+  dotsEl.innerHTML = '';
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === current ? ' active' : '');
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  });
+}
+
+// Init
+const first = renderSlide(slides[0]);
+first.classList.add('active');
+stage.appendChild(first);
+buildDots();
+updateUI();
+
+// Events
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+  if (e.key === 'ArrowLeft')  prev();
+  if (e.key === 'Escape')     stopAuto();
+  if (e.key.toLowerCase() === 'a') autoTimer ? stopAuto() : startAuto();
+});
+
+document.getElementById('next').onclick = next;
+document.getElementById('prev').onclick = prev;
+autoBtn.onclick = () => autoTimer ? stopAuto() : startAuto();
+
+let tx = 0;
+document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+document.addEventListener('touchend',   e => {
+  const dx = e.changedTouches[0].clientX - tx;
+  if (Math.abs(dx) > 45) dx < 0 ? next() : prev();
+});
+</script>
+</body>
+</html>

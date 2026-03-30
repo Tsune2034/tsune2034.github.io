@@ -1,15 +1,15 @@
 {
-  "updated": "2026-03-23",
+  "updated": "2026-03-28",
   "ideas": [
     {
       "id": 1,
       "date": "2026-03-23",
       "project": "KAIROX",
       "category": "feature",
-      "idea": "LINE連携で予約確認・追跡URLを送信。訪日旅行者（韓国・台湾・タイ）のLINE普及率は90%超。メールより確実に届く。",
+      "idea": "LINE連携で予約確認・追跡URLを送信。有効なのは台湾・タイのみ（韓国はKakaoTalk、中国はWeChat、東南アジア・欧米はWhatsApp）。",
       "status": "pending",
-      "priority": "high",
-      "note": "LINE Notify or LINE Messaging API。Resendと並行運用"
+      "priority": "low",
+      "note": "LINE Messaging API。台湾・タイ向け補完施策。メール＋WhatsApp確立後に検討"
     },
     {
       "id": 2,
@@ -36,10 +36,10 @@
       "date": "2026-03-23",
       "project": "KAIROX",
       "category": "feature",
-      "idea": "WhatsApp通知対応。欧米・中東・東南アジア向け。メール・LINEをカバーできないユーザー層に対応。",
+      "idea": "WhatsApp通知対応。韓国以外の訪日外国人ほぼ全員をカバー（中国除く）。メールの次に優先すべき通知手段。",
       "status": "pending",
-      "priority": "medium",
-      "note": "Twilio WhatsApp API or Meta Cloud API"
+      "priority": "high",
+      "note": "Twilio WhatsApp API or Meta Cloud API。シンガポール・インドネシア・欧米・中東・タイ・台湾対応"
     },
     {
       "id": 5,
@@ -52,14 +52,84 @@
       "note": "app/DriverView.tsx line 8: const DRIVER_PIN = '1234'"
     },
     {
-      "id": 6,
-      "date": "2026-03-23",
-      "project": "NEW",
+      "id": 7,
+      "date": "2026-03-27",
+      "project": "KAIROX",
+      "category": "concept",
+      "idea": "コアコンセプト：着いた日から遊べる。チェックイン前の荷物待ち時間をゼロにする。空港でKAIROXに渡して即観光、ホテルに着いたら荷物が届いている。",
+      "status": "confirmed",
+      "priority": "high",
+      "note": "キャッチコピー確定：「荷物は、お迎えに上がります。」「荷物はホテルへ。あなたは東京へ。」TikTok冒頭フック：「チェックイン前に何時間、荷物持ってウロウロしてる？」"
+    },
+    {
+      "id": 8,
+      "date": "2026-03-27",
+      "project": "KAIROX",
+      "category": "concept",
+      "idea": "差別化3点セット：①指定場所まで集荷に来る ②ホテルに届ける ③GPSでいつ来るかわかる。コインロッカー・宅急便・ホテル預かりとの決定的な違いは「移動ゼロ」。渡すだけ。",
+      "status": "confirmed",
+      "priority": "high",
+      "note": "「迎えに来て、届けてくれる。」が競合との本質的な差別化ポイント"
+    },
+    {
+      "id": 9,
+      "date": "2026-03-27",
+      "project": "KAIROX",
+      "category": "concept",
+      "idea": "トランジット活用：羽田着→荷物をKAIROXに渡す→東京・千葉観光→成田から出発。空港間乗り換え中の観光という既存サービスが全く対応していない新市場。",
+      "status": "confirmed",
+      "priority": "high",
+      "note": "コピー：「羽田で渡して、成田で身軽に飛び立つ。」羽田→成田トランジット客は年間数十万人規模"
+    },
+    {
+      "id": 10,
+      "date": "2026-03-27",
+      "project": "KAIROX",
       "category": "business",
-      "idea": "（新規ビジネスアイデアはここに追加）",
+      "idea": "ビジネスモデル2本立て：①車配達（KAIROX社員が担う・品質担保）②ハンドキャリーマッチング（プラットフォームのみ・手数料10〜20%）。マッチングは在庫ゼロ・ドライバーコストゼロでスケール可能。",
+      "status": "confirmed",
+      "priority": "high",
+      "note": "車配達は緑ナンバー必須。マッチングは個人間取引の仲介として免責規約を明記。禁制品・貴重品は申告義務。"
+    },
+    {
+      "id": 11,
+      "date": "2026-03-27",
+      "project": "KAIROX",
+      "category": "feature",
+      "idea": "ハンドキャリー勢向けプラン：どうせ移動するなら荷物1つ運ぶだけで収入になる。LTV試算：ハンドキャリー1人＝一般旅行者20人分（¥120,000〜/年）。月額サブスクも検討。",
+      "status": "pending",
+      "priority": "high",
+      "note": "コピー：「移動するだけで、稼げる。」「何個でも、迎えに行く。」大口プラン（3個以上割引）を先行実装"
+    },
+    {
+      "id": 12,
+      "date": "2026-03-27",
+      "project": "KAIROX",
+      "category": "feature",
+      "idea": "クリプト決済：JPYC（円ペッグステーブルコイン）を最初に追加。カードなし・銀行口座なしで即支払い可能。ハンドキャリー勢・クリプトネイティブな訪日外国人に刺さる。",
       "status": "pending",
       "priority": "medium",
-      "note": ""
+      "note": "Phase1: Stripe完成 → Phase2: JPYC追加（資金決済法上の届出不要）。BTC/ETH等は会計処理複雑なため後回し。コピー：「JPY・Card・Crypto対応」"
+    },
+    {
+      "id": 13,
+      "date": "2026-03-27",
+      "project": "KAIROX",
+      "category": "marketing",
+      "idea": "TikTok・YouTube広告CM戦略：冒頭3秒フックが最重要。わかりやすいイメージ重視。「チェックイン前に何時間、荷物持ってウロウロしてる？」→解決策としてKAIROXを提示。",
+      "status": "pending",
+      "priority": "high",
+      "note": "英語版：'We pick up. You play.' / 'Drop your bags. Own your day.' トランジット版：「羽田→成田の乗り換えで、東京観光できる。」"
+    },
+    {
+      "id": 14,
+      "date": "2026-03-28",
+      "project": "KAIROX",
+      "category": "hardware",
+      "idea": "Even Realities Even G2 スマートグラス連携。Micro-LED waveguide方式でナビ矢印・翻訳・AI会話を視界に表示。視界遮断なし・普通のメガネ型・運転中安全使用可能。",
+      "status": "pending",
+      "priority": "high",
+      "note": "4/16ヨドバシ発売。4/1成田テストには間に合わない。発売後にDriverView連携テストを実施。活用：ナビ・外国人客とのリアルタイム翻訳・受け渡し時スクリプト表示・両手フリー。"
     }
   ]
 }

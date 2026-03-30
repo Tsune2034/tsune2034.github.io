@@ -3,6 +3,15 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* KAIROX Brand Colors */
+  --kairox-blue:    #0052ff;
+  --kairox-teal:    #00b8d9;
+  --kairox-yellow:  #FFD600;
+  --kairox-dark:    #09090f;
+  --kairox-muted:   #666666;
+  --kairox-light:   #f4f6fa;
+  --kairox-border:  #e0e4ef;
 }
 
 @theme inline {

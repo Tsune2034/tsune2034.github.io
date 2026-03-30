@@ -582,7 +582,7 @@ function PulseDots() {
   return (
     <span className="inline-flex gap-1 ml-1 align-middle">
       {[0, 1, 2].map((i) => (
-        <span key={i} className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block"
+        <span key={i} className="w-1.5 h-1.5 rounded-full bg-[#003fcc] inline-block"
           style={{ animation: `kxPulse 1.2s ${i * 0.2}s ease-in-out infinite` }} />
       ))}
     </span>
@@ -600,12 +600,12 @@ function StepBar({ step, tr }: { step: Step; tr: Tr }) {
         return (
           <div key={s} className="flex items-center flex-1 last:flex-none">
             <div className="flex flex-col items-center">
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${done ? "bg-amber-500 text-gray-950" : active ? "bg-amber-500 text-gray-950 ring-4 ring-amber-500/30" : "bg-gray-800 border border-gray-700 text-gray-600"}`}>
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${done ? "bg-[#0052ff] text-white" : active ? "bg-[#0052ff] text-white ring-4 ring-[#0052ff]/20" : "bg-gray-100 border border-gray-300 text-gray-400"}`}>
                 {done ? "✓" : i + 1}
               </div>
-              <span className={`text-[9px] mt-0.5 whitespace-nowrap ${active ? "text-amber-400 font-semibold" : "text-gray-600"}`}>{labels[i]}</span>
+              <span className={`text-[9px] mt-0.5 whitespace-nowrap ${active ? "text-[#0052ff] font-semibold" : "text-gray-400"}`}>{labels[i]}</span>
             </div>
-            {i < STEPS.length - 1 && <div className={`flex-1 h-0.5 mb-3.5 mx-1 ${done ? "bg-amber-500" : "bg-gray-800"}`} />}
+            {i < STEPS.length - 1 && <div className={`flex-1 h-0.5 mb-3.5 mx-1 ${done ? "bg-[#0052ff]" : "bg-gray-100"}`} />}
           </div>
         );
       })}
@@ -621,10 +621,10 @@ function MapPickup({ lat, lng, label, locale }: { lat: number; lng: number; labe
       <p className="text-[10px] text-gray-500 uppercase tracking-wide font-semibold flex items-center gap-1">
         📍 {label}
         {!MAPS_API_KEY && (
-          <span className="text-[9px] text-amber-600/70 normal-case">(APIキー未設定 — プロト表示)</span>
+          <span className="text-[9px] text-[#0052ff]/70 normal-case">(APIキー未設定 — プロト表示)</span>
         )}
       </p>
-      <div className="rounded-xl overflow-hidden border border-gray-700 h-44">
+      <div className="rounded-xl overflow-hidden border border-gray-300 h-44">
         <iframe
           src={src}
           className="w-full h-full"
@@ -653,7 +653,7 @@ function MapRoute({
   return (
     <div className="space-y-1.5">
       <p className="text-[10px] text-gray-500 uppercase tracking-wide font-semibold">🗺 {label}</p>
-      <div className="rounded-xl overflow-hidden border border-gray-700 h-52">
+      <div className="rounded-xl overflow-hidden border border-gray-300 h-52">
         <iframe
           src={src}
           className="w-full h-full"
@@ -671,10 +671,10 @@ function RadarPulse() {
   return (
     <div className="relative w-32 h-32 flex items-center justify-center mx-auto">
       {[1, 2, 3].map((ring) => (
-        <div key={ring} className="absolute rounded-full border border-amber-500/40"
+        <div key={ring} className="absolute rounded-full border border-[#0052ff]/30"
           style={{ width: `${ring * 40}px`, height: `${ring * 40}px`, animation: `kxPing ${1 + ring * 0.3}s ease-out infinite`, opacity: 1 / ring }} />
       ))}
-      <div className="relative z-10 w-12 h-12 rounded-full bg-amber-500/20 border-2 border-amber-500 flex items-center justify-center text-2xl">🚐</div>
+      <div className="relative z-10 w-12 h-12 rounded-full bg-[#0052ff]/10 border-2 border-[#0052ff] flex items-center justify-center text-2xl">🚐</div>
     </div>
   );
 }
@@ -683,29 +683,29 @@ function RadarPulse() {
 function AiRoutePlan({ route, tr }: { route: RouteSegment[]; tr: Tr }) {
   const totalMin = route.reduce((a, s) => a + s.etaMin, 0);
   return (
-    <div className="bg-gray-800/60 border border-amber-800/40 rounded-xl p-4 space-y-3">
+    <div className="bg-gray-100/60 border border-[#0052ff]/20 rounded-xl p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+        <p className="text-xs font-bold text-[#0052ff] flex items-center gap-1.5">
           <span className="text-sm">🤖</span> {tr.ai_route_title}
         </p>
-        <span className="text-[9px] bg-amber-950 border border-amber-700 text-amber-400 px-2 py-0.5 rounded-full font-bold">AI</span>
+        <span className="text-[9px] bg-[#eef2ff] border border-[#0052ff] text-[#0052ff] px-2 py-0.5 rounded-full font-bold">AI</span>
       </div>
       {route.map((seg, i) => (
         <div key={i} className="flex items-center gap-3">
           <div className="w-7 h-7 rounded-full bg-gray-700 flex items-center justify-center text-sm flex-shrink-0">{seg.icon}</div>
           <div className="flex-1 min-w-0">
-            <p className="text-[11px] text-gray-300 font-medium truncate">{i === 0 ? tr.ai_route_seg1 : tr.ai_route_seg2}</p>
-            <p className="text-[10px] text-gray-600 truncate">{seg.from} → {seg.to}</p>
+            <p className="text-[11px] text-gray-700 font-medium truncate">{i === 0 ? tr.ai_route_seg1 : tr.ai_route_seg2}</p>
+            <p className="text-[10px] text-gray-400 truncate">{seg.from} → {seg.to}</p>
           </div>
           <div className="text-right flex-shrink-0">
-            <p className="text-xs font-bold text-white">{seg.etaMin}min</p>
-            <p className="text-[10px] text-gray-600">{seg.distanceKm}km</p>
+            <p className="text-xs font-bold text-gray-900">{seg.etaMin}min</p>
+            <p className="text-[10px] text-gray-400">{seg.distanceKm}km</p>
           </div>
         </div>
       ))}
-      <div className="border-t border-gray-700 pt-2 flex items-center justify-between">
+      <div className="border-t border-gray-300 pt-2 flex items-center justify-between">
         <p className="text-[11px] text-gray-500">{tr.ai_route_total}</p>
-        <p className="text-sm font-bold text-amber-300">~{totalMin} min</p>
+        <p className="text-sm font-bold text-[#0052ff]">~{totalMin} min</p>
       </div>
     </div>
   );
@@ -736,7 +736,7 @@ function LiveTracker({ dest, pickupLat, pickupLng, pickupLabel, locale, tr, onRe
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-white">{tr.live_title}</h2>
+        <h2 className="text-lg font-bold text-gray-900">{tr.live_title}</h2>
         <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-900 border border-green-700 text-green-400 font-bold" style={{ animation: "kxPulse 2s ease-in-out infinite" }}>LIVE</span>
       </div>
 
@@ -751,11 +751,11 @@ function LiveTracker({ dest, pickupLat, pickupLng, pickupLabel, locale, tr, onRe
 
       {/* Progress bar */}
       <div className="space-y-1">
-        <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-amber-600 to-amber-400 rounded-full transition-all duration-300"
+        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-[#0052ff] to-[#00b8d9] rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }} />
         </div>
-        <div className="flex justify-between text-[10px] text-gray-600">
+        <div className="flex justify-between text-[10px] text-gray-400">
           <span>{pickupLabel}</span>
           <span>{destName}</span>
         </div>
@@ -766,10 +766,10 @@ function LiveTracker({ dest, pickupLat, pickupLng, pickupLabel, locale, tr, onRe
         {routeSteps.map((s, i) => {
           const done = i < phase, active = i === phase && phase < 3;
           return (
-            <div key={i} className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all ${done ? "border-gray-700 bg-gray-800/30 opacity-50" : active ? "border-amber-500 bg-amber-950/40" : "border-gray-800 bg-gray-900/30 opacity-30"}`}>
+            <div key={i} className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all ${done ? "border-gray-300 bg-gray-100/30 opacity-50" : active ? "border-[#0052ff] bg-[#eef2ff]/40" : "border-gray-200 bg-gray-50/30 opacity-30"}`}>
               <span className="text-xl">{s.icon}</span>
-              <p className={`text-sm flex-1 ${done ? "line-through text-gray-600" : "text-white font-medium"}`}>{s.label}</p>
-              {done && <span className="text-amber-500 font-bold">✓</span>}
+              <p className={`text-sm flex-1 ${done ? "line-through text-gray-400" : "text-gray-900 font-medium"}`}>{s.label}</p>
+              {done && <span className="text-[#0052ff] font-bold">✓</span>}
               {active && <PulseDots />}
             </div>
           );
@@ -779,14 +779,14 @@ function LiveTracker({ dest, pickupLat, pickupLng, pickupLabel, locale, tr, onRe
       {phase >= 3 ? (
         <div className="text-center space-y-4 py-2">
           <div className="text-5xl">🎉</div>
-          <p className="text-lg font-bold text-white">{tr.live_done}</p>
-          <button onClick={onReset} className="w-full py-3 rounded-xl bg-amber-500 text-gray-950 font-bold text-sm hover:bg-amber-400 transition-colors">{tr.new_btn}</button>
+          <p className="text-lg font-bold text-gray-900">{tr.live_done}</p>
+          <button onClick={onReset} className="w-full py-3 rounded-xl bg-[#0052ff] text-white font-bold text-sm hover:bg-[#003fcc] transition-colors">{tr.new_btn}</button>
         </div>
       ) : (
         <div className="space-y-2">
-          <div className="bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 flex items-center justify-between">
-            <span className="text-xs text-gray-400">{tr.driver_eta_label}</span>
-            <span className="text-xl font-bold text-white tabular-nums">~{Math.max(1, Math.ceil((100 - progress) / 2))} min</span>
+          <div className="bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 flex items-center justify-between">
+            <span className="text-xs text-gray-500">{tr.driver_eta_label}</span>
+            <span className="text-xl font-bold text-gray-900 tabular-nums">~{Math.max(1, Math.ceil((100 - progress) / 2))} min</span>
           </div>
           <button type="button" onClick={onCancel}
             className="w-full py-2.5 rounded-xl border border-red-800/50 text-red-400 text-xs font-semibold hover:bg-red-950/30 transition-colors">
@@ -812,10 +812,10 @@ function RideShareTicker({ locale, tr }: { locale: Locale; tr: Tr }) {
   const text = items.join("  　  ");
 
   return (
-    <div className="bg-amber-950/40 border-b border-amber-800/30 overflow-hidden h-7 flex items-center">
+    <div className="bg-black/80 overflow-hidden h-7 flex items-center">
       <div className="flex whitespace-nowrap" style={{ animation: "kxTicker 28s linear infinite" }}>
-        <span className="text-[11px] text-amber-300/80 pr-16">{text}</span>
-        <span className="text-[11px] text-amber-300/80 pr-16">{text}</span>
+        <span className="text-[11px] font-bold text-[#FFD600] pr-16">{text}</span>
+        <span className="text-[11px] font-bold text-[#FFD600] pr-16">{text}</span>
       </div>
     </div>
   );
@@ -858,20 +858,20 @@ function RideshareToast({ locale, tr, onJoin }: { locale: Locale; tr: Tr; onJoin
       className="fixed bottom-24 left-4 z-40 max-w-[220px] transition-all duration-500"
       style={{ transform: visible ? "translateY(0)" : "translateY(140%)", opacity: visible ? 1 : 0 }}
     >
-      <div className="bg-gray-900 border border-amber-700/60 rounded-2xl p-3 shadow-xl space-y-1.5">
+      <div className="bg-gray-50 border border-[#0052ff]/60 rounded-2xl p-3 shadow-xl space-y-1.5">
         <div className="flex items-center gap-1.5">
           <span className="text-sm">🚐</span>
-          <p className="text-[11px] font-bold text-amber-300">{tr.rs_available}</p>
+          <p className="text-[11px] font-bold text-[#0052ff]">{tr.rs_available}</p>
         </div>
-        <p className="text-xs text-white font-semibold">{name}</p>
-        <p className="text-[10px] text-gray-400">
+        <p className="text-xs text-gray-900 font-semibold">{name}</p>
+        <p className="text-[10px] text-gray-500">
           {rs.riders}{tr.rs_riders} · {tr.rs_save} <span className="text-green-400 font-bold">¥{rs.savings.toLocaleString()}</span>
         </p>
         {onJoin && (
           <button
             type="button"
             onClick={() => { setVisible(false); onJoin(rs.destId); }}
-            className="w-full py-1.5 rounded-lg bg-amber-500 text-gray-950 text-[11px] font-bold hover:bg-amber-400 transition-colors"
+            className="w-full py-1.5 rounded-lg bg-[#0052ff] text-white text-[11px] font-bold hover:bg-[#003fcc] transition-colors"
           >
             {tr.rs_badge} →
           </button>
@@ -920,7 +920,7 @@ function ChatWidget({ locale, tr }: { locale: Locale; tr: Tr }) {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="fixed bottom-6 right-4 z-50 w-14 h-14 rounded-full bg-amber-500 text-gray-950 shadow-lg flex items-center justify-center text-2xl hover:bg-amber-400 transition-all"
+        className="fixed bottom-6 right-4 z-50 w-14 h-14 rounded-full bg-[#0052ff] text-white shadow-lg flex items-center justify-center text-2xl hover:bg-[#003fcc] transition-all"
         aria-label="Open chat"
       >
         {open ? "✕" : "💬"}
@@ -928,12 +928,12 @@ function ChatWidget({ locale, tr }: { locale: Locale; tr: Tr }) {
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-24 right-4 z-50 w-80 max-w-[calc(100vw-2rem)] bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+        <div className="fixed bottom-24 right-4 z-50 w-80 max-w-[calc(100vw-2rem)] bg-gray-50 border border-gray-300 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           style={{ height: "420px" }}>
           {/* Header */}
-          <div className="bg-gray-800 px-4 py-3 flex items-center gap-2 border-b border-gray-700 flex-shrink-0">
-            <span className="text-amber-400 text-lg">🤖</span>
-            <p className="text-sm font-bold text-white">{tr.chat_title}</p>
+          <div className="bg-gray-100 px-4 py-3 flex items-center gap-2 border-b border-gray-300 flex-shrink-0">
+            <span className="text-[#0052ff] text-lg">🤖</span>
+            <p className="text-sm font-bold text-gray-900">{tr.chat_title}</p>
             <span className="ml-auto text-[9px] bg-green-900 border border-green-700 text-green-400 px-2 py-0.5 rounded-full font-bold">AI</span>
           </div>
 
@@ -941,8 +941,8 @@ function ChatWidget({ locale, tr }: { locale: Locale; tr: Tr }) {
           <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
             {/* Welcome message */}
             <div className="flex gap-2">
-              <div className="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-sm flex-shrink-0 mt-0.5">🤖</div>
-              <div className="bg-gray-800 rounded-xl rounded-tl-sm px-3 py-2 max-w-[85%]">
+              <div className="w-6 h-6 rounded-full bg-[#0052ff]/10 border border-[#0052ff]/30 flex items-center justify-center text-sm flex-shrink-0 mt-0.5">🤖</div>
+              <div className="bg-gray-100 rounded-xl rounded-tl-sm px-3 py-2 max-w-[85%]">
                 <p className="text-xs text-gray-200 leading-relaxed">{tr.chat_welcome}</p>
               </div>
             </div>
@@ -950,9 +950,9 @@ function ChatWidget({ locale, tr }: { locale: Locale; tr: Tr }) {
             {messages.map((m, i) => (
               <div key={i} className={`flex gap-2 ${m.role === "user" ? "flex-row-reverse" : ""}`}>
                 {m.role === "assistant" && (
-                  <div className="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-sm flex-shrink-0 mt-0.5">🤖</div>
+                  <div className="w-6 h-6 rounded-full bg-[#0052ff]/10 border border-[#0052ff]/30 flex items-center justify-center text-sm flex-shrink-0 mt-0.5">🤖</div>
                 )}
-                <div className={`rounded-xl px-3 py-2 max-w-[85%] ${m.role === "user" ? "bg-amber-500 text-gray-950 rounded-tr-sm" : "bg-gray-800 text-gray-200 rounded-tl-sm"}`}>
+                <div className={`rounded-xl px-3 py-2 max-w-[85%] ${m.role === "user" ? "bg-[#0052ff] text-white rounded-tr-sm" : "bg-gray-100 text-gray-200 rounded-tl-sm"}`}>
                   <p className="text-xs leading-relaxed">{m.content}</p>
                 </div>
               </div>
@@ -960,8 +960,8 @@ function ChatWidget({ locale, tr }: { locale: Locale; tr: Tr }) {
 
             {loading && (
               <div className="flex gap-2">
-                <div className="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-sm flex-shrink-0">🤖</div>
-                <div className="bg-gray-800 rounded-xl rounded-tl-sm px-3 py-2">
+                <div className="w-6 h-6 rounded-full bg-[#0052ff]/10 border border-[#0052ff]/30 flex items-center justify-center text-sm flex-shrink-0">🤖</div>
+                <div className="bg-gray-100 rounded-xl rounded-tl-sm px-3 py-2">
                   <PulseDots />
                 </div>
               </div>
@@ -970,17 +970,17 @@ function ChatWidget({ locale, tr }: { locale: Locale; tr: Tr }) {
           </div>
 
           {/* Input */}
-          <div className="px-3 py-3 border-t border-gray-700 flex gap-2 flex-shrink-0">
+          <div className="px-3 py-3 border-t border-gray-300 flex gap-2 flex-shrink-0">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
               placeholder={tr.chat_placeholder}
-              className="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-gray-100 placeholder-gray-600 focus:outline-none focus:border-amber-500 transition-colors"
+              className="flex-1 bg-gray-100 border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#0052ff] transition-colors"
             />
             <button type="button" onClick={send} disabled={!input.trim() || loading}
-              className="px-3 py-2 rounded-xl bg-amber-500 text-gray-950 text-xs font-bold hover:bg-amber-400 transition-colors disabled:opacity-40 flex-shrink-0">
+              className="px-3 py-2 rounded-xl bg-[#0052ff] text-white text-xs font-bold hover:bg-[#003fcc] transition-colors disabled:opacity-40 flex-shrink-0">
               {tr.chat_send}
             </button>
           </div>
@@ -997,10 +997,10 @@ function FaqSection({ items, title }: { items: readonly { q: string; a: string }
   const [open, setOpen] = useState<number | null>(null);
   return (
     <section className="px-4 pb-6 max-w-lg mx-auto w-full">
-      <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{title}</h2>
+      <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">{title}</h2>
       <div className="space-y-2">
         {items.map((item, i) => (
-          <div key={i} className="bg-gray-900/60 border border-gray-800 rounded-xl overflow-hidden">
+          <div key={i} className="bg-gray-50/60 border border-gray-200 rounded-xl overflow-hidden">
             <button
               type="button"
               onClick={() => setOpen(open === i ? null : i)}
@@ -1215,22 +1215,22 @@ export default function NaritaApp() {
   const destName = dest ? (locale === "ja" ? dest.nameJa : locale === "zh" ? dest.nameZh : locale === "ko" ? dest.nameKo : dest.nameEn) : "";
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
 
       {/* Header */}
-      <header className="bg-[#0A0F1C] border-b border-white/10 sticky top-0 z-20" style={{ boxShadow: "0 1px 12px rgba(0,0,0,0.4)" }}>
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-20" style={{ boxShadow: "0 1px 12px rgba(0,0,0,0.4)" }}>
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold tracking-wider text-white">{tr.brand}</span>
-              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300">{tr.narita_badge}</span>
+              <span className="text-lg font-black tracking-tight" style={{ background: "linear-gradient(135deg,#0052ff,#00b8d9)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{tr.brand}</span>
+              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-black text-[#FFD600]">{tr.narita_badge}</span>
             </div>
-            <p className="text-[10px] text-amber-400/70 leading-none mt-0.5">{tr.tagline}</p>
+            <p className="text-[10px] text-[#0052ff]/70 leading-none mt-0.5">{tr.tagline}</p>
           </div>
           <div className="flex items-center gap-0.5">
             {LOCALES.map((l) => (
               <button key={l.value} type="button" onClick={() => setLocale(l.value)}
-                className={`px-2 py-1 rounded-md text-xs transition-all ${locale === l.value ? "bg-amber-500 text-gray-950 font-semibold" : "text-gray-500 hover:text-gray-300"}`}>
+                className={`px-2 py-1 rounded-md text-xs transition-all ${locale === l.value ? "bg-[#0052ff] text-white font-semibold" : "text-gray-500 hover:text-gray-700"}`}>
                 {l.label}
               </button>
             ))}
@@ -1246,18 +1246,18 @@ export default function NaritaApp() {
         {/* Hero */}
         {step === "pickup" && (
           <div className="space-y-1">
-            <h1 className="text-2xl font-black text-white leading-tight">{tr.hero}</h1>
-            <p className="text-sm text-gray-400">{tr.hero_sub}</p>
+            <h1 className="text-2xl font-black text-gray-900 leading-tight">{tr.hero}</h1>
+            <p className="text-sm text-gray-500">{tr.hero_sub}</p>
           </div>
         )}
 
         {/* Closed banner */}
         {!isOpen && step === "pickup" && (
-          <div className="bg-gray-800 border border-gray-600 rounded-2xl p-5 space-y-2 text-center">
+          <div className="bg-gray-100 border border-gray-300 rounded-2xl p-5 space-y-2 text-center">
             <p className="text-2xl">🌙</p>
-            <p className="text-base font-bold text-white">{tr.closed_title}</p>
-            <p className="text-sm text-gray-400">{tr.closed_sub}</p>
-            <p className="text-xs text-amber-400 mt-1">{tr.closed_chat}</p>
+            <p className="text-base font-bold text-gray-900">{tr.closed_title}</p>
+            <p className="text-sm text-gray-500">{tr.closed_sub}</p>
+            <p className="text-xs text-[#0052ff] mt-1">{tr.closed_chat}</p>
           </div>
         )}
 
@@ -1266,8 +1266,8 @@ export default function NaritaApp() {
 
         {/* ─── STEP: PICKUP ─── */}
         {step === "pickup" && (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 space-y-5">
-            <h2 className="text-base font-bold text-white">{tr.pickup_title}</h2>
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5 space-y-5">
+            <h2 className="text-base font-bold text-gray-900">{tr.pickup_title}</h2>
 
             {/* Active drivers */}
             {activeDrivers !== null && (
@@ -1280,11 +1280,11 @@ export default function NaritaApp() {
             )}
 
             {/* Pickup mode tabs */}
-            <div className="flex gap-1.5 bg-gray-800 p-1 rounded-xl">
+            <div className="flex gap-1.5 bg-gray-100 p-1 rounded-xl">
               {(["terminal", "hotel"] as const).map((mode) => (
                 <button key={mode} type="button"
                   onClick={() => { setPickupMode(mode); setGpsStatus("idle"); setGpsCoord(null); setManualLoc(""); setPickupHotel(null); setPickupHotelSearch(""); }}
-                  className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${pickupMode === mode ? "bg-amber-500 text-gray-950" : "text-gray-400 hover:text-gray-200"}`}>
+                  className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${pickupMode === mode ? "bg-[#0052ff] text-white" : "text-gray-500 hover:text-gray-200"}`}>
                   {mode === "terminal" ? tr.pickup_tab_terminal : tr.pickup_tab_hotel}
                 </button>
               ))}
@@ -1295,9 +1295,9 @@ export default function NaritaApp() {
               <button type="button" onClick={handleGps} disabled={gpsStatus === "detecting"}
                 className={`w-full flex items-center justify-center gap-3 py-4 rounded-xl border-2 font-semibold text-sm transition-all ${
                   gpsStatus === "ok" ? "border-green-500 bg-green-950/30 text-green-300" :
-                  gpsStatus === "fail" ? "border-gray-700 bg-gray-800/50 text-gray-500" :
-                  gpsStatus === "detecting" ? "border-amber-600 bg-amber-950/20 text-amber-300 cursor-wait" :
-                  "border-amber-500 bg-amber-950/30 text-amber-200 hover:bg-amber-950/50"
+                  gpsStatus === "fail" ? "border-gray-300 bg-gray-100/50 text-gray-500" :
+                  gpsStatus === "detecting" ? "border-[#0052ff] bg-[#0052ff]/5 text-[#0052ff] cursor-wait" :
+                  "border-[#0052ff] bg-[#0052ff]/10 text-[#0052ff] hover:bg-[#eef2ff]/50"
                 }`}>
                 <span className="text-xl">{gpsStatus === "ok" ? "✅" : gpsStatus === "fail" ? "📵" : gpsStatus === "detecting" ? "🔍" : "📍"}</span>
                 <span>{gpsStatus === "detecting" ? tr.gps_detecting : gpsStatus === "ok" ? tr.gps_success : gpsStatus === "fail" ? tr.gps_fail : tr.gps_btn}</span>
@@ -1316,9 +1316,9 @@ export default function NaritaApp() {
                   <div className="grid grid-cols-3 gap-1.5">
                     {NARITA_TERMINALS.map((t) => (
                       <button key={t.id} type="button" onClick={() => { setTerminal(t.id); setSpot(t.spots[0].id); setManualLoc(""); }}
-                        className={`px-2 py-2.5 rounded-xl border text-left transition-all ${terminal === t.id ? "border-amber-500 bg-amber-950/40" : "border-gray-700 bg-gray-800/50 hover:border-gray-600"}`}>
-                        <p className={`text-xs font-semibold leading-tight ${terminal === t.id ? "text-amber-300" : "text-gray-300"}`}>{t.labelEn}</p>
-                        <p className="text-[9px] text-gray-600 mt-0.5 leading-tight">{t.hint}</p>
+                        className={`px-2 py-2.5 rounded-xl border text-left transition-all ${terminal === t.id ? "border-[#0052ff] bg-[#eef2ff]/40" : "border-gray-300 bg-gray-100/50 hover:border-gray-300"}`}>
+                        <p className={`text-xs font-semibold leading-tight ${terminal === t.id ? "text-[#0052ff]" : "text-gray-700"}`}>{t.labelEn}</p>
+                        <p className="text-[9px] text-gray-400 mt-0.5 leading-tight">{t.hint}</p>
                       </button>
                     ))}
                   </div>
@@ -1332,10 +1332,10 @@ export default function NaritaApp() {
                         const active = spot === s.id;
                         return (
                           <button key={s.id} type="button" onClick={() => { setSpot(s.id); setManualLoc(""); }}
-                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all ${active ? "border-amber-500 bg-amber-950/40" : "border-gray-700 bg-gray-800/50 hover:border-gray-600"}`}>
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all ${active ? "border-[#0052ff] bg-[#eef2ff]/40" : "border-gray-300 bg-gray-100/50 hover:border-gray-300"}`}>
                             <span className="text-base flex-shrink-0">{s.icon}</span>
-                            <span className={`text-xs font-medium leading-tight ${active ? "text-amber-300" : "text-gray-300"}`}>{label}</span>
-                            {active && <span className="ml-auto text-amber-500 text-xs flex-shrink-0">✓</span>}
+                            <span className={`text-xs font-medium leading-tight ${active ? "text-[#0052ff]" : "text-gray-700"}`}>{label}</span>
+                            {active && <span className="ml-auto text-[#0052ff] text-xs flex-shrink-0">✓</span>}
                           </button>
                         );
                       })}
@@ -1350,7 +1350,7 @@ export default function NaritaApp() {
                 <input type="text" value={manualLoc}
                   onChange={(e) => { setManualLoc(e.target.value); setGpsStatus("idle"); setGpsCoord(null); }}
                   placeholder={tr.manual_placeholder}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-amber-500 transition-colors"
+                  className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#0052ff] transition-colors"
                 />
               </div>
             </>) : (<>
@@ -1359,7 +1359,7 @@ export default function NaritaApp() {
                 onChange={(e) => setPickupHotelSearch(e.target.value)}
                 placeholder={tr.pickup_hotel_placeholder}
                 autoFocus
-                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-amber-500 transition-colors"
+                className="w-full bg-gray-100 border border-gray-300 rounded-xl px-3 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#0052ff] transition-colors"
               />
               <div className="space-y-1.5 max-h-72 overflow-y-auto">
                 {HOTELS.filter((h) => {
@@ -1371,13 +1371,13 @@ export default function NaritaApp() {
                   const hName = locale === "ja" ? h.nameJa : locale === "zh" ? h.nameZh : locale === "ko" ? h.nameKo : h.nameEn;
                   return (
                     <button key={h.id} type="button" onClick={() => setPickupHotel(h)}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all ${active ? "border-amber-500 bg-amber-950/40" : "border-gray-700 bg-gray-800/50 hover:border-gray-600"}`}>
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all ${active ? "border-[#0052ff] bg-[#eef2ff]/40" : "border-gray-300 bg-gray-100/50 hover:border-gray-300"}`}>
                       <span className="text-xl flex-shrink-0">{h.emoji}</span>
                       <div className="flex-1 min-w-0">
-                        <p className={`text-xs font-semibold leading-tight truncate ${active ? "text-amber-300" : "text-gray-200"}`}>{hName}</p>
-                        <p className="text-[10px] text-gray-600 mt-0.5">{h.area}</p>
+                        <p className={`text-xs font-semibold leading-tight truncate ${active ? "text-[#0052ff]" : "text-gray-200"}`}>{hName}</p>
+                        <p className="text-[10px] text-gray-400 mt-0.5">{h.area}</p>
                       </div>
-                      {active && <span className="text-amber-500 flex-shrink-0 text-xs">✓</span>}
+                      {active && <span className="text-[#0052ff] flex-shrink-0 text-xs">✓</span>}
                     </button>
                   );
                 })}
@@ -1388,15 +1388,15 @@ export default function NaritaApp() {
 
         {/* ─── STEP: DESTINATION ─── */}
         {step === "destination" && (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 space-y-3">
-            <h2 className="text-base font-bold text-white">{tr.dest_title}</h2>
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5 space-y-3">
+            <h2 className="text-base font-bold text-gray-900">{tr.dest_title}</h2>
 
             {/* エリア / ホテル名 タブ */}
-            <div className="flex gap-1.5 bg-gray-800 p-1 rounded-xl">
+            <div className="flex gap-1.5 bg-gray-100 p-1 rounded-xl">
               {(["area", "hotel"] as const).map((mode) => (
                 <button key={mode} type="button"
                   onClick={() => { setDestMode(mode); setHotelSearch(""); }}
-                  className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${destMode === mode ? "bg-amber-500 text-gray-950" : "text-gray-400 hover:text-gray-200"}`}>
+                  className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${destMode === mode ? "bg-[#0052ff] text-white" : "text-gray-500 hover:text-gray-200"}`}>
                   {mode === "area"
                     ? (locale === "ja" ? "エリアで選ぶ" : locale === "zh" ? "按区域" : locale === "ko" ? "지역 선택" : "By Area")
                     : (locale === "ja" ? "ホテル名で検索" : locale === "zh" ? "按酒店名" : locale === "ko" ? "호텔 검색" : "Hotel Search")}
@@ -1411,7 +1411,7 @@ export default function NaritaApp() {
                 value={hotelSearch}
                 onChange={(e) => setHotelSearch(e.target.value)}
                 placeholder={locale === "ja" ? "ホテル名を入力…" : locale === "zh" ? "输入酒店名…" : locale === "ko" ? "호텔명 입력…" : "Search hotel name…"}
-                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-amber-500 transition-colors"
+                className="w-full bg-gray-100 border border-gray-300 rounded-xl px-3 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#0052ff] transition-colors"
                 autoFocus
               />
             )}
@@ -1427,28 +1427,28 @@ export default function NaritaApp() {
               const rs = destMode === "area" ? RIDESHARE.find((r) => r.destId === d.id) : null;
               return (
                 <button key={d.id} type="button" onClick={() => setDest(d)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all ${active ? "border-amber-500 bg-amber-950/40" : "border-gray-700 bg-gray-800/50 hover:border-gray-600"}`}>
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all ${active ? "border-[#0052ff] bg-[#eef2ff]/40" : "border-gray-300 bg-gray-100/50 hover:border-gray-300"}`}>
                   <span className="text-2xl flex-shrink-0">{d.emoji}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <p className={`text-sm font-semibold leading-tight ${active ? "text-amber-300" : "text-gray-200"}`}>{dName}</p>
+                      <p className={`text-sm font-semibold leading-tight ${active ? "text-[#0052ff]" : "text-gray-200"}`}>{dName}</p>
                       {rs && (
                         <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-green-900/60 border border-green-700/50 text-green-300 whitespace-nowrap">
                           🚐 {rs.riders}{tr.rs_riders}
                         </span>
                       )}
                     </div>
-                    <p className="text-[10px] text-gray-600 mt-0.5">{d.area} · {d.distanceKm}km</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">{d.area} · {d.distanceKm}km</p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className={`text-sm font-bold ${active ? "text-amber-300" : "text-gray-300"}`}>{tr.dest_from} ¥{d.priceJpy.toLocaleString()}</p>
+                    <p className={`text-sm font-bold ${active ? "text-[#0052ff]" : "text-gray-700"}`}>{tr.dest_from} ¥{d.priceJpy.toLocaleString()}</p>
                     {rs ? (
                       <p className="text-[10px] text-green-400">{tr.rs_save} ¥{rs.savings.toLocaleString()}</p>
                     ) : (
-                      <p className="text-[10px] text-gray-600">{tr.dest_eta} {d.etaMin}min</p>
+                      <p className="text-[10px] text-gray-400">{tr.dest_eta} {d.etaMin}min</p>
                     )}
                   </div>
-                  {active && <span className="text-amber-500 flex-shrink-0">✓</span>}
+                  {active && <span className="text-[#0052ff] flex-shrink-0">✓</span>}
                 </button>
               );
             })}
@@ -1457,31 +1457,31 @@ export default function NaritaApp() {
 
         {/* ─── STEP: LUGGAGE + PAYMENT ─── */}
         {step === "luggage" && dest && (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 space-y-5">
-            <h2 className="text-base font-bold text-white">{tr.luggage_title}</h2>
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5 space-y-5">
+            <h2 className="text-base font-bold text-gray-900">{tr.luggage_title}</h2>
 
             {/* Bag counter */}
             <div className="space-y-2">
-              <label className="text-xs text-gray-400">{tr.bags_label}</label>
+              <label className="text-xs text-gray-500">{tr.bags_label}</label>
               <div className="flex items-center gap-4">
                 <button type="button" onClick={() => setBags((b) => Math.max(1, b - 1))}
-                  className="w-10 h-10 rounded-xl bg-gray-800 border border-gray-700 text-gray-300 text-xl hover:bg-gray-700 transition-colors">−</button>
-                <span className="text-3xl font-black text-white tabular-nums w-10 text-center">{bags}</span>
+                  className="w-10 h-10 rounded-xl bg-gray-100 border border-gray-300 text-gray-700 text-xl hover:bg-gray-700 transition-colors">−</button>
+                <span className="text-3xl font-black text-gray-900 tabular-nums w-10 text-center">{bags}</span>
                 <button type="button" onClick={() => setBags((b) => Math.min(10, b + 1))}
-                  className="w-10 h-10 rounded-xl bg-gray-800 border border-gray-700 text-gray-300 text-xl hover:bg-gray-700 transition-colors">＋</button>
-                {bags > 1 && <p className="text-xs text-amber-500">+¥{((bags - 1) * EXTRA_BAG).toLocaleString()} ({tr.per_extra})</p>}
+                  className="w-10 h-10 rounded-xl bg-gray-100 border border-gray-300 text-gray-700 text-xl hover:bg-gray-700 transition-colors">＋</button>
+                {bags > 1 && <p className="text-xs text-[#0052ff]">+¥{((bags - 1) * EXTRA_BAG).toLocaleString()} ({tr.per_extra})</p>}
               </div>
             </div>
 
             {/* Pickup date for early discount */}
             <div className="space-y-2">
-              <label className="text-xs text-gray-400">{tr.pickup_date_label}</label>
+              <label className="text-xs text-gray-500">{tr.pickup_date_label}</label>
               <input
                 type="date"
                 value={pickupDate}
                 min={new Date().toISOString().slice(0, 10)}
                 onChange={(e) => setPickupDate(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-amber-500"
+                className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-[#0052ff]"
               />
               {pickupDate && earlyDisc > 0 && (
                 <div className="flex items-center gap-2 mt-1">
@@ -1491,22 +1491,22 @@ export default function NaritaApp() {
                 </div>
               )}
               {pickupDate && earlyDisc === 0 && (
-                <p className="text-[10px] text-gray-600 mt-1">{tr.early_disc_hint}</p>
+                <p className="text-[10px] text-gray-400 mt-1">{tr.early_disc_hint}</p>
               )}
             </div>
 
             {/* Payment */}
             <div className="space-y-2">
-              <label className="text-xs text-gray-400">{tr.pay_title}</label>
+              <label className="text-xs text-gray-500">{tr.pay_title}</label>
               <div className="grid grid-cols-3 gap-2">
                 {(["credit", "jpyc", "usdc"] as PayMethod[]).map((m) => {
                   const labels = { credit: tr.pay_credit, jpyc: tr.pay_jpyc, usdc: tr.pay_usdc };
                   return (
                     <button key={m} type="button" onClick={() => setPayMethod(m)}
-                      className={`relative py-2.5 text-xs font-semibold rounded-xl transition-all ${payMethod === m ? (m === "jpyc" ? "bg-violet-500 text-white" : "bg-amber-500 text-gray-950") : "bg-gray-800 text-gray-400 hover:bg-gray-700"}`}>
+                      className={`relative py-2.5 text-xs font-semibold rounded-xl transition-all ${payMethod === m ? (m === "jpyc" ? "bg-violet-500 text-gray-900" : "bg-[#0052ff] text-white") : "bg-gray-100 text-gray-500 hover:bg-gray-700"}`}>
                       {labels[m]}
                       {m !== "credit" && (
-                        <span className="absolute -top-1.5 -right-1 text-[8px] font-bold text-white bg-green-500 px-1 py-0.5 rounded-full leading-none">
+                        <span className="absolute -top-1.5 -right-1 text-[8px] font-bold text-gray-900 bg-green-500 px-1 py-0.5 rounded-full leading-none">
                           −5%
                         </span>
                       )}
@@ -1514,33 +1514,33 @@ export default function NaritaApp() {
                   );
                 })}
               </div>
-              <p className="text-[10px] text-gray-600">{payMethod === "credit" ? tr.card_fee_note : tr.crypto_note}</p>
+              <p className="text-[10px] text-gray-400">{payMethod === "credit" ? tr.card_fee_note : tr.crypto_note}</p>
             </div>
 
             {/* Price summary */}
-            <div className="bg-gray-800/60 border border-amber-800/40 rounded-xl p-4 space-y-2 text-sm">
+            <div className="bg-gray-100/60 border border-[#0052ff]/20 rounded-xl p-4 space-y-2 text-sm">
               {[
                 { label: tr.summary_pickup, val: pickupLabel, small: true },
                 { label: tr.summary_dest, val: destName, small: true },
                 { label: tr.summary_bags, val: `${bags} ${tr.pieces}`, small: false },
               ].map((row) => (
                 <div key={row.label} className="flex items-center justify-between">
-                  <span className="text-gray-400">{row.label}</span>
-                  <span className={`text-gray-300 ${row.small ? "text-xs max-w-[160px] truncate text-right" : ""}`}>{row.val}</span>
+                  <span className="text-gray-500">{row.label}</span>
+                  <span className={`text-gray-700 ${row.small ? "text-xs max-w-[160px] truncate text-right" : ""}`}>{row.val}</span>
                 </div>
               ))}
               {earlyDisc > 0 && <div className="flex items-center justify-between"><span className="text-green-400 text-xs">🎉 {earlyDisc === 2500 ? tr.early_disc_48 : tr.early_disc_24}</span><span className="text-green-400">−¥{earlyDisc.toLocaleString()}</span></div>}
               {cryptoDisc > 0 && <div className="flex items-center justify-between"><span className="text-green-400">JPYC/USDC discount</span><span className="text-green-400">−¥{cryptoDisc.toLocaleString()}</span></div>}
-              <div className="border-t border-gray-700 pt-2 flex items-end justify-between">
+              <div className="border-t border-gray-300 pt-2 flex items-end justify-between">
                 <div>
-                  <p className="text-[10px] text-amber-500/80 uppercase tracking-wide font-semibold">{tr.summary_total}</p>
-                  <p className="text-[10px] text-gray-600">{tr.total_incl}</p>
+                  <p className="text-[10px] text-[#0052ff]/80 uppercase tracking-wide font-semibold">{tr.summary_total}</p>
+                  <p className="text-[10px] text-gray-400">{tr.total_incl}</p>
                 </div>
                 <div className="text-right">
                   {earlyDisc > 0 && (
-                    <p className="text-sm text-gray-600 line-through">¥{base.toLocaleString()}</p>
+                    <p className="text-sm text-gray-400 line-through">¥{base.toLocaleString()}</p>
                   )}
-                  <p className="text-3xl font-black text-white">¥{total.toLocaleString()}</p>
+                  <p className="text-3xl font-black text-gray-900">¥{total.toLocaleString()}</p>
                 </div>
               </div>
             </div>
@@ -1549,9 +1549,9 @@ export default function NaritaApp() {
 
         {/* ─── STEP: CONFIRM ─── */}
         {step === "confirm" && dest && (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 space-y-5">
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5 space-y-5">
             <div>
-              <h2 className="text-base font-bold text-white">{tr.confirm_title}</h2>
+              <h2 className="text-base font-bold text-gray-900">{tr.confirm_title}</h2>
               <p className="text-xs text-gray-500 mt-0.5">{tr.confirm_sub}</p>
             </div>
 
@@ -1562,44 +1562,44 @@ export default function NaritaApp() {
                 { label: tr.phone_label, val: phone, set: setPhone, ph: tr.phone_ph, type: "tel" },
               ].map((f) => (
                 <div key={f.label} className="space-y-1">
-                  <label className="text-xs text-gray-400">{f.label}</label>
+                  <label className="text-xs text-gray-500">{f.label}</label>
                   <input type={f.type} value={f.val} onChange={(e) => f.set(e.target.value)} placeholder={f.ph}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-amber-500" />
+                    className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#0052ff]" />
                 </div>
               ))}
             </div>
             {/* Email */}
             <div className="space-y-1">
-              <label className="text-xs text-gray-400">{tr.email_label}</label>
+              <label className="text-xs text-gray-500">{tr.email_label}</label>
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={tr.email_ph}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-amber-500" />
-              <p className="text-[10px] text-gray-600">予約確認・追跡URLをお送りします / Confirmation & tracking link</p>
+                className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#0052ff]" />
+              <p className="text-[10px] text-gray-400">予約確認・追跡URLをお送りします / Confirmation & tracking link</p>
             </div>
 
             {/* Order recap */}
-            <div className="bg-gray-800/60 border border-gray-700 rounded-xl p-3 space-y-1.5 text-xs">
-              <p className="text-[10px] text-amber-500/80 uppercase tracking-wide font-semibold mb-2">{tr.confirm_recap}</p>
-              <div className="flex justify-between"><span className="text-gray-400">{tr.summary_pickup}</span><span className="text-gray-300 max-w-[160px] truncate text-right">{pickupLabel}</span></div>
-              <div className="flex justify-between"><span className="text-gray-400">{tr.summary_dest}</span><span className="text-gray-300">{destName}</span></div>
-              <div className="flex justify-between"><span className="text-gray-400">{tr.summary_bags}</span><span className="text-gray-300">{bags} {tr.pieces}</span></div>
+            <div className="bg-gray-100/60 border border-gray-300 rounded-xl p-3 space-y-1.5 text-xs">
+              <p className="text-[10px] text-[#0052ff]/80 uppercase tracking-wide font-semibold mb-2">{tr.confirm_recap}</p>
+              <div className="flex justify-between"><span className="text-gray-500">{tr.summary_pickup}</span><span className="text-gray-700 max-w-[160px] truncate text-right">{pickupLabel}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">{tr.summary_dest}</span><span className="text-gray-700">{destName}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">{tr.summary_bags}</span><span className="text-gray-700">{bags} {tr.pieces}</span></div>
               {earlyDisc > 0 && <div className="flex justify-between"><span className="text-green-400 text-xs">🎉 {earlyDisc === 2500 ? tr.early_disc_48 : tr.early_disc_24}</span><span className="text-green-400">−¥{earlyDisc.toLocaleString()}</span></div>}
               {cryptoDisc > 0 && <div className="flex justify-between"><span className="text-green-400">JPYC/USDC −5%</span><span className="text-green-400">−¥{cryptoDisc.toLocaleString()}</span></div>}
-              <div className="border-t border-gray-700 pt-2 flex justify-between items-center">
-                <span className="text-gray-400">{tr.summary_total}</span>
-                <span className="text-2xl font-black text-white">¥{total.toLocaleString()}</span>
+              <div className="border-t border-gray-300 pt-2 flex justify-between items-center">
+                <span className="text-gray-500">{tr.summary_total}</span>
+                <span className="text-2xl font-black text-gray-900">¥{total.toLocaleString()}</span>
               </div>
             </div>
 
             {/* Trust badges */}
             <div className="flex gap-2 flex-wrap">
               {["🔒 SSL Secured", "📦 Insured ¥100K", "24h Support"].map((b) => (
-                <span key={b} className="text-[10px] bg-gray-800 border border-gray-700 text-gray-400 px-2 py-1 rounded-full">{b}</span>
+                <span key={b} className="text-[10px] bg-gray-100 border border-gray-300 text-gray-500 px-2 py-1 rounded-full">{b}</span>
               ))}
             </div>
 
             {/* Book button */}
             <button type="button" onClick={submitBooking} disabled={!name.trim() || bookingLoading /* || !isOpen (テスト中は無効化) */}
-              className="w-full py-4 rounded-xl bg-amber-500 text-gray-950 font-black text-sm hover:bg-amber-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+              className="w-full py-4 rounded-xl bg-[#0052ff] text-white font-black text-sm hover:bg-[#003fcc] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
               {bookingLoading ? <><PulseDots /> {tr.matching_sub}</> : <>{tr.confirm_book} →</>}
             </button>
           </div>
@@ -1607,18 +1607,18 @@ export default function NaritaApp() {
 
         {/* ─── STEP: MATCHING ─── */}
         {step === "matching" && (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5">
             {matchPhase === "searching" ? (
               <div className="py-6 space-y-6 text-center">
                 <RadarPulse />
                 <div>
-                  <h2 className="text-lg font-bold text-white">{tr.matching_title}</h2>
+                  <h2 className="text-lg font-bold text-gray-900">{tr.matching_title}</h2>
                   <p className="text-sm text-gray-500 mt-1">{tr.matching_sub}</p>
                 </div>
                 {aiRoute.length > 0 && <AiRoutePlan route={aiRoute} tr={tr} />}
                 <div className="grid grid-cols-3 gap-2 text-center">
                   {["Locating drivers", "Calc route", "Optimizing ETA"].map((s, i) => (
-                    <div key={i} className="bg-gray-800/60 rounded-xl py-3 px-1">
+                    <div key={i} className="bg-gray-100/60 rounded-xl py-3 px-1">
                       <p className="text-[9px] text-gray-500 leading-tight">{s}</p>
                       <PulseDots />
                     </div>
@@ -1629,15 +1629,15 @@ export default function NaritaApp() {
               <div className="py-4 space-y-5">
                 <div className="text-center space-y-1">
                   <div className="text-4xl mb-2">✅</div>
-                  <h2 className="text-xl font-bold text-white">{tr.matched_title}</h2>
-                  <p className="text-sm text-gray-400">{tr.matched_sub}</p>
+                  <h2 className="text-xl font-bold text-gray-900">{tr.matched_title}</h2>
+                  <p className="text-sm text-gray-500">{tr.matched_sub}</p>
                 </div>
 
                 {/* AI confirmation message */}
                 {aiConfirmMsg && (
-                  <div className="bg-gray-800/60 border border-green-800/40 rounded-xl px-4 py-3 space-y-1">
+                  <div className="bg-gray-100/60 border border-green-800/40 rounded-xl px-4 py-3 space-y-1">
                     <p className="text-[10px] text-green-400 font-bold flex items-center gap-1">🤖 AI Confirmation</p>
-                    <p className="text-xs text-gray-300 leading-relaxed">{aiConfirmMsg}</p>
+                    <p className="text-xs text-gray-700 leading-relaxed">{aiConfirmMsg}</p>
                   </div>
                 )}
 
@@ -1648,43 +1648,43 @@ export default function NaritaApp() {
                 {dest && <MapRoute pickupLat={pickupLat} pickupLng={pickupLng} destLat={dest.lat} destLng={dest.lng} label={`${pickupLabel} → ${destName}`} locale={locale} />}
 
                 {/* Driver card */}
-                <div className="bg-gray-800 border border-green-700/50 rounded-2xl p-4 space-y-3">
+                <div className="bg-gray-100 border border-green-700/50 rounded-2xl p-4 space-y-3">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-600 to-amber-900 flex items-center justify-center text-xl font-black text-white flex-shrink-0">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#0052ff] to-[#003fcc] flex items-center justify-center text-xl font-black text-gray-900 flex-shrink-0">
                       {OPERATOR.initial}
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-bold text-white">{OPERATOR.name}</p>
+                      <p className="text-sm font-bold text-gray-900">{OPERATOR.name}</p>
                       <p className="text-xs text-gray-500">{OPERATOR.car}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-amber-400">★ {OPERATOR.rating}</p>
-                      <p className="text-[10px] text-gray-600">Verified</p>
+                      <p className="text-sm font-bold text-[#0052ff]">★ {OPERATOR.rating}</p>
+                      <p className="text-[10px] text-gray-400">Verified</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-gray-900 rounded-xl px-3 py-2">
+                    <div className="bg-gray-50 rounded-xl px-3 py-2">
                       <p className="text-[10px] text-gray-500">{tr.driver_eta_label}</p>
-                      <p className="text-lg font-bold text-white">~{aiRoute[0]?.etaMin ?? 7} min</p>
+                      <p className="text-lg font-bold text-gray-900">~{aiRoute[0]?.etaMin ?? 7} min</p>
                     </div>
                     <a href={`/narita/status/${bookingId}`} target="_blank" rel="noopener noreferrer"
-                      className="bg-gray-900 rounded-xl px-3 py-2 block hover:bg-gray-800 transition-colors">
+                      className="bg-gray-50 rounded-xl px-3 py-2 block hover:bg-gray-100 transition-colors">
                       <p className="text-[10px] text-gray-500">Booking ID ↗</p>
-                      <p className="text-sm font-bold text-amber-300 font-mono">{bookingId}</p>
+                      <p className="text-sm font-bold text-[#0052ff] font-mono">{bookingId}</p>
                     </a>
                   </div>
                 </div>
 
                 {/* Pickup instruction + QR */}
-                <div className="bg-amber-950/30 border border-amber-800/50 rounded-xl px-4 py-3 space-y-2">
-                  <p className="text-xs text-amber-300 font-semibold">📍 {tr.summary_pickup}</p>
-                  <p className="text-sm text-white font-medium">{pickupLabel}</p>
+                <div className="bg-[#0052ff]/10 border border-[#0052ff]/20 rounded-xl px-4 py-3 space-y-2">
+                  <p className="text-xs text-[#0052ff] font-semibold">📍 {tr.summary_pickup}</p>
+                  <p className="text-sm text-gray-900 font-medium">{pickupLabel}</p>
                   <p className="text-[10px] text-gray-500">{tr.pickup_instruction}</p>
                   <div className="flex justify-center pt-1">
                     <div className="w-16 h-16 bg-white rounded-lg p-1 grid grid-cols-7 gap-0.5">
                       {Array.from({ length: 49 }).map((_, i) => {
                         const dark = [0,1,2,3,4,5,6,7,13,14,20,21,28,35,42,43,44,48].includes(i) || (Math.sin(i * 5.7) > 0.3);
-                        return <div key={i} className={`rounded-sm ${dark ? "bg-gray-900" : "bg-white"}`} />;
+                        return <div key={i} className={`rounded-sm ${dark ? "bg-gray-50" : "bg-white"}`} />;
                       })}
                     </div>
                   </div>
@@ -1696,7 +1696,7 @@ export default function NaritaApp() {
 
         {/* ─── STEP: LIVE ─── */}
         {step === "live" && dest && (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5">
             <LiveTracker
               dest={dest} pickupLat={pickupLat} pickupLng={pickupLng}
               pickupLabel={pickupLabel} locale={locale} tr={tr} onReset={reset}
@@ -1710,13 +1710,13 @@ export default function NaritaApp() {
           <div className="flex gap-3">
             {(step === "destination" || step === "luggage") && (
               <button type="button" onClick={back}
-                className="px-5 py-3 rounded-xl border border-gray-700 text-sm text-gray-300 hover:bg-gray-800 transition-colors">
+                className="px-5 py-3 rounded-xl border border-gray-300 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
                 {tr.back}
               </button>
             )}
             {step !== "matching" && (
               <button type="button" onClick={next} disabled={!canNext}
-                className="flex-1 py-3 rounded-xl bg-amber-500 text-gray-950 font-bold text-sm hover:bg-amber-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                className="flex-1 py-3 rounded-xl bg-[#0052ff] text-white font-bold text-sm hover:bg-[#003fcc] transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                 {tr.next}
               </button>
             )}
@@ -1743,25 +1743,25 @@ export default function NaritaApp() {
 
       {/* Reviews */}
       <section className="px-4 pb-8 max-w-lg mx-auto w-full">
-        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{tr.reviews_title}</h2>
+        <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">{tr.reviews_title}</h2>
         <div className="space-y-3">
           {([
             { flag: "🇺🇸", name: "Sarah M.", from: "New York", stars: 5, text: { en: "Dropped my bags at the terminal and went straight to Shinjuku. Hotel had them before I even checked in. Pure magic.", ja: "ターミナルで荷物を預けてそのまま新宿へ。チェックイン前にホテルに届いていました。魔法みたい。", zh: "在航站楼放下行李直奔新宿，到酒店前行李已经在那里等我了。太神奇了！", ko: "터미널에 짐 맡기고 바로 신주쿠로 갔는데 체크인 전에 이미 호텔에 와 있었어요. 신기해요." } },
             { flag: "🇨🇳", name: "李 雪梅", from: "Shanghai", stars: 5, text: { en: "No counter, no deadline, no problem. Finally enjoyed arriving in Japan.", ja: "カウンターなし、締め切りなし、問題なし。日本到着をやっと楽しめました。", zh: "没有柜台、没有截止时间，完全无压力。终于享受到了抵达日本的感觉。", ko: "카운터도 없고 마감도 없어서 스트레스 없이 일본 도착을 즐겼어요." } },
             { flag: "🇰🇷", name: "김 지수", from: "Seoul", stars: 5, text: { en: "Used it with 3 bags. Driver was on time, tracking was real-time. Will use every trip.", ja: "スーツケース3個で利用。ドライバー時間通り、追跡もリアルタイム。毎回使います。", zh: "带了3个行李箱使用。司机准时，追踪是实时的。以后每次来都用。", ko: "캐리어 3개 들고 이용했어요. 기사님 정시에 오시고 실시간 추적도 돼요. 매번 쓸 것 같아요." } },
           ] as const).map((r) => (
-            <div key={r.name} className="bg-gray-900/60 border border-gray-800 rounded-2xl px-4 py-3 space-y-1.5">
+            <div key={r.name} className="bg-gray-50/60 border border-gray-200 rounded-2xl px-4 py-3 space-y-1.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-base">{r.flag}</span>
                   <div>
-                    <p className="text-xs font-bold text-white">{r.name}</p>
-                    <p className="text-[10px] text-gray-600">{r.from}</p>
+                    <p className="text-xs font-bold text-gray-900">{r.name}</p>
+                    <p className="text-[10px] text-gray-400">{r.from}</p>
                   </div>
                 </div>
-                <span className="text-amber-400 text-xs tracking-tight">{"★".repeat(r.stars)}</span>
+                <span className="text-[#0052ff] text-xs tracking-tight">{"★".repeat(r.stars)}</span>
               </div>
-              <p className="text-[11px] text-gray-400 leading-relaxed">
+              <p className="text-[11px] text-gray-500 leading-relaxed">
                 "{r.text[locale as keyof typeof r.text] ?? r.text.en}"
               </p>
             </div>
@@ -1770,10 +1770,10 @@ export default function NaritaApp() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-gray-800 mt-8 py-6 px-4 max-w-lg mx-auto w-full">
+      <footer className="border-t border-gray-200 mt-8 py-6 px-4 max-w-lg mx-auto w-full">
         <div className="flex flex-wrap gap-x-4 gap-y-1 justify-center mb-3">
           {["📦 Luggage insured up to ¥100,000", "🔒 Secure payment", "24h support"].map((b) => (
-            <span key={b} className="text-[10px] text-gray-600">{b}</span>
+            <span key={b} className="text-[10px] text-gray-400">{b}</span>
           ))}
         </div>
         <p className="text-center text-[10px] text-gray-700">
@@ -1789,20 +1789,20 @@ export default function NaritaApp() {
 
       {/* Cancel Confirmation Modal */}
       {showCancelModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center px-4 pb-8 bg-gray-950/80 backdrop-blur-sm">
-          <div className="w-full max-w-sm bg-gray-900 border border-red-800/50 rounded-2xl p-6 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-end justify-center px-4 pb-8 bg-white/80 backdrop-blur-sm">
+          <div className="w-full max-w-sm bg-gray-50 border border-red-800/50 rounded-2xl p-6 space-y-4">
             <div className="text-center space-y-1">
               <p className="text-2xl">⚠️</p>
-              <h3 className="text-base font-bold text-white">{tr.cancel_confirm_title}</h3>
+              <h3 className="text-base font-bold text-gray-900">{tr.cancel_confirm_title}</h3>
               <p className="text-xs text-gray-500">{tr.cancel_confirm_sub}</p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <button type="button" onClick={() => setShowCancelModal(false)}
-                className="py-3 rounded-xl border border-gray-700 text-sm text-gray-300 hover:bg-gray-800 transition-colors">
+                className="py-3 rounded-xl border border-gray-300 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
                 {tr.cancel_confirm_no}
               </button>
               <button type="button" onClick={cancelBooking} disabled={cancelLoading}
-                className="py-3 rounded-xl bg-red-600 text-white font-bold text-sm hover:bg-red-500 transition-colors disabled:opacity-40">
+                className="py-3 rounded-xl bg-red-600 text-gray-900 font-bold text-sm hover:bg-red-500 transition-colors disabled:opacity-40">
                 {cancelLoading ? "…" : tr.cancel_confirm_yes}
               </button>
             </div>
