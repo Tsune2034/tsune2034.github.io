@@ -299,125 +299,128 @@ function FlightRow({ f, highlight = false, onWatch }: { f: FlightInfo; highlight
   );
 }
 
-// ───────────────────────── GPS Track Canvas ─────────────────────────
-function GpsTrackCanvas({ points, sendCount }: { points: { lat: number; lng: number }[]; sendCount: number }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+// ───────────────────────── GPS Track Map (Leaflet + OSM) ─────────────────────────
+function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number }[]; sendCount: number }) {
+  const mapDivRef = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mapRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const polylineRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const startMarkerRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const currentMarkerRef = useRef<any>(null);
 
+  // Leaflet CSS をCDNから1回だけ読み込む
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (document.querySelector('link[data-leaflet]')) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    link.setAttribute('data-leaflet', '1');
+    document.head.appendChild(link);
+  }, []);
 
-    // Retina/高解像度対応 — devicePixelRatioでバッファを拡大しCSSサイズに縮小表示
-    const dpr = window.devicePixelRatio || 1;
-    const cssW = canvas.offsetWidth || 320;
-    const cssH = 160;
-    canvas.width  = cssW * dpr;
-    canvas.height = cssH * dpr;
-    ctx.scale(dpr, dpr);
-    const W = cssW;
-    const H = cssH;
+  // マップ初期化（マウント時1回）
+  useEffect(() => {
+    if (!mapDivRef.current || mapRef.current) return;
+    let mounted = true;
 
-    // 背景
-    ctx.fillStyle = "#0d1b2e";
-    ctx.fillRect(0, 0, W, H);
+    import('leaflet').then((mod) => {
+      if (!mounted || !mapDivRef.current || mapRef.current) return;
+      const L = mod.default;
+      const map = L.map(mapDivRef.current, {
+        zoomControl: true,
+        attributionControl: false,
+        zoom: 15,
+        center: [35.772, 140.393], // 成田空港近辺をデフォルト
+      });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+      }).addTo(map);
+      mapRef.current = map;
+    });
 
-    if (points.length < 2) {
-      ctx.fillStyle = "#0d1b2e";
-      ctx.fillRect(0, 0, W, H);
-      ctx.fillStyle = "#94a3b8";
-      ctx.font = "12px monospace";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(points.length === 0 ? "GPS記録待機中…" : "移動データ収集中…", W / 2, H / 2);
-      return;
-    }
+    return () => {
+      mounted = false;
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+        polylineRef.current = null;
+        startMarkerRef.current = null;
+        currentMarkerRef.current = null;
+      }
+    };
+  }, []);
 
-    // 正規化: lat/lng → canvas座標
-    const lats = points.map((p) => p.lat);
-    const lngs = points.map((p) => p.lng);
-    const minLat = Math.min(...lats), maxLat = Math.max(...lats);
-    const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
-    const pad = 24;
-    const rangeW = maxLng - minLng || 0.0001;
-    const rangeH = maxLat - minLat || 0.0001;
+  // ポイント更新時にルート・マーカーを反映
+  useEffect(() => {
+    if (points.length === 0 || !mapRef.current) return;
 
-    function toX(lng: number) { return pad + ((lng - minLng) / rangeW) * (W - pad * 2); }
-    function toY(lat: number) { return H - pad - ((lat - minLat) / rangeH) * (H - pad * 2); }
+    import('leaflet').then((mod) => {
+      const map = mapRef.current;
+      if (!map) return;
+      const L = mod.default;
 
-    // グリッド
-    ctx.strokeStyle = "#1a3050";
-    ctx.lineWidth = 1;
-    for (let i = 1; i < 4; i++) {
-      const x = (W / 4) * i;
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
-      const y = (H / 4) * i;
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-    }
+      const latlngs: [number, number][] = points.map((p) => [p.lat, p.lng]);
 
-    // ルートライン（グラデーション: 緑→水色）
-    const grad = ctx.createLinearGradient(
-      toX(points[0].lng), toY(points[0].lat),
-      toX(points[points.length - 1].lng), toY(points[points.length - 1].lat)
-    );
-    grad.addColorStop(0, "#4ade80");
-    grad.addColorStop(1, "#7dd3fc");
-    ctx.strokeStyle = grad;
-    ctx.lineWidth = 4;
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
-    ctx.beginPath();
-    ctx.moveTo(toX(points[0].lng), toY(points[0].lat));
-    for (let i = 1; i < points.length; i++) {
-      ctx.lineTo(toX(points[i].lng), toY(points[i].lat));
-    }
-    ctx.stroke();
+      // ルートライン
+      if (polylineRef.current) {
+        polylineRef.current.setLatLngs(latlngs);
+      } else {
+        polylineRef.current = L.polyline(latlngs, {
+          color: '#22c55e', weight: 4, opacity: 0.9,
+        }).addTo(map);
+      }
 
-    // 出発点（緑丸 + 白枠 + "S"ラベル）
-    const sx = toX(points[0].lng);
-    const sy = toY(points[0].lat);
-    ctx.beginPath();
-    ctx.arc(sx, sy, 7, 0, Math.PI * 2);
-    ctx.fillStyle = "#22c55e";
-    ctx.fill();
-    ctx.strokeStyle = "#fff";
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-    ctx.fillStyle = "#fff";
-    ctx.font = "bold 8px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("S", sx, sy);
+      // スタートマーカー（S）― 最初の1回だけ
+      if (!startMarkerRef.current) {
+        const icon = L.divIcon({
+          html: '<div style="background:#22c55e;color:#fff;font-weight:bold;font-size:11px;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.4)">S</div>',
+          className: '',
+          iconSize: [24, 24],
+          iconAnchor: [12, 12],
+        });
+        startMarkerRef.current = L.marker([points[0].lat, points[0].lng], { icon }).addTo(map);
+      }
 
-    // 現在地（水色・外光輪 + 白枠 + "G"ラベル）
-    const cx = toX(points[points.length - 1].lng);
-    const cy = toY(points[points.length - 1].lat);
-    ctx.beginPath();
-    ctx.arc(cx, cy, 11, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(56,189,248,0.25)";
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(cx, cy, 7, 0, Math.PI * 2);
-    ctx.fillStyle = "#38bdf8";
-    ctx.fill();
-    ctx.strokeStyle = "#fff";
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-    ctx.fillStyle = "#fff";
-    ctx.font = "bold 8px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("G", cx, cy);
+      // 現在地マーカー（G）― ポイント追加のたびに移動
+      const last = points[points.length - 1];
+      if (currentMarkerRef.current) {
+        currentMarkerRef.current.setLatLng([last.lat, last.lng]);
+      } else {
+        const icon = L.divIcon({
+          html: '<div style="background:#38bdf8;color:#fff;font-weight:bold;font-size:11px;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.5)">G</div>',
+          className: '',
+          iconSize: [24, 24],
+          iconAnchor: [12, 12],
+        });
+        currentMarkerRef.current = L.marker([last.lat, last.lng], { icon }).addTo(map);
+      }
+
+      // ルート全体が見えるようにズーム調整
+      if (points.length >= 2) {
+        map.fitBounds(polylineRef.current.getBounds(), { padding: [30, 30] });
+      } else {
+        map.setView([last.lat, last.lng], 16);
+      }
+    });
   }, [points]);
 
   return (
     <div className="space-y-1.5">
-      <canvas
-        ref={canvasRef}
-        className="w-full rounded-xl border border-gray-700"
-        style={{ height: "160px" }}
-      />
+      <div className="relative">
+        <div
+          ref={mapDivRef}
+          className="w-full rounded-xl border border-gray-700 overflow-hidden"
+          style={{ height: '220px' }}
+        />
+        {points.length === 0 && (
+          <div className="absolute inset-0 rounded-xl bg-gray-900/80 flex items-center justify-center text-gray-400 text-sm">
+            GPS記録待機中…
+          </div>
+        )}
+      </div>
       <div className="flex justify-between text-[10px] text-gray-600 px-1">
         <span>📍 {points.length} ポイント記録中</span>
         <span>📡 送信 {sendCount} 回</span>
@@ -633,7 +636,7 @@ function DeliveryCard({
 
       {/* GPS地図 */}
       {delivery.gpsActive && (
-        <GpsTrackCanvas points={delivery.trackPoints} sendCount={delivery.sendCount} />
+        <GpsTrackMap points={delivery.trackPoints} sendCount={delivery.sendCount} />
       )}
 
       {/* ステータス更新ボタン */}

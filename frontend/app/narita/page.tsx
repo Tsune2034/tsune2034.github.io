@@ -1064,6 +1064,7 @@ export default function NaritaApp() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [flightNumber, setFlightNumber] = useState("");
 
   // Cancel
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -1145,7 +1146,7 @@ export default function NaritaApp() {
     else if (step === "confirm") setStep("luggage");
   }
   function reset() {
-    setStep("pickup"); setGpsStatus("idle"); setGpsCoord(null); setManualLoc(""); setTerminal("T1"); setSpot("t1-arrival"); setPickupDate("");
+    setStep("pickup"); setGpsStatus("idle"); setGpsCoord(null); setManualLoc(""); setTerminal("T1"); setSpot("t1-arrival"); setPickupDate(""); setFlightNumber("");
     setDest(null); setDestMode("area"); setHotelSearch(""); setBags(1); setPayMethod("credit"); setName(""); setPhone(""); setMatchPhase("searching");
     setBookingId("NRT-" + Math.random().toString(36).slice(2, 8).toUpperCase());
   }
@@ -1183,6 +1184,7 @@ export default function NaritaApp() {
           pay_method: payMethod,
           total_amount: total,
           pickup_date: pickupDate || undefined,
+          flight_number: flightNumber.trim() || undefined,
         }),
       });
       if (res.ok) {
@@ -1576,12 +1578,22 @@ export default function NaritaApp() {
               <p className="text-[10px] text-gray-400">予約確認・追跡URLをお送りします / Confirmation & tracking link</p>
             </div>
 
+            {/* Flight number */}
+            <div className="space-y-1">
+              <label className="text-xs text-gray-500">フライト番号 / Flight No. <span className="text-gray-400">(任意)</span></label>
+              <input type="text" value={flightNumber} onChange={(e) => setFlightNumber(e.target.value.toUpperCase())}
+                placeholder="NH847 / JL717 / KE705..."
+                className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 placeholder-gray-400 font-mono focus:outline-none focus:border-[#0052ff]" />
+              <p className="text-[10px] text-gray-400">入力するとドライバーに着陸アラートが届きます / Driver gets landing alert</p>
+            </div>
+
             {/* Order recap */}
             <div className="bg-gray-100/60 border border-gray-300 rounded-xl p-3 space-y-1.5 text-xs">
               <p className="text-[10px] text-[#0052ff]/80 uppercase tracking-wide font-semibold mb-2">{tr.confirm_recap}</p>
               <div className="flex justify-between"><span className="text-gray-500">{tr.summary_pickup}</span><span className="text-gray-700 max-w-[160px] truncate text-right">{pickupLabel}</span></div>
               <div className="flex justify-between"><span className="text-gray-500">{tr.summary_dest}</span><span className="text-gray-700">{destName}</span></div>
               <div className="flex justify-between"><span className="text-gray-500">{tr.summary_bags}</span><span className="text-gray-700">{bags} {tr.pieces}</span></div>
+              {flightNumber.trim() && <div className="flex justify-between"><span className="text-gray-500">✈️ Flight</span><span className="text-gray-700 font-mono">{flightNumber.trim()}</span></div>}
               {earlyDisc > 0 && <div className="flex justify-between"><span className="text-green-400 text-xs">🎉 {earlyDisc === 2500 ? tr.early_disc_48 : tr.early_disc_24}</span><span className="text-green-400">−¥{earlyDisc.toLocaleString()}</span></div>}
               {cryptoDisc > 0 && <div className="flex justify-between"><span className="text-green-400">JPYC/USDC −5%</span><span className="text-green-400">−¥{cryptoDisc.toLocaleString()}</span></div>}
               <div className="border-t border-gray-300 pt-2 flex justify-between items-center">

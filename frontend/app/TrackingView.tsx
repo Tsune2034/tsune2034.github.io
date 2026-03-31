@@ -583,6 +583,53 @@ function ReviewForm({ bookingId, playerId, locale }: { bookingId: string; player
   );
 }
 
+// ───────────────────────── Customs Exit Button ─────────────────────────
+const CUSTOMS_LABELS: Record<string, { btn: string; sent: string; hint: string }> = {
+  en: { btn: "✋ I've exited customs!", sent: "✅ Driver notified!", hint: "Tap when you pass the customs exit" },
+  ja: { btn: "✋ 税関を出ました！",      sent: "✅ ドライバーに通知しました",   hint: "税関出口を通過したらタップ" },
+  zh: { btn: "✋ 我已出海关！",         sent: "✅ 已通知司机",              hint: "通过海关出口后请点击" },
+  ko: { btn: "✋ 세관을 나왔어요!",      sent: "✅ 드라이버에게 알렸습니다",   hint: "세관 출구를 나오면 탭하세요" },
+};
+
+function CustomsExitButton({ bookingId, locale }: { bookingId: string; locale: string }) {
+  const L = CUSTOMS_LABELS[locale] ?? CUSTOMS_LABELS.en;
+  const [done, setDone] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  async function notify() {
+    if (done || loading) return;
+    setLoading(true);
+    try {
+      await fetch(`/api/booking?id=${encodeURIComponent(bookingId)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customs_exited: true }),
+      });
+      setDone(true);
+    } catch { /* ignore */ } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="space-y-1">
+      <button
+        type="button"
+        onClick={notify}
+        disabled={loading || done}
+        className={`w-full py-3.5 rounded-2xl font-bold text-sm transition-all ${
+          done
+            ? "bg-green-900/40 border border-green-700 text-green-400"
+            : "bg-[#0052ff] text-white hover:bg-[#003fcc] active:scale-[0.98]"
+        } disabled:opacity-70`}
+      >
+        {loading ? "…" : done ? L.sent : L.btn}
+      </button>
+      {!done && <p className="text-[10px] text-gray-600 text-center">{L.hint}</p>}
+    </div>
+  );
+}
+
 // ───────────────────────── Main ─────────────────────────
 export default function TrackingView({ tr, initialNumber, locale = "en" }: { tr: Translation; initialNumber?: string; locale?: string }) {
   const [input, setInput]     = useState(initialNumber ?? "");
@@ -732,6 +779,11 @@ export default function TrackingView({ tr, initialNumber, locale = "en" }: { tr:
               </div>
             )}
           </div>
+
+          {/* 「税関を出た」通知ボタン */}
+          {info.status !== "delivered" && (
+            <CustomsExitButton bookingId={info.trackingNumber} locale={locale} />
+          )}
 
           {/* GPS表示: ハンドキャリー=路線進捗バー、車=距離バー */}
           {info.driver && (

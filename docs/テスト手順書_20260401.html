@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KAIROX テスト手順書 — 4/1 成田空港テスト走行</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      line-height: 1.6;
+      padding: 0 0 80px;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, #001a66, #003080);
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid #0052ff44;
+    }
+    .header-badge {
+      display: inline-block;
+      background: #FFD600;
+      color: #000;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 99px;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    .header h1 {
+      font-size: 22px;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1.3;
+    }
+    .header p {
+      font-size: 13px;
+      color: #7ba3ff;
+      margin-top: 4px;
+    }
+
+    /* ── Section ── */
+    .section { padding: 20px; border-bottom: 1px solid #1a1a1a; }
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: #555;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .card-blue  { border-color: #0052ff44; background: #000e33; }
+    .card-green { border-color: #16a34a44; background: #001a0a; }
+    .card-amber { border-color: #d9770644; background: #1a0f00; }
+    .card-red   { border-color: #dc262644; background: #1a0000; }
+    .card-gray  { border-color: #333; background: #0f0f0f; }
+
+    /* ── Phase block ── */
+    .phase {
+      background: #0d0d0d;
+      border: 1px solid #222;
+      border-radius: 20px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .phase-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid #1f1f1f;
+    }
+    .phase-num {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 900;
+      flex-shrink: 0;
+    }
+    .phase-num.blue  { background: #0052ff; color: #fff; }
+    .phase-num.green { background: #16a34a; color: #fff; }
+    .phase-num.amber { background: #d97706; color: #fff; }
+    .phase-num.purple{ background: #7c3aed; color: #fff; }
+    .phase-num.teal  { background: #0891b2; color: #fff; }
+
+    .phase-title { font-size: 14px; font-weight: 800; color: #f0f0f0; }
+    .phase-sub   { font-size: 11px; color: #555; margin-top: 1px; }
+    .phase-body  { padding: 14px 16px; }
+
+    /* ── Steps ── */
+    .step-list { list-style: none; space-y: 0; }
+    .step-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid #1a1a1a;
+      font-size: 13px;
+    }
+    .step-list li:last-child { border-bottom: none; }
+    .step-num {
+      min-width: 22px; height: 22px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700;
+      color: #888;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .step-num.done { background: #0d2200; border-color: #16a34a; color: #4ade80; }
+
+    /* ── Checkbox steps ── */
+    .checklist { list-style: none; }
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #151515;
+      font-size: 13px;
+      color: #ccc;
+    }
+    .checklist li:last-child { border-bottom: none; }
+    .checklist input[type="checkbox"] {
+      width: 18px; height: 18px;
+      accent-color: #0052ff;
+      flex-shrink: 0;
+      margin-top: 2px;
+      cursor: pointer;
+    }
+    .checklist label { cursor: pointer; line-height: 1.5; }
+
+    /* ── Info rows ── */
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #1a1a1a;
+      font-size: 13px;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-key { color: #666; }
+    .info-val { color: #f0f0f0; font-weight: 600; font-family: monospace; }
+
+    /* ── Link buttons ── */
+    .link-btn {
+      display: block;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: #7ba3ff;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      transition: background 0.15s;
+    }
+    .link-btn:active { background: #1a1a2e; }
+    .link-btn span { display: block; font-size: 10px; color: #444; font-weight: 400; margin-top: 2px; font-family: monospace; }
+
+    /* ── Tag / badge ── */
+    .tag {
+      display: inline-block;
+      font-size: 9px; font-weight: 700;
+      padding: 2px 7px; border-radius: 99px;
+      letter-spacing: 0.05em;
+    }
+    .tag-blue   { background: #0052ff22; border: 1px solid #0052ff44; color: #7ba3ff; }
+    .tag-green  { background: #16a34a22; border: 1px solid #16a34a44; color: #4ade80; }
+    .tag-amber  { background: #d9770622; border: 1px solid #d9770644; color: #fbbf24; }
+    .tag-red    { background: #dc262622; border: 1px solid #dc262644; color: #f87171; }
+    .tag-purple { background: #7c3aed22; border: 1px solid #7c3aed44; color: #c4b5fd; }
+
+    /* ── Data box ── */
+    .data-box {
+      background: #0a0a0a;
+      border: 1px solid #222;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-family: monospace;
+      font-size: 12px;
+      color: #4ade80;
+      margin-top: 8px;
+      line-height: 1.8;
+    }
+
+    /* ── Alert ── */
+    .alert {
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 13px;
+      margin-bottom: 10px;
+      display: flex;
+      gap: 10px;
+    }
+    .alert-icon { font-size: 18px; flex-shrink: 0; }
+    .alert-blue  { background: #000e33; border: 1px solid #0052ff44; color: #93b4ff; }
+    .alert-amber { background: #1a0f00; border: 1px solid #d9770644; color: #fcd34d; }
+    .alert-green { background: #001a0a; border: 1px solid #16a34a44; color: #86efac; }
+
+    /* ── Route diagram ── */
+    .route-diagram {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      padding: 16px 0;
+      overflow-x: auto;
+    }
+    .route-node {
+      text-align: center;
+      min-width: 80px;
+    }
+    .route-node-dot {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      margin: 0 auto 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .route-node-label { font-size: 11px; font-weight: 700; color: #ccc; }
+    .route-node-sub   { font-size: 9px; color: #555; margin-top: 2px; }
+    .route-arrow {
+      flex: 1;
+      min-width: 30px;
+      text-align: center;
+      padding: 0 4px;
+      padding-bottom: 28px;
+    }
+    .route-arrow-line {
+      height: 2px;
+      background: linear-gradient(90deg, #0052ff, #16a34a);
+      border-radius: 1px;
+      margin: 0 auto;
+    }
+    .route-arrow-label {
+      font-size: 9px;
+      color: #555;
+      margin-top: 4px;
+      white-space: nowrap;
+    }
+
+    /* ── GPS learning visual ── */
+    .learning-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .learning-cell {
+      background: #0d0d0d;
+      border: 1px solid #1f1f1f;
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+    }
+    .learning-cell-val { font-size: 20px; font-weight: 900; color: #4ade80; font-family: monospace; }
+    .learning-cell-key { font-size: 10px; color: #555; margin-top: 2px; }
+
+    /* ── PIN display ── */
+    .pin-box {
+      background: #0a0a0a;
+      border: 2px solid #d9770644;
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+    }
+    .pin-val {
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: 0.4em;
+      color: #fbbf24;
+      font-family: monospace;
+    }
+    .pin-key { font-size: 11px; color: #666; margin-bottom: 6px; }
+
+    /* ── Progress bar ── */
+    .progress-wrap { margin: 10px 0; }
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #555;
+      margin-bottom: 4px;
+    }
+    .progress-bar {
+      height: 4px;
+      background: #1a1a1a;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, #0052ff, #16a34a);
+    }
+
+    /* ── Sticky footer ── */
+    .sticky-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #0a0a0a;
+      border-top: 1px solid #1f1f1f;
+      padding: 10px 20px;
+      display: flex;
+      gap: 8px;
+      z-index: 100;
+    }
+    .sticky-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+    .sticky-btn:active { opacity: 0.7; }
+    .sticky-btn-primary { background: #0052ff; color: #fff; }
+    .sticky-btn-secondary { background: #d97706; color: #000; }
+
+    h3 { font-size: 14px; font-weight: 700; color: #ccc; margin-bottom: 10px; }
+    strong { color: #fff; }
+    em { color: #7ba3ff; font-style: normal; }
+    small { font-size: 11px; color: #555; }
+
+    .mt-8 { margin-top: 8px; }
+    .mt-12 { margin-top: 12px; }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════ HEADER ══════════ -->
+  <div class="header">
+    <div class="header-badge">KAIROX INTERNAL</div>
+    <h1>🚐 4/1 成田空港テスト走行<br>手順書</h1>
+    <p>千葉 → 成田空港 一般道 · GPS学習データ収集</p>
+  </div>
+
+  <!-- ══════════ 概要 ══════════ -->
+  <div class="section">
+    <div class="section-title">テスト概要</div>
+
+    <div class="alert alert-blue">
+      <span class="alert-icon">🎯</span>
+      <div>
+        <strong>目的</strong><br>
+        ① 千葉→成田 一般道のGPS学習データをDBに初記録<br>
+        ② アプリ全機能（フライトアラート・駐車タイマー）の実動確認<br>
+        ③ RouteStats補正係数を生成（初回は 1.0 からスタート）
+      </div>
+    </div>
+
+    <!-- Route diagram -->
+    <div class="route-diagram">
+      <div class="route-node">
+        <div class="route-node-dot" style="background:#0052ff22; border:1px solid #0052ff44;">🏠</div>
+        <div class="route-node-label">千葉市内</div>
+        <div class="route-node-sub">出発地</div>
+      </div>
+      <div class="route-arrow">
+        <div class="route-arrow-line" style="width:100%"></div>
+        <div class="route-arrow-label">一般道<br>〜60km</div>
+      </div>
+      <div class="route-node">
+        <div class="route-node-dot" style="background:#d9770622; border:1px solid #d9770644;">🅿️</div>
+        <div class="route-node-label">NRT 駐車場</div>
+        <div class="route-node-sub">P1〜P5</div>
+      </div>
+      <div class="route-arrow">
+        <div class="route-arrow-line" style="width:100%"></div>
+        <div class="route-arrow-label">30分<br>無料</div>
+      </div>
+      <div class="route-node">
+        <div class="route-node-dot" style="background:#16a34a22; border:1px solid #16a34a44;">✅</div>
+        <div class="route-node-label">テスト完了</div>
+        <div class="route-node-sub">データ保存</div>
+      </div>
+    </div>
+
+    <div class="learning-grid">
+      <div class="learning-cell">
+        <div class="learning-cell-val">〜120</div>
+        <div class="learning-cell-key">GPS記録点数（予測）</div>
+      </div>
+      <div class="learning-cell">
+        <div class="learning-cell-val">30 s</div>
+        <div class="learning-cell-key">GPS送信間隔</div>
+      </div>
+      <div class="learning-cell">
+        <div class="learning-cell-val">local</div>
+        <div class="learning-cell-key">route_type</div>
+      </div>
+      <div class="learning-cell">
+        <div class="learning-cell-val">1 件</div>
+        <div class="learning-cell-key">RouteStats 初記録</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 事前準備 ══════════ -->
+  <div class="section">
+    <div class="section-title">Phase 0 — 出発前準備（自宅）</div>
+
+    <div class="phase">
+      <div class="phase-header">
+        <div class="phase-num blue">準</div>
+        <div>
+          <div class="phase-title">事前チェックリスト</div>
+          <div class="phase-sub">出発前に全項目確認</div>
+        </div>
+      </div>
+      <div class="phase-body">
+        <ul class="checklist">
+          <li>
+            <input type="checkbox" id="c1" />
+            <label for="c1">スマートフォンの充電 <strong>80%以上</strong></label>
+          </li>
+          <li>
+            <input type="checkbox" id="c2" />
+            <label for="c2">モバイルデータ通信 ON（GPS送信に必要）</label>
+          </li>
+          <li>
+            <input type="checkbox" id="c3" />
+            <label for="c3">ブラウザで <em>kairox.jp/admin</em> が開けることを確認</label>
+          </li>
+          <li>
+            <input type="checkbox" id="c4" />
+            <label for="c4">AdminViewでテスト予約を1件作成 → <strong>KRX-xxxxx</strong> をメモ</label>
+          </li>
+          <li>
+            <input type="checkbox" id="c5" />
+            <label for="c5">DriverViewにPINログイン済みを確認</label>
+          </li>
+          <li>
+            <input type="checkbox" id="c6" />
+            <label for="c6">成田空港 当日到着便をフライト番号確認（ANAサイト等）</label>
+          </li>
+          <li>
+            <input type="checkbox" id="c7" />
+            <label for="c7">ルート <strong>千葉→成田 一般道</strong>をカーナビ/マップにセット</label>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>テスト予約の作成方法</h3>
+    <div class="card card-gray">
+      <ol class="step-list">
+        <li>
+          <span class="step-num">1</span>
+          <div><em>kairox.jp/admin</em> を開き、AdminPINでログイン</div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div>「GPS学習」タブを選択</div>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <div>
+            テスト予約作成フォームに入力：<br>
+            <div class="data-box">
+              pickup:  千葉駅<br>
+              dest:    成田空港 第2ターミナル<br>
+              zone:    narita<br>
+              name:    TEST-0401
+            </div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">4</span>
+          <div>作成された <strong>KRX-XXXXXX</strong> をメモ</div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ══════════ Phase 1: 出発 ══════════ -->
+  <div class="section">
+    <div class="section-title">Phase 1 — 千葉市内を出発</div>
+
+    <div class="phase">
+      <div class="phase-header">
+        <div class="phase-num blue">1</div>
+        <div>
+          <div class="phase-title">DriverView 設定 + GPS開始</div>
+          <div class="phase-sub">走行開始直前に実行</div>
+        </div>
+      </div>
+      <div class="phase-body">
+        <ol class="step-list">
+          <li>
+            <span class="step-num">1</span>
+            <div><em>kairox.jp/driver</em> を開き、PINでログイン</div>
+          </li>
+          <li>
+            <span class="step-num">2</span>
+            <div>予約追加フィールドに <strong>KRX-XXXXXX</strong> を入力 → 「追加」</div>
+          </li>
+          <li>
+            <span class="step-num">3</span>
+            <div>ルート種別を <span class="tag tag-green">🏘️ 一般道</span> に設定（緑色の表示を確認）</div>
+          </li>
+          <li>
+            <span class="step-num">4</span>
+            <div>「GPS追跡を開始」ボタンをタップ → <span class="tag tag-blue">GPS送信中</span> に変わるのを確認</div>
+          </li>
+          <li>
+            <span class="step-num">5</span>
+            <div>ステータスを <span class="tag tag-amber">🚐 向かっています</span> のまま走行開始</div>
+          </li>
+        </ol>
+
+        <div class="alert alert-amber mt-12">
+          <span class="alert-icon">⚠️</span>
+          <div>
+            <strong>走行中はブラウザを開いたまま</strong>にしてください。<br>
+            スリープするとGPS送信が停止する場合があります。<br>
+            スリープ設定を「しない」に変更推奨。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ Phase 2: 走行中 ══════════ -->
+  <div class="section">
+    <div class="section-title">Phase 2 — 走行中モニタリング</div>
+
+    <div class="phase">
+      <div class="phase-header">
+        <div class="phase-num green">2</div>
+        <div>
+          <div class="phase-title">一般道 ルート学習</div>
+          <div class="phase-sub">走行中は自動収集。特に操作不要</div>
+        </div>
+      </div>
+      <div class="phase-body">
+
+        <div class="alert alert-green">
+          <span class="alert-icon">📡</span>
+          <div>
+            <strong>自動収集中のデータ</strong><br>
+            緯度・経度（30秒ごと）、ドライバーステータス、<code style="color:#86efac">route_type: local</code>
+          </div>
+        </div>
+
+        <div class="card card-gray mt-8">
+          <div class="info-row">
+            <span class="info-key">推奨ルート</span>
+            <span class="info-val">国道51号 または 国道464号</span>
+          </div>
+          <div class="info-row">
+            <span class="info-key">予想所要時間</span>
+            <span class="info-val">約 60〜80分</span>
+          </div>
+          <div class="info-row">
+            <span class="info-key">GPS送信頻度</span>
+            <span class="info-val">30秒ごと</span>
+          </div>
+          <div class="info-row">
+            <span class="info-key">学習テーブル</span>
+            <span class="info-val">gps_tracks</span>
+          </div>
+        </div>
+
+        <h3 class="mt-12">近づいたらステータス更新</h3>
+        <ol class="step-list">
+          <li>
+            <span class="step-num">1</span>
+            <div>成田空港 <strong>5km手前</strong>でステータスを <span class="tag tag-amber">📍 近くにいます</span> に更新</div>
+          </li>
+          <li>
+            <span class="step-num">2</span>
+            <div>空港エリアに入ったら <span class="tag tag-green">📦 荷物を受け取り中</span> に更新</div>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ Phase 3: 駐車場 ══════════ -->
+  <div class="section">
+    <div class="section-title">Phase 3 — 成田空港 無料駐車場テスト</div>
+
+    <div class="phase">
+      <div class="phase-header">
+        <div class="phase-num amber">3</div>
+        <div>
+          <div class="phase-title">🅿️ 30分無料タイマー稼働確認</div>
+          <div class="phase-sub">P1〜P5すべて30分無料（2025/4/1〜）</div>
+        </div>
+      </div>
+      <div class="phase-body">
+
+        <div class="card card-green">
+          <div class="info-row">
+            <span class="info-key">無料時間</span>
+            <span class="info-val" style="color:#4ade80">30分（全駐車場共通）</span>
+          </div>
+          <div class="info-row">
+            <span class="info-key">対象駐車場</span>
+            <span class="info-val">P1 / P2 / P3 / P5</span>
+          </div>
+          <div class="info-row">
+            <span class="info-key">戦略</span>
+            <span class="info-val">入庫後タイマースタート → 30分以内に出庫</span>
+          </div>
+        </div>
+
+        <ol class="step-list mt-8">
+          <li>
+            <span class="step-num">1</span>
+            <div>駐車場の入口バーを通過したら DriverView の<br><strong>「🚗 入庫 → タイマースタート」</strong>ボタンをタップ</div>
+          </li>
+          <li>
+            <span class="step-num">2</span>
+            <div>カウントダウン表示を確認（<span style="color:#4ade80">緑→</span><span style="color:#fbbf24">黄→</span><span style="color:#f87171">赤</span> 色変化）</div>
+          </li>
+          <li>
+            <span class="step-num">3</span>
+            <div>残り <span style="color:#f87171"><strong>10分</strong></span>（赤表示）前に出庫準備</div>
+          </li>
+          <li>
+            <span class="step-num">4</span>
+            <div><strong>30分以内に出庫</strong> → 料金 ¥0 を確認</div>
+          </li>
+        </ol>
+
+        <div class="alert alert-amber mt-12">
+          <span class="alert-icon">⏰</span>
+          <div>
+            <strong>タイムライン目安</strong><br>
+            入庫 0:00 → フライトボード確認 5〜10分 → 出庫 25〜28分
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ Phase 4: フライトボード ══════════ -->
+  <div class="section">
+    <div class="section-title">Phase 4 — フライトボード機能テスト</div>
+
+    <div class="phase">
+      <div class="phase-header">
+        <div class="phase-num purple">4</div>
+        <div>
+          <div class="phase-title">✈️ 到着便 監視テスト</div>
+          <div class="phase-sub">着陸アラート + リアルタイム確認</div>
+        </div>
+      </div>
+      <div class="phase-body">
+
+        <ol class="step-list">
+          <li>
+            <span class="step-num">1</span>
+            <div>DriverView を下にスクロール → <strong>「成田空港 到着便」</strong>セクションを確認</div>
+          </li>
+          <li>
+            <span class="step-num">2</span>
+            <div>当日のフライト番号を検索ボックスに入力（例: <em>NH847</em>）</div>
+          </li>
+          <li>
+            <span class="step-num">3</span>
+            <div>フライト行の右端に表示される <span class="tag tag-blue">監視</span> ボタンをタップ</div>
+          </li>
+          <li>
+            <span class="step-num">4</span>
+            <div>着陸アラートが画面上部に表示されることを確認<br>
+              <small>ETA ≤20分: アンバー警告 / 着陸済み: 緑「出発してください」</small>
+            </div>
+          </li>
+          <li>
+            <span class="step-num">5</span>
+            <div>ポーリング間隔が <strong>2分</strong>（監視中）に変わっているか確認<br>
+              <small>更新ボタンの時刻が約2分ごとに更新される</small>
+            </div>
+          </li>
+        </ol>
+
+        <div class="alert alert-blue mt-12">
+          <span class="alert-icon">ℹ️</span>
+          <div>
+            Aviationstack APIキーは設定済み。実際の到着便が表示されます。<br>
+            <strong>フライトが見つからない場合</strong>: モックデータ（8便）が表示されます。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ Phase 5: 完了 + 学習確認 ══════════ -->
+  <div class="section">
+    <div class="section-title">Phase 5 — テスト完了 + 学習データ確認</div>
+
+    <div class="phase">
+      <div class="phase-header">
+        <div class="phase-num teal">5</div>
+        <div>
+          <div class="phase-title">📊 GPS学習データを保存</div>
+          <div class="phase-sub">配送完了でRouteStats自動生成</div>
+        </div>
+      </div>
+      <div class="phase-body">
+
+        <ol class="step-list">
+          <li>
+            <span class="step-num">1</span>
+            <div>出庫後、DriverViewで<br>ステータスを <span class="tag tag-green">✅ 配達完了</span> に更新</div>
+          </li>
+          <li>
+            <span class="step-num">2</span>
+            <div><strong>GPSをOFF</strong>にする（タップで停止）</div>
+          </li>
+          <li>
+            <span class="step-num">3</span>
+            <div>AdminViewの「GPS学習」タブ → テスト予約のGPSトラックを確認</div>
+          </li>
+        </ol>
+
+        <div class="card card-green mt-8">
+          <h3 style="color:#4ade80; margin-bottom:8px">学習完了時に確認できるもの</h3>
+          <div class="info-row">
+            <span class="info-key">gps_tracks</span>
+            <span class="info-val" style="color:#4ade80">〜120件の座標</span>
+          </div>
+          <div class="info-row">
+            <span class="info-key">route_stats</span>
+            <span class="info-val" style="color:#4ade80">千葉→成田 local 1件</span>
+          </div>
+          <div class="info-row">
+            <span class="info-key">correction_factor</span>
+            <span class="info-val" style="color:#4ade80">1.0（初回）</span>
+          </div>
+          <div class="info-row">
+            <span class="info-key">pickup_grid</span>
+            <span class="info-val">35.6, 140.1</span>
+          </div>
+          <div class="info-row">
+            <span class="info-key">dest_grid</span>
+            <span class="info-val">35.8, 140.4</span>
+          </div>
+        </div>
+
+        <div class="alert alert-blue mt-12">
+          <span class="alert-icon">🤖</span>
+          <div>
+            <strong>学習の仕組み</strong><br>
+            「配達完了」にすると <code style="color:#93b4ff">_analyze_route_on_complete()</code> が自動実行。<br>
+            実走行時間とGoogleの推定値を比較 → <code style="color:#93b4ff">correction_factor</code> を計算。<br>
+            次回の同ルートから補正済みETAが表示されます。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 顧客側テスト（オプション） ══════════ -->
+  <div class="section">
+    <div class="section-title">オプション — 顧客側フロー確認</div>
+
+    <div class="card card-gray">
+      <p style="font-size:13px; color:#888; margin-bottom:10px">
+        スマホ2台ある場合や、帰宅後にPCで確認できる場合
+      </p>
+      <ol class="step-list">
+        <li>
+          <span class="step-num">1</span>
+          <div><em>kairox.jp/narita</em> を開く</div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div>フライト番号を入力して予約（confirm stepで入力）</div>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <div>予約後のStatus画面で <strong>「✋ 税関を出ました！」</strong>ボタンをタップ</div>
+        </li>
+        <li>
+          <span class="step-num">4</span>
+          <div>「✅ ドライバーに通知しました」が表示されることを確認</div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ══════════ PINと URL ══════════ -->
+  <div class="section">
+    <div class="section-title">URL &amp; PIN 一覧</div>
+
+    <div class="pin-box" style="margin-bottom:16px">
+      <div class="pin-key">Driver PIN</div>
+      <div class="pin-val">Vercel Env → DRIVER_PIN</div>
+    </div>
+
+    <a class="link-btn" href="https://kairox.jp/driver" target="_blank">
+      🚐 DriverView（ドライバー用）
+      <span>https://kairox.jp/driver</span>
+    </a>
+    <a class="link-btn" href="https://kairox.jp/admin" target="_blank">
+      🔧 AdminView（管理・GPS学習確認）
+      <span>https://kairox.jp/admin</span>
+    </a>
+    <a class="link-btn" href="https://kairox.jp/narita" target="_blank">
+      ✈️ 顧客予約画面（成田）
+      <span>https://kairox.jp/narita</span>
+    </a>
+    <a class="link-btn" href="https://kairox-production.up.railway.app/docs" target="_blank">
+      📡 Backend API（Railway）
+      <span>https://kairox-production.up.railway.app/docs</span>
+    </a>
+  </div>
+
+  <!-- ══════════ 記録メモ ══════════ -->
+  <div class="section">
+    <div class="section-title">テスト記録メモ</div>
+
+    <div class="card card-gray">
+      <div class="info-row">
+        <span class="info-key">テスト予約ID</span>
+        <span class="info-val" id="booking-id-display">KRX-______</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">出発時刻</span>
+        <span class="info-val" id="depart-time">__:__</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">成田到着時刻</span>
+        <span class="info-val" id="arrive-time">__:__</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">入庫時刻</span>
+        <span class="info-val" id="park-time">__:__</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">出庫時刻</span>
+        <span class="info-val" id="exit-time">__:__</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">GPS記録件数</span>
+        <span class="info-val" id="gps-count">____件</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">監視したフライト</span>
+        <span class="info-val" id="flight-watched">______</span>
+      </div>
+    </div>
+
+    <div class="mt-8">
+      <button onclick="document.getElementById('depart-time').textContent = new Date().toLocaleTimeString('ja-JP', {hour:'2-digit',minute:'2-digit'})"
+        style="width:100%;background:#0052ff;color:#fff;border:none;border-radius:12px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:6px">
+        🏠 出発時刻をスタンプ
+      </button>
+      <button onclick="document.getElementById('arrive-time').textContent = new Date().toLocaleTimeString('ja-JP', {hour:'2-digit',minute:'2-digit'})"
+        style="width:100%;background:#d97706;color:#000;border:none;border-radius:12px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:6px">
+        ✈️ 成田到着時刻をスタンプ
+      </button>
+      <button onclick="document.getElementById('park-time').textContent = new Date().toLocaleTimeString('ja-JP', {hour:'2-digit',minute:'2-digit'})"
+        style="width:100%;background:#16a34a;color:#fff;border:none;border-radius:12px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:6px">
+        🅿️ 入庫時刻をスタンプ
+      </button>
+      <button onclick="document.getElementById('exit-time').textContent = new Date().toLocaleTimeString('ja-JP', {hour:'2-digit',minute:'2-digit'})"
+        style="width:100%;background:#555;color:#fff;border:none;border-radius:12px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">
+        🚗 出庫時刻をスタンプ
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════ 最終チェック ══════════ -->
+  <div class="section">
+    <div class="section-title">最終チェックリスト</div>
+    <ul class="checklist">
+      <li>
+        <input type="checkbox" id="f1" />
+        <label for="f1">GPS追跡は「停止」になっている</label>
+      </li>
+      <li>
+        <input type="checkbox" id="f2" />
+        <label for="f2">ステータスを「✅ 配達完了」に更新した</label>
+      </li>
+      <li>
+        <input type="checkbox" id="f3" />
+        <label for="f3">AdminView → GPS学習タブ → GPS軌跡を確認した</label>
+      </li>
+      <li>
+        <input type="checkbox" id="f4" />
+        <label for="f4">駐車場は30分以内に出庫できた（無料確認）</label>
+      </li>
+      <li>
+        <input type="checkbox" id="f5" />
+        <label for="f5">フライトボード「監視」ボタンが正常に動作した</label>
+      </li>
+      <li>
+        <input type="checkbox" id="f6" />
+        <label for="f6">ページ下部のメモ欄に時刻を記録した</label>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ══════════ STICKY BAR ══════════ -->
+  <div class="sticky-bar">
+    <a class="sticky-btn sticky-btn-primary" href="https://kairox.jp/driver" target="_blank">🚐 Driver</a>
+    <a class="sticky-btn sticky-btn-secondary" href="https://kairox.jp/admin" target="_blank">🔧 Admin</a>
+    <a class="sticky-btn" href="https://kairox.jp/narita" target="_blank"
+      style="background:#1a1a1a;border:1px solid #333;color:#7ba3ff;">✈️ Narita</a>
+  </div>
+
+</body>
+</html>
