@@ -331,6 +331,7 @@ def get_booking_endpoint(booking_id: str, db: Session = Depends(get_db)):
         driver_status=record.driver_status,
         driver_updated_at=record.driver_updated_at.isoformat() if record.driver_updated_at else None,
         player_id=record.assigned_player_id,
+        customs_exited=record.customs_exited,
     )
 
 
@@ -458,6 +459,9 @@ def update_driver_location(
         record.driver_lng = req.lng
         # GPS学習: 全点を履歴テーブルに保存（route_typeも記録）
         save_gps_point(db, booking_id, req.lat, req.lng, req.driver_status, req.route_type)
+
+    if req.customs_exited is not None:
+        record.customs_exited = req.customs_exited
 
     record.driver_status     = req.driver_status
     record.driver_updated_at = datetime.now(timezone.utc)
