@@ -8,6 +8,28 @@ import type { FlightInfo } from "./api/flights/route";
 const GPS_INTERVAL_MS = 30_000; // 30秒ごとに送信
 const FLIGHT_REFRESH_NORMAL_MS = 600_000; // 10分（通常）
 const FLIGHT_REFRESH_URGENT_MS  = 120_000; // 2分（監視中フライトが着陸20分前以内）
+const NEARBY_THRESHOLD_M = 500; // 500m以内で「近くにいます」自動切替
+
+// 成田空港 ターミナル座標
+const NARITA_TERMINALS = [
+  { name: "T1", lat: 35.7719, lng: 140.3928 },
+  { name: "T2", lat: 35.7648, lng: 140.3863 },
+];
+
+// Haversine距離計算（メートル）
+function calcDistanceM(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2
+    + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// 成田空港に最も近いターミナルまでの距離（m）
+function distToNarita(lat: number, lng: number): number {
+  return Math.min(...NARITA_TERMINALS.map((t) => calcDistanceM(lat, lng, t.lat, t.lng)));
+}
 
 type DriverStatus = "heading" | "nearby" | "arrived" | "done";
 
@@ -839,12 +861,17 @@ export default function DriverView({ tr }: { tr: Translation }) {
         (pos) => {
           lastLat = pos.coords.latitude;
           lastLng = pos.coords.longitude;
-          // trackPoints追加とsendCountを同時更新（競合防止）
-          setDeliveries((prev) => prev.map((d) =>
-            d.bookingId === bookingId
-              ? { ...d, trackPoints: [...d.trackPoints, { lat: lastLat, lng: lastLng }] }
-              : d
-          ));
+          const dist = distToNarita(lastLat, lastLng);
+          setDeliveries((prev) => prev.map((d) => {
+            if (d.bookingId !== bookingId) return d;
+            const updated = { ...d, trackPoints: [...d.trackPoints, { lat: lastLat, lng: lastLng }] };
+            // heading 中で500m以内 → 「近くにいます」自動切替
+            if (d.status === "heading" && dist <= NEARBY_THRESHOLD_M) {
+              pushStatus(bookingId, "nearby", d.routeType);
+              return { ...updated, status: "nearby" as DriverStatus };
+            }
+            return updated;
+          }));
         },
         (err) => {
           if (err.code === 1) {
