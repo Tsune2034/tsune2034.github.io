@@ -36,7 +36,8 @@ export async function GET(req: NextRequest) {
       const q = flight.toUpperCase();
       return NextResponse.json(allFlights.filter(f => f.flightIata.toUpperCase() === q));
     }
-    return NextResponse.json(allFlights);
+    // 実APIが0件を返した場合はモックにフォールバック（テスト・API枯渇時対応）
+    return NextResponse.json(allFlights.length > 0 ? allFlights : mockFlights());
   } catch (err) {
     console.error("[flights API]", err);
     return NextResponse.json(mockFlights());
