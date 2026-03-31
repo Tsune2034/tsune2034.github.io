@@ -72,7 +72,9 @@ class BookingRecord(Base):
     driver_updated_at = Column(DateTime(timezone=True), nullable=True)
 
     # 顧客アクション
-    customs_exited    = Column(Boolean, default=False, nullable=False, server_default="false")
+    customs_exited       = Column(Boolean, default=False, nullable=False, server_default="false")
+    customer_message     = Column(String(32), nullable=True)   # coming_out | red_bag | wait_please | where_driver
+    customer_message_at  = Column(DateTime(timezone=True), nullable=True)
 
     # AI Dispatcher
     pickup_lat         = Column(Float, nullable=True)    # 旅行者GPS（将来）

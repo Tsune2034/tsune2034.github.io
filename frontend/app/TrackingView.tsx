@@ -480,6 +480,65 @@ function NearbyPlayersPanel({
   );
 }
 
+// ───────────────────────── Customer Message Panel ─────────────────────────
+const MSG_CONFIG: Record<string, { icon: string; labels: Record<string, string> }> = {
+  coming_out:   { icon: "🚶", labels: { en: "Coming out of customs now!", ja: "もうすぐ出口に出ます",        zh: "马上出海关了",        ko: "곧 세관을 나옵니다"          } },
+  red_bag:      { icon: "🧳", labels: { en: "My bag is red",              ja: "荷物は赤いスーツケースです",  zh: "我的行李是红色箱子",  ko: "제 가방은 빨간 캐리어입니다" } },
+  wait_please:  { icon: "⏳", labels: { en: "Please wait 5–10 min",       ja: "少し待ってください（5〜10分）",zh: "请稍等5~10分钟",      ko: "5~10분만 기다려 주세요"       } },
+  where_driver: { icon: "📍", labels: { en: "Where are you?",             ja: "ドライバーはどこですか？",    zh: "司机在哪里？",        ko: "드라이버 어디 계세요?"       } },
+};
+
+function CustomerMessagePanel({ bookingId, locale, status }: { bookingId: string; locale: string; status: string }) {
+  const [sent, setSent] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  if (status === "delivered") return null;
+
+  async function sendMsg(key: string) {
+    if (loading || sent) return;
+    setLoading(true);
+    try {
+      await fetch(`/api/booking?id=${encodeURIComponent(bookingId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message_key: key }),
+      });
+      setSent(key);
+    } catch { /* ignore */ } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <p className="text-[10px] text-gray-600 text-center">
+        {{ en: "Send a quick message to your driver", ja: "ドライバーへ一言", zh: "发送消息给司机", ko: "드라이버에게 메시지" }[locale] ?? "Message driver"}
+      </p>
+      {sent ? (
+        <div className="flex items-center gap-2 bg-green-950/40 border border-green-700 rounded-xl px-4 py-3">
+          <span className="text-lg">{MSG_CONFIG[sent].icon}</span>
+          <p className="text-sm font-semibold text-green-300">{MSG_CONFIG[sent].labels[locale] ?? MSG_CONFIG[sent].labels.en}</p>
+          <span className="ml-auto text-xs text-green-600">✓ sent</span>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-2">
+          {Object.entries(MSG_CONFIG).map(([key, cfg]) => (
+            <button
+              key={key}
+              type="button"
+              disabled={loading}
+              onClick={() => sendMsg(key)}
+              className="flex items-center gap-2 bg-gray-800 border border-gray-700 hover:border-amber-500 rounded-xl px-3 py-2.5 text-left transition-colors disabled:opacity-50"
+            >
+              <span className="text-lg flex-shrink-0">{cfg.icon}</span>
+              <span className="text-xs text-gray-300 leading-tight">{cfg.labels[locale] ?? cfg.labels.en}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ───────────────────────── ReviewForm ─────────────────────────
 const REVIEW_LABELS: Record<string, { title: string; on_time: string; comment: string; submit: string; done: string }> = {
   en: { title: "Rate your carrier", on_time: "On time?", comment: "Comment (optional)", submit: "Submit review", done: "Thank you for your review!" },
@@ -740,6 +799,9 @@ export default function TrackingView({ tr, initialNumber, locale = "en" }: { tr:
               ? <PlayerProgressBar driver={info.driver} locale={locale} />
               : <DriverCard driver={info.driver} tr={tr} />
           )}
+
+          {/* ドライバーへの定型メッセージ */}
+          <CustomerMessagePanel bookingId={info.trackingNumber} locale={locale} status={info.status} />
 
           {/* プレイヤー選択UI: 予約確認済み・未アサイン時に表示 */}
           {(info.status === "confirmed" || info.status === "booked") && !info.driver && (

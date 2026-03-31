@@ -50,7 +50,16 @@ interface ActiveDelivery {
   trackPoints: { lat: number; lng: number }[];
   sendCount: number;
   customsExited: boolean;
+  customerMessage: string | null;
+  customerMessageAt: string | null;
 }
+
+const DRIVER_MSG_LABELS: Record<string, { icon: string; ja: string }> = {
+  coming_out:   { icon: "🚶", ja: "もうすぐ出口に出ます" },
+  red_bag:      { icon: "🧳", ja: "荷物は赤いスーツケースです" },
+  wait_please:  { icon: "⏳", ja: "少し待ってください（5〜10分）" },
+  where_driver: { icon: "📍", ja: "ドライバーはどこですか？" },
+};
 
 // ───────────────────────── GPS・ステータス送信 ─────────────────────────
 async function pushLocation(bookingId: string, lat: number, lng: number,
@@ -733,6 +742,26 @@ function DeliveryCard({
         </div>
       )}
 
+      {/* お客からの定型メッセージ */}
+      {delivery.customerMessage && DRIVER_MSG_LABELS[delivery.customerMessage] && (() => {
+        const msg = DRIVER_MSG_LABELS[delivery.customerMessage];
+        const isRecent = delivery.customerMessageAt
+          ? (Date.now() - new Date(delivery.customerMessageAt).getTime()) < 5 * 60 * 1000
+          : false;
+        return (
+          <div className={`flex items-center gap-2 rounded-xl px-3 py-2 ${isRecent ? "bg-amber-950/40 border border-amber-500 animate-pulse" : "bg-gray-800 border border-gray-700"}`}>
+            <span className="text-lg">{msg.icon}</span>
+            <div className="min-w-0">
+              <p className={`text-sm font-bold ${isRecent ? "text-amber-200" : "text-gray-400"}`}>{msg.ja}</p>
+              {delivery.customerMessageAt && (
+                <p className="text-[10px] text-gray-600">{new Date(delivery.customerMessageAt).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}</p>
+              )}
+            </div>
+            {isRecent && <span className="ml-auto text-[10px] font-bold text-amber-400 flex-shrink-0">NEW</span>}
+          </div>
+        );
+      })()}
+
       {/* ルート種別トグル */}
       <button
         type="button"
@@ -877,9 +906,14 @@ export default function DriverView({ tr }: { tr: Translation }) {
           const res = await fetch(`/api/booking?id=${encodeURIComponent(d.bookingId)}`);
           if (!res.ok || cancelled) continue;
           const data = await res.json();
-          if (data.customs_exited && !d.customsExited) {
+          const needsUpdate =
+            (data.customs_exited && !d.customsExited) ||
+            (data.customer_message && data.customer_message !== d.customerMessage);
+          if (needsUpdate) {
             setDeliveries((prev) => prev.map((x) =>
-              x.bookingId === d.bookingId ? { ...x, customsExited: true } : x
+              x.bookingId === d.bookingId
+                ? { ...x, customsExited: data.customs_exited ?? x.customsExited, customerMessage: data.customer_message ?? x.customerMessage, customerMessageAt: data.customer_message_at ?? x.customerMessageAt }
+                : x
             ));
           }
         } catch { /* ignore */ }
@@ -894,7 +928,7 @@ export default function DriverView({ tr }: { tr: Translation }) {
   function addDelivery() {
     const id = bookingInput.trim().toUpperCase();
     if (!id.startsWith("KRX-") || deliveries.find((d) => d.bookingId === id)) return;
-    setDeliveries((prev) => [...prev, { bookingId: id, status: "heading", gpsActive: false, routeType: "local", trackPoints: [], sendCount: 0, customsExited: false }]);
+    setDeliveries((prev) => [...prev, { bookingId: id, status: "heading", gpsActive: false, routeType: "local", trackPoints: [], sendCount: 0, customsExited: false, customerMessage: null, customerMessageAt: null }]);
     setBookingInput("");
   }
 

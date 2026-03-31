@@ -22,7 +22,7 @@ from fastapi.security import APIKeyHeader
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 
-from .models import BriefingRequest, BriefingResponse, Industry, Language, BookingCreate, BookingResponse, MatchResult, DriverLocationUpdate, DriverRegistrationCreate, PlayerCreate, PlayerReviewCreate, PlayerResponse, PlayerLocationUpdate, DispatchResult, MonitorAlert
+from .models import BriefingRequest, BriefingResponse, Industry, Language, BookingCreate, BookingResponse, MatchResult, DriverLocationUpdate, DriverRegistrationCreate, PlayerCreate, PlayerReviewCreate, PlayerResponse, PlayerLocationUpdate, DispatchResult, MonitorAlert, CustomerMessageCreate
 from .briefing import generate_briefing
 from .database import SessionLocal, init_db, save_briefing, get_latest_briefing, BookingRecord, get_booking, save_booking, list_bookings, get_active_drivers, DriverRegistrationRecord, save_driver_registration, list_driver_registrations, PlayerRecord, PlayerReviewRecord, save_player, get_player, get_player_by_email, list_players, save_review, get_reviews_for_player, update_player_score, update_player_location, get_available_players_near, assign_player_to_booking, get_active_bookings_for_monitor, GpsTrackPoint, RouteStats, RouteStatsBand, save_gps_point, get_gps_track, upsert_route_stats, get_route_correction, aggregate_route_to_bands, get_route_stats_all, CongestionSegment, upsert_congestion, get_congestion_data, BookingPhoto, save_photo, get_photos
 from .trust_score import calculate, recalculate_from_reviews
@@ -332,7 +332,28 @@ def get_booking_endpoint(booking_id: str, db: Session = Depends(get_db)):
         driver_updated_at=record.driver_updated_at.isoformat() if record.driver_updated_at else None,
         player_id=record.assigned_player_id,
         customs_exited=record.customs_exited,
+        customer_message=record.customer_message,
+        customer_message_at=record.customer_message_at.isoformat() if record.customer_message_at else None,
     )
+
+
+@app.post("/bookings/{booking_id}/customer-message")
+def post_customer_message(
+    booking_id: str,
+    req: CustomerMessageCreate,
+    db: Session = Depends(get_db),
+):
+    """お客が定型メッセージを送る"""
+    VALID_KEYS = {"coming_out", "red_bag", "wait_please", "where_driver"}
+    if req.message_key not in VALID_KEYS:
+        raise HTTPException(status_code=400, detail="invalid message_key")
+    record = get_booking(db, booking_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    record.customer_message = req.message_key
+    record.customer_message_at = datetime.now(timezone.utc)
+    db.commit()
+    return {"ok": True, "message_key": req.message_key}
 
 
 @app.put("/bookings/{booking_id}/cancel")

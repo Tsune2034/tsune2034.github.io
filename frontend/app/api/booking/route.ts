@@ -45,6 +45,23 @@ export async function DELETE(req: NextRequest) {
   }
 }
 
+export async function PATCH(req: NextRequest) {
+  const id = req.nextUrl.searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "missing id" }, { status: 400 });
+  try {
+    const body = await req.json();
+    const res = await fetch(`${BACKEND}/bookings/${id}/customer-message`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    return NextResponse.json(data, { status: res.status });
+  } catch {
+    return NextResponse.json({ error: "Backend unreachable" }, { status: 503 });
+  }
+}
+
 export async function PUT(req: NextRequest) {
   const id = req.nextUrl.searchParams.get("id");
   if (!id) return NextResponse.json({ error: "missing id" }, { status: 400 });
