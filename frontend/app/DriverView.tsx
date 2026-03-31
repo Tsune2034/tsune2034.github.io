@@ -320,11 +320,11 @@ function GpsTrackCanvas({ points, sendCount }: { points: { lat: number; lng: num
     const H = cssH;
 
     // 背景
-    ctx.fillStyle = "#0f172a";
+    ctx.fillStyle = "#0d1b2e";
     ctx.fillRect(0, 0, W, H);
 
     if (points.length < 2) {
-      ctx.fillStyle = "#1e293b";
+      ctx.fillStyle = "#0d1b2e";
       ctx.fillRect(0, 0, W, H);
       ctx.fillStyle = "#94a3b8";
       ctx.font = "12px monospace";
@@ -347,8 +347,8 @@ function GpsTrackCanvas({ points, sendCount }: { points: { lat: number; lng: num
     function toY(lat: number) { return H - pad - ((lat - minLat) / rangeH) * (H - pad * 2); }
 
     // グリッド
-    ctx.strokeStyle = "#1e3050";
-    ctx.lineWidth = 0.5;
+    ctx.strokeStyle = "#1a3050";
+    ctx.lineWidth = 1;
     for (let i = 1; i < 4; i++) {
       const x = (W / 4) * i;
       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
@@ -361,10 +361,10 @@ function GpsTrackCanvas({ points, sendCount }: { points: { lat: number; lng: num
       toX(points[0].lng), toY(points[0].lat),
       toX(points[points.length - 1].lng), toY(points[points.length - 1].lat)
     );
-    grad.addColorStop(0, "#22c55e");
-    grad.addColorStop(1, "#38bdf8");
+    grad.addColorStop(0, "#4ade80");
+    grad.addColorStop(1, "#7dd3fc");
     ctx.strokeStyle = grad;
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 4;
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
     ctx.beginPath();
@@ -390,20 +390,25 @@ function GpsTrackCanvas({ points, sendCount }: { points: { lat: number; lng: num
     ctx.textBaseline = "middle";
     ctx.fillText("S", sx, sy);
 
-    // 現在地（水色・外光輪 + 白枠）
+    // 現在地（水色・外光輪 + 白枠 + "G"ラベル）
     const cx = toX(points[points.length - 1].lng);
     const cy = toY(points[points.length - 1].lat);
     ctx.beginPath();
     ctx.arc(cx, cy, 11, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(56,189,248,0.2)";
+    ctx.fillStyle = "rgba(56,189,248,0.25)";
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+    ctx.arc(cx, cy, 7, 0, Math.PI * 2);
     ctx.fillStyle = "#38bdf8";
     ctx.fill();
     ctx.strokeStyle = "#fff";
     ctx.lineWidth = 1.5;
     ctx.stroke();
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 8px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("G", cx, cy);
   }, [points]);
 
   return (
