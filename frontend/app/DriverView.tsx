@@ -95,6 +95,8 @@ function etaLabel(f: FlightInfo): { text: string; color: string; urgent: boolean
   return { text: `約${diffMin}分後`, color: "text-gray-400", urgent: false };
 }
 
+const CUSTOMS_WAIT_SEC = 45 * 60; // 平均入国審査+税関 45分
+
 function FlightBoard({ watchedFlightIata, onWatch }: {
   watchedFlightIata: string | null;
   onWatch: (iata: string | null) => void;
@@ -106,6 +108,8 @@ function FlightBoard({ watchedFlightIata, onWatch }: {
   const [searching, setSearching] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [landedAt, setLandedAt] = useState<Date | null>(null);
+  const [customsRemainSec, setCustomsRemainSec] = useState(CUSTOMS_WAIT_SEC);
 
   const fetchArrivals = useCallback(async () => {
     try {
@@ -143,6 +147,30 @@ function FlightBoard({ watchedFlightIata, onWatch }: {
   const watchedFlightInfo = watchedFlightIata
     ? flights.find((f) => f.flightIata.toUpperCase() === watchedFlightIata.toUpperCase()) ?? null
     : null;
+
+  // 着陸検知 → landedAt記録
+  useEffect(() => {
+    if (watchedFlightInfo?.status === "landed" && !landedAt) {
+      const t = watchedFlightInfo.actualArrival
+        ? new Date(watchedFlightInfo.actualArrival)
+        : new Date();
+      setLandedAt(t);
+    }
+    if (!watchedFlightInfo) {
+      setLandedAt(null);
+      setCustomsRemainSec(CUSTOMS_WAIT_SEC);
+    }
+  }, [watchedFlightInfo, landedAt]);
+
+  // 着陸後カウントダウン（1秒ごと）
+  useEffect(() => {
+    if (!landedAt) return;
+    const iv = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - landedAt.getTime()) / 1000);
+      setCustomsRemainSec(Math.max(0, CUSTOMS_WAIT_SEC - elapsed));
+    }, 1000);
+    return () => clearInterval(iv);
+  }, [landedAt]);
 
   async function searchFlight() {
     const q = search.trim().toUpperCase();
@@ -204,6 +232,25 @@ function FlightBoard({ watchedFlightIata, onWatch }: {
                 {watchedFlightInfo.terminal ? ` · T${watchedFlightInfo.terminal}` : ""}
                 {watchedFlightInfo.gate ? ` G${watchedFlightInfo.gate}` : ""}
               </p>
+            )}
+            {isLanded && landedAt && (
+              <div className={`rounded-xl px-3 py-2 flex items-center gap-2 ${
+                customsRemainSec === 0
+                  ? "bg-green-900/50 border border-green-500"
+                  : "bg-gray-800/60 border border-gray-700"
+              }`}>
+                <span className="text-base">{customsRemainSec === 0 ? "✋" : "🛃"}</span>
+                {customsRemainSec === 0 ? (
+                  <p className="text-sm font-bold text-green-300">そろそろ税関を出る頃です！迎えに行きましょう</p>
+                ) : (
+                  <p className="text-sm text-gray-300">
+                    税関出口まで目安:{" "}
+                    <span className="font-mono font-bold text-amber-300">
+                      {Math.floor(customsRemainSec / 60)}分{String(customsRemainSec % 60).padStart(2, "0")}秒
+                    </span>
+                  </p>
+                )}
+              </div>
             )}
             {!isLanded && eta.urgent && (
               <p className="text-[10px] text-amber-400/80">ポーリング間隔: 2分（通常: 10分）</p>
