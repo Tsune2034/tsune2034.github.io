@@ -19,5 +19,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "PIN not configured" }, { status: 503 });
   }
 
-  return NextResponse.json({ ok: pin === expected });
+  return NextResponse.json({ ok: pin.trim() === expected.trim() });
 }

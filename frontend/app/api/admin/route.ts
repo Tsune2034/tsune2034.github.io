@@ -6,7 +6,7 @@ const ADMIN_PIN = process.env.ADMIN_PIN ?? "";
 
 function authorized(req: NextRequest): boolean {
   if (!ADMIN_PIN) return false;
-  return req.headers.get("X-Admin-Pin") === ADMIN_PIN;
+  return req.headers.get("X-Admin-Pin")?.trim() === ADMIN_PIN.trim();
 }
 
 export async function GET(req: NextRequest) {
