@@ -333,6 +333,8 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
   const startMarkerRef = useRef<any>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const currentMarkerRef = useRef<any>(null);
+  const [followMode, setFollowMode] = useState(true); // true=現在地追従 / false=全体表示
+  const [expanded, setExpanded] = useState(false);    // 拡大表示モード
 
   // マップ初期化（マウント時1回）
   useEffect(() => {
@@ -342,13 +344,14 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
     loadGoogleMaps().then((gmaps) => {
       if (!mounted || !mapDivRef.current || mapRef.current) return;
       const map = new gmaps.Map(mapDivRef.current, {
-        zoom: 15,
-        center: { lat: 35.772, lng: 140.393 }, // 成田空港近辺デフォルト
+        zoom: 16,
+        center: { lat: 35.772, lng: 140.393 },
         mapTypeId: "roadmap",
         zoomControl: true,
         streetViewControl: false,
         fullscreenControl: false,
         mapTypeControl: false,
+        gestureHandling: "greedy", // スマホ単指スクロール対応
       });
       mapRef.current = map;
     }).catch(() => {});
@@ -423,8 +426,12 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
         });
       }
 
-      // ルート全体が見えるようにズーム調整
-      if (points.length >= 2) {
+      // 追従モード: 現在地を中心にズーム16固定
+      // 全体表示モード: ルート全体がおさまるようにfitBounds
+      if (followMode) {
+        map.panTo(last);
+        if (map.getZoom() < 15) map.setZoom(16);
+      } else if (points.length >= 2) {
         const bounds = new gmaps.LatLngBounds();
         latlngs.forEach((p) => bounds.extend(p));
         map.fitBounds(bounds, 40);
@@ -433,15 +440,49 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
         map.setZoom(16);
       }
     }).catch(() => {});
-  }, [points]);
+  }, [points, followMode]);
+
+  const mapHeight = expanded ? "400px" : "260px";
 
   return (
     <div className="space-y-1.5">
+      {/* ツールバー */}
+      <div className="flex items-center justify-between px-1">
+        <div className="flex gap-1.5">
+          <button
+            type="button"
+            onClick={() => setFollowMode(true)}
+            className={`text-[10px] px-2.5 py-1 rounded-full font-semibold transition-colors ${
+              followMode ? "bg-sky-600 text-white" : "bg-gray-800 text-gray-400 border border-gray-700"
+            }`}
+          >
+            📍 追従
+          </button>
+          <button
+            type="button"
+            onClick={() => setFollowMode(false)}
+            className={`text-[10px] px-2.5 py-1 rounded-full font-semibold transition-colors ${
+              !followMode ? "bg-green-700 text-white" : "bg-gray-800 text-gray-400 border border-gray-700"
+            }`}
+          >
+            🗺 全体
+          </button>
+        </div>
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="text-[10px] px-2.5 py-1 rounded-full bg-gray-800 text-gray-400 border border-gray-700"
+        >
+          {expanded ? "⬆ 縮小" : "⬇ 拡大"}
+        </button>
+      </div>
+
+      {/* 地図本体 */}
       <div className="relative">
         <div
           ref={mapDivRef}
-          className="w-full rounded-xl border border-gray-700 overflow-hidden"
-          style={{ height: "220px" }}
+          className="w-full rounded-xl border border-gray-700 overflow-hidden transition-all duration-300"
+          style={{ height: mapHeight }}
         />
         {points.length === 0 && (
           <div className="absolute inset-0 rounded-xl bg-gray-900/80 flex items-center justify-center text-gray-400 text-sm">
@@ -449,6 +490,7 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
           </div>
         )}
       </div>
+
       <div className="flex justify-between text-[10px] text-gray-600 px-1">
         <span>📍 {points.length} ポイント記録中</span>
         <span>📡 送信 {sendCount} 回</span>
