@@ -554,7 +554,7 @@ export default function DriverView({ tr }: { tr: Translation }) {
           lastLng = pos.coords.longitude;
           pushLocation(bookingId, lastLat, lastLng, delivery.status, delivery.routeType);
         },
-        () => {},
+        (err) => console.warn("[GPS] watchPosition error:", err.message),
         { enableHighAccuracy: true, timeout: 10000 },
       );
 
