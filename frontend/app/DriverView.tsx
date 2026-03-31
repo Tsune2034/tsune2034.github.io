@@ -389,11 +389,12 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
         });
       }
 
-      // スタートマーカー（S）― 最初の1回だけ
+      // スタートマーカー（S）― 最初の1回だけ・zIndex低め
       if (!startMarkerRef.current) {
         startMarkerRef.current = new gmaps.Marker({
           position: latlngs[0],
           map,
+          zIndex: 1,
           label: { text: "S", color: "#fff", fontWeight: "bold", fontSize: "12px" },
           icon: {
             path: gmaps.SymbolPath.CIRCLE,
@@ -406,7 +407,7 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
         });
       }
 
-      // 現在地マーカー（G）― ポイント追加のたびに移動
+      // 現在地マーカー（G）― ポイント追加のたびに移動・zIndex高め（常にS の上）
       const last = latlngs[latlngs.length - 1];
       if (currentMarkerRef.current) {
         currentMarkerRef.current.setPosition(last);
@@ -414,14 +415,15 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
         currentMarkerRef.current = new gmaps.Marker({
           position: last,
           map,
-          label: { text: "G", color: "#fff", fontWeight: "bold", fontSize: "12px" },
+          zIndex: 10,
+          label: { text: "G", color: "#fff", fontWeight: "bold", fontSize: "13px" },
           icon: {
             path: gmaps.SymbolPath.CIRCLE,
-            scale: 10,
-            fillColor: "#38bdf8",
+            scale: 13, // Sより大きく
+            fillColor: "#f97316", // オレンジで目立つ
             fillOpacity: 1,
             strokeColor: "#fff",
-            strokeWeight: 2,
+            strokeWeight: 2.5,
           },
         });
       }
