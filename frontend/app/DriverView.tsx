@@ -319,9 +319,10 @@ function GpsTrackCanvas({ points, sendCount }: { points: { lat: number; lng: num
       // 点が1つ以下: 待機表示
       ctx.fillStyle = "#1e293b";
       ctx.fillRect(0, 0, W, H);
-      ctx.fillStyle = "#334155";
-      ctx.font = "11px monospace";
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "12px monospace";
       ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
       ctx.fillText(points.length === 0 ? "GPS記録待機中…" : "移動データ収集中…", W / 2, H / 2);
       return;
     }
@@ -721,11 +722,12 @@ export default function DriverView({ tr }: { tr: Translation }) {
 
       const send = () => {
         if (lastLat === 0) return;
-        setDeliveries((prev) => prev.map((d) => {
-          if (d.bookingId !== bookingId) return d;
+        setDeliveries((prev) => {
+          const d = prev.find((x) => x.bookingId === bookingId);
+          if (!d) return prev;
           pushLocation(bookingId, lastLat, lastLng, d.status, d.routeType);
-          return { ...d, sendCount: d.sendCount + 1 };
-        }));
+          return prev.map((x) => x.bookingId === bookingId ? { ...x, sendCount: x.sendCount + 1 } : x);
+        });
       };
 
       const wid = navigator.geolocation.watchPosition(
