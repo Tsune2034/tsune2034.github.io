@@ -350,6 +350,20 @@ def cancel_booking(
     return {"ok": True, "booking_id": booking_id, "status": "cancelled"}
 
 
+@app.delete("/admin/bookings/{booking_id}", dependencies=[Depends(require_api_key)])
+def admin_delete_booking(
+    booking_id: str,
+    db: Session = Depends(get_db),
+):
+    """管理者用: ステータスに関わらず予約を強制削除"""
+    record = get_booking(db, booking_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    db.delete(record)
+    db.commit()
+    return {"ok": True, "booking_id": booking_id, "deleted": True}
+
+
 def _haversine_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
     import math
     R = 6371
