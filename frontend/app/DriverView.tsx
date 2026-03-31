@@ -307,9 +307,11 @@ function loadGoogleMaps(): Promise<typeof google.maps> {
     if (typeof window === "undefined") return reject("no window");
     if (window.google?.maps) return resolve(window.google.maps);
     if (document.querySelector('script[data-gmaps]')) {
-      // すでに読み込み中 — ポーリングで待つ
+      // すでに読み込み中 — ポーリング（最大30秒でタイムアウト）
+      let attempts = 0;
       const iv = setInterval(() => {
-        if (window.google?.maps) { clearInterval(iv); resolve(window.google.maps); }
+        if (window.google?.maps) { clearInterval(iv); resolve(window.google.maps); return; }
+        if (++attempts > 300) { clearInterval(iv); reject(new Error("Google Maps load timeout")); }
       }, 100);
       return;
     }
@@ -368,8 +370,10 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
   // ポイント更新時にルート・マーカーを反映
   useEffect(() => {
     if (points.length === 0 || !mapRef.current) return;
+    let mounted = true;
 
     loadGoogleMaps().then((gmaps) => {
+      if (!mounted) return;
       const map = mapRef.current;
       if (!map) return;
 
@@ -441,7 +445,8 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
         map.setCenter(last);
         map.setZoom(16);
       }
-    }).catch(() => {});
+    }).catch((err) => console.error("[Map] Google Maps error:", err));
+    return () => { mounted = false; };
   }, [points, followMode]);
 
   const mapHeight = expanded ? "400px" : "260px";
@@ -819,8 +824,9 @@ export default function DriverView({ tr }: { tr: Translation }) {
       }
       let lastLat = 0, lastLng = 0;
 
+      // 30秒ごとの定期送信（lastLat/lngが有効な場合のみ）
       const send = () => {
-        if (lastLat === 0) return;
+        if (lastLat === 0 && lastLng === 0) return;
         setDeliveries((prev) => {
           const d = prev.find((x) => x.bookingId === bookingId);
           if (!d) return prev;
@@ -833,13 +839,20 @@ export default function DriverView({ tr }: { tr: Translation }) {
         (pos) => {
           lastLat = pos.coords.latitude;
           lastLng = pos.coords.longitude;
+          // trackPoints追加とsendCountを同時更新（競合防止）
           setDeliveries((prev) => prev.map((d) =>
             d.bookingId === bookingId
               ? { ...d, trackPoints: [...d.trackPoints, { lat: lastLat, lng: lastLng }] }
               : d
           ));
         },
-        (err) => console.warn("[GPS] watchPosition error:", err.message),
+        (err) => {
+          if (err.code === 1) {
+            alert("GPS位置情報の許可が必要です。ブラウザの設定を確認してください。");
+          } else {
+            console.warn("[GPS] watchPosition error:", err.message);
+          }
+        },
         { enableHighAccuracy: true, timeout: 10000 },
       );
 
