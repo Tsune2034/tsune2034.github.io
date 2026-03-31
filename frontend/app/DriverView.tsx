@@ -49,6 +49,7 @@ interface ActiveDelivery {
   routeType: RouteType;
   trackPoints: { lat: number; lng: number }[];
   sendCount: number;
+  customsExited: boolean;
 }
 
 // ───────────────────────── GPS・ステータス送信 ─────────────────────────
@@ -669,13 +670,21 @@ function DeliveryCard({
   const isHighway = delivery.routeType === "highway";
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 space-y-3">
+    <div className={`bg-gray-900 rounded-2xl p-4 space-y-3 ${delivery.customsExited ? "border-2 border-green-500" : "border border-gray-800"}`}>
       <div className="flex items-center justify-between">
         <p className="text-sm font-bold text-white font-mono">{delivery.bookingId}</p>
         <span className={`text-xs font-semibold px-2.5 py-1 rounded-full text-white ${cfg.color}`}>
           {cfg.label}
         </span>
       </div>
+
+      {/* 税関通過通知 */}
+      {delivery.customsExited && (
+        <div className="flex items-center gap-2 bg-green-950/40 border border-green-600 rounded-xl px-3 py-2">
+          <span className="text-lg">✋</span>
+          <p className="text-sm font-bold text-green-300">お客様が税関を出ました！</p>
+        </div>
+      )}
 
       {/* ルート種別トグル */}
       <button
@@ -810,10 +819,35 @@ export default function DriverView({ tr }: { tr: Translation }) {
     return () => clearInterval(iv);
   }, [parkingStart]);
 
+  // 顧客の customs_exited をポーリング（30秒ごと）
+  useEffect(() => {
+    const active = deliveries.filter((d) => d.status !== "done");
+    if (active.length === 0) return;
+    let cancelled = false;
+    const poll = async () => {
+      for (const d of active) {
+        try {
+          const res = await fetch(`/api/booking?id=${encodeURIComponent(d.bookingId)}`);
+          if (!res.ok || cancelled) continue;
+          const data = await res.json();
+          if (data.customs_exited && !d.customsExited) {
+            setDeliveries((prev) => prev.map((x) =>
+              x.bookingId === d.bookingId ? { ...x, customsExited: true } : x
+            ));
+          }
+        } catch { /* ignore */ }
+      }
+    };
+    poll();
+    const iv = setInterval(poll, 30_000);
+    return () => { cancelled = true; clearInterval(iv); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deliveries.map((d) => d.bookingId + d.status).join(",")]);
+
   function addDelivery() {
     const id = bookingInput.trim().toUpperCase();
     if (!id.startsWith("KRX-") || deliveries.find((d) => d.bookingId === id)) return;
-    setDeliveries((prev) => [...prev, { bookingId: id, status: "heading", gpsActive: false, routeType: "local", trackPoints: [], sendCount: 0 }]);
+    setDeliveries((prev) => [...prev, { bookingId: id, status: "heading", gpsActive: false, routeType: "local", trackPoints: [], sendCount: 0, customsExited: false }]);
     setBookingInput("");
   }
 
