@@ -308,15 +308,22 @@ function GpsTrackCanvas({ points, sendCount }: { points: { lat: number; lng: num
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    const W = canvas.width;
-    const H = canvas.height;
+
+    // Retina/高解像度対応 — devicePixelRatioでバッファを拡大しCSSサイズに縮小表示
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = canvas.offsetWidth || 320;
+    const cssH = 160;
+    canvas.width  = cssW * dpr;
+    canvas.height = cssH * dpr;
+    ctx.scale(dpr, dpr);
+    const W = cssW;
+    const H = cssH;
 
     // 背景
     ctx.fillStyle = "#0f172a";
     ctx.fillRect(0, 0, W, H);
 
     if (points.length < 2) {
-      // 点が1つ以下: 待機表示
       ctx.fillStyle = "#1e293b";
       ctx.fillRect(0, 0, W, H);
       ctx.fillStyle = "#94a3b8";
@@ -332,7 +339,7 @@ function GpsTrackCanvas({ points, sendCount }: { points: { lat: number; lng: num
     const lngs = points.map((p) => p.lng);
     const minLat = Math.min(...lats), maxLat = Math.max(...lats);
     const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
-    const pad = 20;
+    const pad = 24;
     const rangeW = maxLng - minLng || 0.0001;
     const rangeH = maxLat - minLat || 0.0001;
 
@@ -340,8 +347,8 @@ function GpsTrackCanvas({ points, sendCount }: { points: { lat: number; lng: num
     function toY(lat: number) { return H - pad - ((lat - minLat) / rangeH) * (H - pad * 2); }
 
     // グリッド
-    ctx.strokeStyle = "#1e293b";
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = "#1e3050";
+    ctx.lineWidth = 0.5;
     for (let i = 1; i < 4; i++) {
       const x = (W / 4) * i;
       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
@@ -357,7 +364,7 @@ function GpsTrackCanvas({ points, sendCount }: { points: { lat: number; lng: num
     grad.addColorStop(0, "#22c55e");
     grad.addColorStop(1, "#38bdf8");
     ctx.strokeStyle = grad;
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 3;
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
     ctx.beginPath();
@@ -367,32 +374,44 @@ function GpsTrackCanvas({ points, sendCount }: { points: { lat: number; lng: num
     }
     ctx.stroke();
 
-    // 出発点（緑丸）
+    // 出発点（緑丸 + 白枠 + "S"ラベル）
+    const sx = toX(points[0].lng);
+    const sy = toY(points[0].lat);
     ctx.beginPath();
-    ctx.arc(toX(points[0].lng), toY(points[0].lat), 5, 0, Math.PI * 2);
+    ctx.arc(sx, sy, 7, 0, Math.PI * 2);
     ctx.fillStyle = "#22c55e";
     ctx.fill();
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 8px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("S", sx, sy);
 
-    // 現在地（水色・外光輪）
+    // 現在地（水色・外光輪 + 白枠）
     const cx = toX(points[points.length - 1].lng);
     const cy = toY(points[points.length - 1].lat);
     ctx.beginPath();
-    ctx.arc(cx, cy, 8, 0, Math.PI * 2);
+    ctx.arc(cx, cy, 11, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(56,189,248,0.2)";
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+    ctx.arc(cx, cy, 6, 0, Math.PI * 2);
     ctx.fillStyle = "#38bdf8";
     ctx.fill();
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
   }, [points]);
 
   return (
     <div className="space-y-1.5">
       <canvas
         ref={canvasRef}
-        width={320}
-        height={160}
         className="w-full rounded-xl border border-gray-700"
+        style={{ height: "160px" }}
       />
       <div className="flex justify-between text-[10px] text-gray-600 px-1">
         <span>📍 {points.length} ポイント記録中</span>
