@@ -299,7 +299,30 @@ function FlightRow({ f, highlight = false, onWatch }: { f: FlightInfo; highlight
   );
 }
 
-// ───────────────────────── GPS Track Map (Leaflet + OSM) ─────────────────────────
+// ───────────────────────── GPS Track Map (Google Maps) ─────────────────────────
+const GMAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+
+function loadGoogleMaps(): Promise<typeof google.maps> {
+  return new Promise((resolve, reject) => {
+    if (typeof window === "undefined") return reject("no window");
+    if (window.google?.maps) return resolve(window.google.maps);
+    if (document.querySelector('script[data-gmaps]')) {
+      // すでに読み込み中 — ポーリングで待つ
+      const iv = setInterval(() => {
+        if (window.google?.maps) { clearInterval(iv); resolve(window.google.maps); }
+      }, 100);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GMAPS_API_KEY}`;
+    script.async = true;
+    script.setAttribute("data-gmaps", "1");
+    script.onload = () => resolve(window.google.maps);
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+
 function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number }[]; sendCount: number }) {
   const mapDivRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -311,45 +334,31 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const currentMarkerRef = useRef<any>(null);
 
-  // Leaflet CSS をCDNから1回だけ読み込む
-  useEffect(() => {
-    if (document.querySelector('link[data-leaflet]')) return;
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    link.setAttribute('data-leaflet', '1');
-    document.head.appendChild(link);
-  }, []);
-
   // マップ初期化（マウント時1回）
   useEffect(() => {
     if (!mapDivRef.current || mapRef.current) return;
     let mounted = true;
 
-    import('leaflet').then((mod) => {
+    loadGoogleMaps().then((gmaps) => {
       if (!mounted || !mapDivRef.current || mapRef.current) return;
-      const L = mod.default;
-      const map = L.map(mapDivRef.current, {
-        zoomControl: true,
-        attributionControl: false,
+      const map = new gmaps.Map(mapDivRef.current, {
         zoom: 15,
-        center: [35.772, 140.393], // 成田空港近辺をデフォルト
+        center: { lat: 35.772, lng: 140.393 }, // 成田空港近辺デフォルト
+        mapTypeId: "roadmap",
+        zoomControl: true,
+        streetViewControl: false,
+        fullscreenControl: false,
+        mapTypeControl: false,
       });
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-      }).addTo(map);
       mapRef.current = map;
-    });
+    }).catch(() => {});
 
     return () => {
       mounted = false;
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
-        polylineRef.current = null;
-        startMarkerRef.current = null;
-        currentMarkerRef.current = null;
-      }
+      mapRef.current = null;
+      polylineRef.current = null;
+      startMarkerRef.current = null;
+      currentMarkerRef.current = null;
     };
   }, []);
 
@@ -357,54 +366,73 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
   useEffect(() => {
     if (points.length === 0 || !mapRef.current) return;
 
-    import('leaflet').then((mod) => {
+    loadGoogleMaps().then((gmaps) => {
       const map = mapRef.current;
       if (!map) return;
-      const L = mod.default;
 
-      const latlngs: [number, number][] = points.map((p) => [p.lat, p.lng]);
+      const latlngs = points.map((p) => ({ lat: p.lat, lng: p.lng }));
 
       // ルートライン
       if (polylineRef.current) {
-        polylineRef.current.setLatLngs(latlngs);
+        polylineRef.current.setPath(latlngs);
       } else {
-        polylineRef.current = L.polyline(latlngs, {
-          color: '#22c55e', weight: 4, opacity: 0.9,
-        }).addTo(map);
+        polylineRef.current = new gmaps.Polyline({
+          path: latlngs,
+          geodesic: true,
+          strokeColor: "#22c55e",
+          strokeOpacity: 0.9,
+          strokeWeight: 4,
+          map,
+        });
       }
 
       // スタートマーカー（S）― 最初の1回だけ
       if (!startMarkerRef.current) {
-        const icon = L.divIcon({
-          html: '<div style="background:#22c55e;color:#fff;font-weight:bold;font-size:11px;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.4)">S</div>',
-          className: '',
-          iconSize: [24, 24],
-          iconAnchor: [12, 12],
+        startMarkerRef.current = new gmaps.Marker({
+          position: latlngs[0],
+          map,
+          label: { text: "S", color: "#fff", fontWeight: "bold", fontSize: "12px" },
+          icon: {
+            path: gmaps.SymbolPath.CIRCLE,
+            scale: 10,
+            fillColor: "#22c55e",
+            fillOpacity: 1,
+            strokeColor: "#fff",
+            strokeWeight: 2,
+          },
         });
-        startMarkerRef.current = L.marker([points[0].lat, points[0].lng], { icon }).addTo(map);
       }
 
       // 現在地マーカー（G）― ポイント追加のたびに移動
-      const last = points[points.length - 1];
+      const last = latlngs[latlngs.length - 1];
       if (currentMarkerRef.current) {
-        currentMarkerRef.current.setLatLng([last.lat, last.lng]);
+        currentMarkerRef.current.setPosition(last);
       } else {
-        const icon = L.divIcon({
-          html: '<div style="background:#38bdf8;color:#fff;font-weight:bold;font-size:11px;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.5)">G</div>',
-          className: '',
-          iconSize: [24, 24],
-          iconAnchor: [12, 12],
+        currentMarkerRef.current = new gmaps.Marker({
+          position: last,
+          map,
+          label: { text: "G", color: "#fff", fontWeight: "bold", fontSize: "12px" },
+          icon: {
+            path: gmaps.SymbolPath.CIRCLE,
+            scale: 10,
+            fillColor: "#38bdf8",
+            fillOpacity: 1,
+            strokeColor: "#fff",
+            strokeWeight: 2,
+          },
         });
-        currentMarkerRef.current = L.marker([last.lat, last.lng], { icon }).addTo(map);
       }
 
       // ルート全体が見えるようにズーム調整
       if (points.length >= 2) {
-        map.fitBounds(polylineRef.current.getBounds(), { padding: [30, 30] });
+        const bounds = new gmaps.LatLngBounds();
+        latlngs.forEach((p) => bounds.extend(p));
+        map.fitBounds(bounds, 40);
       } else {
-        map.setView([last.lat, last.lng], 16);
+        map.setCenter(last);
+        map.setZoom(16);
       }
-    });
+    }).catch(() => {});
   }, [points]);
 
   return (
@@ -413,7 +441,7 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
         <div
           ref={mapDivRef}
           className="w-full rounded-xl border border-gray-700 overflow-hidden"
-          style={{ height: '220px' }}
+          style={{ height: "220px" }}
         />
         {points.length === 0 && (
           <div className="absolute inset-0 rounded-xl bg-gray-900/80 flex items-center justify-center text-gray-400 text-sm">
