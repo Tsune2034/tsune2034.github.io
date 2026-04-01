@@ -105,6 +105,10 @@ class CustomerMessageCreate(BaseModel):
     message_key: str  # coming_out | red_bag | wait_please | where_driver
 
 
+class DriverMessageCreate(BaseModel):
+    message_key: str  # coming_now | delayed | cant_find
+
+
 class BookingResponse(BaseModel):
     booking_id: str
     status: str
@@ -119,6 +123,8 @@ class BookingResponse(BaseModel):
     customs_exited: Optional[bool] = None
     customer_message: Optional[str] = None
     customer_message_at: Optional[str] = None
+    driver_message: Optional[str] = None
+    driver_message_at: Optional[str] = None
 
 
 

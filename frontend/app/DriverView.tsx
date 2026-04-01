@@ -54,12 +54,30 @@ interface ActiveDelivery {
   customerMessageAt: string | null;
 }
 
+// お客から届くメッセージのラベル（ドライバー向け日本語表示）
 const DRIVER_MSG_LABELS: Record<string, { icon: string; ja: string }> = {
   coming_out:   { icon: "🚶", ja: "もうすぐ出口に出ます" },
   red_bag:      { icon: "🧳", ja: "荷物は赤いスーツケースです" },
   wait_please:  { icon: "⏳", ja: "少し待ってください（5〜10分）" },
   where_driver: { icon: "📍", ja: "ドライバーはどこですか？" },
 };
+
+// ドライバーからお客へ送る定型メッセージ
+const DRIVER_TO_CUSTOMER_MSGS = [
+  { key: "coming_now", icon: "🚗", ja: "今着きました。出口でお待ちです" },
+  { key: "delayed",    icon: "⏳", ja: "渋滞中です。あと約10分で到着します" },
+  { key: "cant_find",  icon: "📞", ja: "お客様を確認できません。出口でお待ちです" },
+] as const;
+
+async function pushDriverMessage(bookingId: string, messageKey: string) {
+  try {
+    await fetch(`/api/driver-message?id=${encodeURIComponent(bookingId)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message_key: messageKey }),
+    });
+  } catch { /* ignore */ }
+}
 
 // ───────────────────────── GPS・ステータス送信 ─────────────────────────
 async function pushLocation(bookingId: string, lat: number, lng: number,
@@ -851,12 +869,62 @@ function DeliveryCard({
         </button>
       )}
 
+      {/* ドライバー→お客 定型メッセージ */}
+      {delivery.status !== "done" && (
+        <DriverMessagePanel bookingId={delivery.bookingId} />
+      )}
+
       {/* 証跡写真 */}
       {delivery.status === "arrived" && (
         <PhotoCapture bookingId={delivery.bookingId} photoType="pickup" />
       )}
       {delivery.status === "done" && (
         <PhotoCapture bookingId={delivery.bookingId} photoType="delivery" />
+      )}
+    </div>
+  );
+}
+
+function DriverMessagePanel({ bookingId }: { bookingId: string }) {
+  const [sent, setSent] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function send(key: string) {
+    if (loading) return;
+    setLoading(true);
+    await pushDriverMessage(bookingId, key);
+    setSent(key);
+    setLoading(false);
+    // 10秒後にリセット（再送可能に）
+    setTimeout(() => setSent(null), 10_000);
+  }
+
+  const sentMsg = sent ? DRIVER_TO_CUSTOMER_MSGS.find((m) => m.key === sent) : null;
+
+  return (
+    <div className="space-y-1.5">
+      <p className="text-[10px] text-gray-600 px-1">お客様へメッセージ送信</p>
+      {sentMsg ? (
+        <div className="flex items-center gap-2 bg-sky-950/40 border border-sky-600 rounded-xl px-3 py-2">
+          <span className="text-base">{sentMsg.icon}</span>
+          <p className="text-xs font-semibold text-sky-300">{sentMsg.ja}</p>
+          <span className="ml-auto text-[10px] text-sky-500">送信済み ✓</span>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-1.5">
+          {DRIVER_TO_CUSTOMER_MSGS.map((m) => (
+            <button
+              key={m.key}
+              type="button"
+              disabled={loading}
+              onClick={() => send(m.key)}
+              className="flex items-center gap-2 bg-gray-800 border border-gray-700 hover:border-sky-500 rounded-xl px-3 py-2 text-left transition-colors disabled:opacity-50"
+            >
+              <span className="text-base">{m.icon}</span>
+              <span className="text-xs text-gray-300">{m.ja}</span>
+            </button>
+          ))}
+        </div>
       )}
     </div>
   );

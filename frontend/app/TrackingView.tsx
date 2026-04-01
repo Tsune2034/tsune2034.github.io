@@ -36,7 +36,15 @@ interface TrackingInfo {
   updatedAt: string;
   driver?: DriverInfo;
   player_id?: number;
+  driverMessage?: string | null;
+  driverMessageAt?: string | null;
 }
+
+const DRIVER_MSG_DISPLAY: Record<string, Record<string, string>> = {
+  coming_now: { en: "🚗 Arrived! Waiting at the exit", ja: "🚗 今着きました。出口でお待ちです", zh: "🚗 已到达，在出口等候", ko: "🚗 도착했습니다. 출구에서 기다리고 있습니다" },
+  delayed:    { en: "⏳ Stuck in traffic. ~10 more min", ja: "⏳ 渋滞中です。あと約10分で到着します", zh: "⏳ 堵车中，还需约10分钟", ko: "⏳ 교통 체증입니다. 약 10분 더 걸립니다" },
+  cant_find:  { en: "📞 Can't find you. Waiting at the exit", ja: "📞 お客様を確認できません。出口でお待ちです", zh: "📞 找不到您，请在出口等候", ko: "📞 찾지 못하고 있습니다. 출구에서 기다리고 있습니다" },
+};
 
 // ───────────────────────── Helpers ─────────────────────────
 const ZONE_COORDS: Record<string, { lat: number; lng: number }> = {
@@ -700,6 +708,8 @@ export default function TrackingView({ tr, initialNumber, locale = "en" }: { tr:
         updatedAt: now.toLocaleString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
         driver,
         player_id: data.player_id ?? undefined,
+        driverMessage: data.driver_message ?? null,
+        driverMessageAt: data.driver_message_at ?? null,
       });
       setNotFound(false);
       return true;
@@ -792,6 +802,29 @@ export default function TrackingView({ tr, initialNumber, locale = "en" }: { tr:
               </div>
             )}
           </div>
+
+          {/* ドライバーからのメッセージ */}
+          {info.driverMessage && DRIVER_MSG_DISPLAY[info.driverMessage] && (() => {
+            const msg = DRIVER_MSG_DISPLAY[info.driverMessage][locale] ?? DRIVER_MSG_DISPLAY[info.driverMessage].en;
+            const isRecent = info.driverMessageAt
+              ? (Date.now() - new Date(info.driverMessageAt).getTime()) < 5 * 60 * 1000
+              : false;
+            return (
+              <div className={`flex items-center gap-3 rounded-2xl px-4 py-3 ${
+                isRecent ? "border-2 border-sky-400 bg-sky-950/40 animate-pulse" : "border border-gray-700 bg-gray-900"
+              }`}>
+                <div className="min-w-0">
+                  <p className={`text-sm font-bold ${isRecent ? "text-sky-200" : "text-gray-400"}`}>{msg}</p>
+                  {info.driverMessageAt && (
+                    <p className="text-[10px] text-gray-600 mt-0.5">
+                      {new Date(info.driverMessageAt).toLocaleTimeString(locale === "ja" ? "ja-JP" : "en-US", { hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                  )}
+                </div>
+                {isRecent && <span className="ml-auto text-[10px] font-bold text-sky-400 flex-shrink-0 bg-sky-950 border border-sky-700 px-1.5 py-0.5 rounded-full">NEW</span>}
+              </div>
+            );
+          })()}
 
           {/* GPS表示: ハンドキャリー=路線進捗バー、車=距離バー */}
           {info.driver && (

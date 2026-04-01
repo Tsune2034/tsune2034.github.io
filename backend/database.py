@@ -75,6 +75,8 @@ class BookingRecord(Base):
     customs_exited       = Column(Boolean, default=False, nullable=False, server_default="false")
     customer_message     = Column(String(32), nullable=True)   # coming_out | red_bag | wait_please | where_driver
     customer_message_at  = Column(DateTime(timezone=True), nullable=True)
+    driver_message       = Column(String(32), nullable=True)   # coming_now | delayed | cant_find
+    driver_message_at    = Column(DateTime(timezone=True), nullable=True)
 
     # AI Dispatcher
     pickup_lat         = Column(Float, nullable=True)    # 旅行者GPS（将来）
@@ -430,6 +432,8 @@ def _run_migrations() -> None:
         ("bookings", "customs_exited",      "BOOLEAN DEFAULT FALSE NOT NULL" if is_sqlite else "BOOLEAN DEFAULT FALSE"),
         ("bookings", "customer_message",    "VARCHAR(32)"),
         ("bookings", "customer_message_at", "TIMESTAMP" if is_sqlite else "TIMESTAMPTZ"),
+        ("bookings", "driver_message",      "VARCHAR(32)"),
+        ("bookings", "driver_message_at",   "TIMESTAMP" if is_sqlite else "TIMESTAMPTZ"),
     ]
     with engine.connect() as conn:
         for table, column, col_def in migrations:
