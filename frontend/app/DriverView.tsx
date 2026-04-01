@@ -398,6 +398,7 @@ function FlightRow({ f, highlight = false, onWatch }: { f: FlightInfo; highlight
 
 // ───────────────────────── GPS Track Map (Google Maps) ─────────────────────────
 const GMAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+const NARITA_DEST = { lat: 35.7720, lng: 140.3928 }; // 成田T1
 
 function loadGoogleMaps(): Promise<typeof google.maps> {
   return new Promise((resolve, reject) => {
@@ -432,10 +433,115 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
   const startMarkerRef = useRef<any>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const currentMarkerRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const destMarkerRef = useRef<any>(null);
   const [followMode, setFollowMode] = useState(true); // true=現在地追従 / false=全体表示
   const [expanded, setExpanded] = useState(false);    // 拡大表示モード
 
-  // マップ初期化（マウント時1回）
+  // レースコンディション防止用 ref（init effect が async で完了した後に最新ポイントを参照するため）
+  const pointsRef = useRef(points);
+  pointsRef.current = points;
+  const followModeRef = useRef(followMode);
+  followModeRef.current = followMode;
+
+  // ポイント・マーカー・パン/ズームを地図に反映する共通関数
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function applyPoints(gmaps: any, pts: { lat: number; lng: number }[], follow: boolean) {
+    const map = mapRef.current;
+    if (!map) return;
+
+    // 成田空港ピン（常時表示）
+    if (!destMarkerRef.current) {
+      destMarkerRef.current = new gmaps.Marker({
+        position: NARITA_DEST,
+        map,
+        zIndex: 5,
+        title: "成田空港",
+        label: { text: "空港", color: "#fff", fontWeight: "bold", fontSize: "10px" },
+        icon: {
+          path: gmaps.SymbolPath.CIRCLE,
+          scale: 14,
+          fillColor: "#3b82f6",
+          fillOpacity: 1,
+          strokeColor: "#fff",
+          strokeWeight: 2.5,
+        },
+      });
+    }
+
+    if (pts.length === 0) return;
+    const latlngs = pts.map((p) => ({ lat: p.lat, lng: p.lng }));
+
+    // ルートライン
+    if (polylineRef.current) {
+      polylineRef.current.setPath(latlngs);
+    } else {
+      polylineRef.current = new gmaps.Polyline({
+        path: latlngs,
+        geodesic: true,
+        strokeColor: "#22c55e",
+        strokeOpacity: 0.9,
+        strokeWeight: 4,
+        map,
+      });
+    }
+
+    // スタートマーカー（S）― 最初の1回だけ
+    if (!startMarkerRef.current) {
+      startMarkerRef.current = new gmaps.Marker({
+        position: latlngs[0],
+        map,
+        zIndex: 1,
+        title: "出発地",
+        label: { text: "S", color: "#fff", fontWeight: "bold", fontSize: "12px" },
+        icon: {
+          path: gmaps.SymbolPath.CIRCLE,
+          scale: 10,
+          fillColor: "#22c55e",
+          fillOpacity: 1,
+          strokeColor: "#fff",
+          strokeWeight: 2,
+        },
+      });
+    }
+
+    // 現在地マーカー（オレンジ丸）― ポイント追加のたびに移動
+    const last = latlngs[latlngs.length - 1];
+    if (currentMarkerRef.current) {
+      currentMarkerRef.current.setPosition(last);
+    } else {
+      currentMarkerRef.current = new gmaps.Marker({
+        position: last,
+        map,
+        zIndex: 10,
+        title: "現在地",
+        icon: {
+          path: gmaps.SymbolPath.CIRCLE,
+          scale: 13,
+          fillColor: "#f97316",
+          fillOpacity: 1,
+          strokeColor: "#fff",
+          strokeWeight: 2.5,
+        },
+      });
+    }
+
+    // パン / ズーム
+    if (follow) {
+      map.panTo(last);
+      if (map.getZoom() < 15) map.setZoom(16);
+    } else if (pts.length >= 2) {
+      const bounds = new gmaps.LatLngBounds();
+      latlngs.forEach((p) => bounds.extend(p));
+      bounds.extend(NARITA_DEST); // 目的地も含める
+      map.fitBounds(bounds, 40);
+    } else {
+      map.setCenter(last);
+      map.setZoom(16);
+    }
+  }
+
+  // マップ初期化（マウント時1回）― 完了後に既存ポイントを即描画してレースコンディション解消
   useEffect(() => {
     if (!mapDivRef.current || mapRef.current) return;
     let mounted = true;
@@ -443,16 +549,18 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
     loadGoogleMaps().then((gmaps) => {
       if (!mounted || !mapDivRef.current || mapRef.current) return;
       const map = new gmaps.Map(mapDivRef.current, {
-        zoom: 16,
-        center: { lat: 35.772, lng: 140.393 },
+        zoom: 13,
+        center: NARITA_DEST,
         mapTypeId: "roadmap",
         zoomControl: true,
         streetViewControl: false,
         fullscreenControl: false,
         mapTypeControl: false,
-        gestureHandling: "greedy", // スマホ単指スクロール対応
+        gestureHandling: "greedy",
       });
       mapRef.current = map;
+      // 初期化完了時点の最新ポイントを即描画（ポイントエフェクトが先に走っていた場合の救済）
+      applyPoints(gmaps, pointsRef.current, followModeRef.current);
     }).catch(() => {});
 
     return () => {
@@ -461,89 +569,18 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
       polylineRef.current = null;
       startMarkerRef.current = null;
       currentMarkerRef.current = null;
+      destMarkerRef.current = null;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ポイント更新時にルート・マーカーを反映
+  // ポイント更新時にルート・マーカーを反映（mapRef.current が null なら init 完了後に描画される）
   useEffect(() => {
-    if (points.length === 0 || !mapRef.current) return;
-    let mounted = true;
-
+    if (!mapRef.current) return;
     loadGoogleMaps().then((gmaps) => {
-      if (!mounted) return;
-      const map = mapRef.current;
-      if (!map) return;
-
-      const latlngs = points.map((p) => ({ lat: p.lat, lng: p.lng }));
-
-      // ルートライン
-      if (polylineRef.current) {
-        polylineRef.current.setPath(latlngs);
-      } else {
-        polylineRef.current = new gmaps.Polyline({
-          path: latlngs,
-          geodesic: true,
-          strokeColor: "#22c55e",
-          strokeOpacity: 0.9,
-          strokeWeight: 4,
-          map,
-        });
-      }
-
-      // スタートマーカー（S）― 最初の1回だけ・zIndex低め
-      if (!startMarkerRef.current) {
-        startMarkerRef.current = new gmaps.Marker({
-          position: latlngs[0],
-          map,
-          zIndex: 1,
-          label: { text: "S", color: "#fff", fontWeight: "bold", fontSize: "12px" },
-          icon: {
-            path: gmaps.SymbolPath.CIRCLE,
-            scale: 10,
-            fillColor: "#22c55e",
-            fillOpacity: 1,
-            strokeColor: "#fff",
-            strokeWeight: 2,
-          },
-        });
-      }
-
-      // 現在地マーカー（G）― ポイント追加のたびに移動・zIndex高め（常にS の上）
-      const last = latlngs[latlngs.length - 1];
-      if (currentMarkerRef.current) {
-        currentMarkerRef.current.setPosition(last);
-      } else {
-        currentMarkerRef.current = new gmaps.Marker({
-          position: last,
-          map,
-          zIndex: 10,
-          label: { text: "G", color: "#fff", fontWeight: "bold", fontSize: "13px" },
-          icon: {
-            path: gmaps.SymbolPath.CIRCLE,
-            scale: 13, // Sより大きく
-            fillColor: "#f97316", // オレンジで目立つ
-            fillOpacity: 1,
-            strokeColor: "#fff",
-            strokeWeight: 2.5,
-          },
-        });
-      }
-
-      // 追従モード: 現在地を中心にズーム16固定
-      // 全体表示モード: ルート全体がおさまるようにfitBounds
-      if (followMode) {
-        map.panTo(last);
-        if (map.getZoom() < 15) map.setZoom(16);
-      } else if (points.length >= 2) {
-        const bounds = new gmaps.LatLngBounds();
-        latlngs.forEach((p) => bounds.extend(p));
-        map.fitBounds(bounds, 40);
-      } else {
-        map.setCenter(last);
-        map.setZoom(16);
-      }
+      applyPoints(gmaps, points, followMode);
     }).catch((err) => console.error("[Map] Google Maps error:", err));
-    return () => { mounted = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [points, followMode]);
 
   // 拡大/縮小切替時にGoogleマップへリサイズ通知（CSS transition 300ms後に実行）
@@ -553,20 +590,32 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
       loadGoogleMaps().then((gmaps) => {
         if (!mapRef.current) return;
         gmaps.event.trigger(mapRef.current, "resize");
-        if (followMode && points.length > 0) {
-          const last = points[points.length - 1];
-          mapRef.current.panTo(last);
-        }
+        applyPoints(gmaps, pointsRef.current, followModeRef.current);
       }).catch(() => {});
-    }, 320); // transition-all duration-300 の完了を待つ
+    }, 320);
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expanded]);
 
   const mapHeight = expanded ? "400px" : "260px";
 
+  // Googleマップナビ URL（現在地→成田空港）
+  const navUrl = points.length > 0
+    ? `https://maps.google.com/?saddr=${points[points.length - 1].lat},${points[points.length - 1].lng}&daddr=${NARITA_DEST.lat},${NARITA_DEST.lng}&travelmode=driving`
+    : `https://maps.google.com/?daddr=${NARITA_DEST.lat},${NARITA_DEST.lng}&travelmode=driving`;
+
   return (
     <div className="space-y-1.5">
+      {/* ナビボタン（走行中は必ずこちらを使う） */}
+      <a
+        href={navUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm transition-colors"
+      >
+        🗺 Googleマップでナビ開始（成田空港）
+      </a>
+
       {/* ツールバー */}
       <div className="flex items-center justify-between px-1">
         <div className="flex gap-1.5">
@@ -613,8 +662,8 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
       </div>
 
       <div className="flex justify-between text-[10px] text-gray-600 px-1">
-        <span>📍 {points.length} ポイント記録中</span>
-        <span>📡 送信 {sendCount} 回</span>
+        <span>🟢 出発地 &nbsp;🟠 現在地 &nbsp;🔵 成田空港</span>
+        <span>📡 {sendCount} 回送信</span>
       </div>
     </div>
   );
