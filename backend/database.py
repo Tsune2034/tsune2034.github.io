@@ -11,7 +11,7 @@ import math
 import os
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Boolean, Float
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Boolean, Float, text
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from .models import BriefingResponse, KeyEvent, RiskFactor
@@ -422,8 +422,27 @@ class BriefingRecord(Base):
     generated_at = Column(DateTime(timezone=True), nullable=False)
 
 
+def _run_migrations() -> None:
+    """既存テーブルへ新カラムを追加するマイグレーション（べき等）"""
+    is_sqlite = DATABASE_URL.startswith("sqlite")
+    migrations = [
+        # bookings テーブル
+        ("bookings", "customs_exited",      "BOOLEAN DEFAULT FALSE NOT NULL" if is_sqlite else "BOOLEAN DEFAULT FALSE"),
+        ("bookings", "customer_message",    "VARCHAR(32)"),
+        ("bookings", "customer_message_at", "TIMESTAMP" if is_sqlite else "TIMESTAMPTZ"),
+    ]
+    with engine.connect() as conn:
+        for table, column, col_def in migrations:
+            try:
+                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {col_def}"))
+                conn.commit()
+            except Exception:
+                conn.rollback()  # カラムが既に存在する場合は無視
+
+
 def init_db() -> None:
     Base.metadata.create_all(bind=engine)
+    _run_migrations()
 
 
 # ───────────────────────── Booking CRUD ─────────────────────────

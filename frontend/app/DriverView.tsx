@@ -528,17 +528,20 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
     return () => { mounted = false; };
   }, [points, followMode]);
 
-  // 拡大/縮小切替時にGoogleマップへリサイズ通知（これがないと地図がズレる）
+  // 拡大/縮小切替時にGoogleマップへリサイズ通知（CSS transition 300ms後に実行）
   useEffect(() => {
     if (!mapRef.current) return;
-    loadGoogleMaps().then((gmaps) => {
-      if (!mapRef.current) return;
-      gmaps.event.trigger(mapRef.current, "resize");
-      if (followMode && points.length > 0) {
-        const last = points[points.length - 1];
-        mapRef.current.panTo(last);
-      }
-    }).catch(() => {});
+    const t = setTimeout(() => {
+      loadGoogleMaps().then((gmaps) => {
+        if (!mapRef.current) return;
+        gmaps.event.trigger(mapRef.current, "resize");
+        if (followMode && points.length > 0) {
+          const last = points[points.length - 1];
+          mapRef.current.panTo(last);
+        }
+      }).catch(() => {});
+    }, 320); // transition-all duration-300 の完了を待つ
+    return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expanded]);
 
