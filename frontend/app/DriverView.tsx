@@ -528,6 +528,20 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
     return () => { mounted = false; };
   }, [points, followMode]);
 
+  // 拡大/縮小切替時にGoogleマップへリサイズ通知（これがないと地図がズレる）
+  useEffect(() => {
+    if (!mapRef.current) return;
+    loadGoogleMaps().then((gmaps) => {
+      if (!mapRef.current) return;
+      gmaps.event.trigger(mapRef.current, "resize");
+      if (followMode && points.length > 0) {
+        const last = points[points.length - 1];
+        mapRef.current.panTo(last);
+      }
+    }).catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expanded]);
+
   const mapHeight = expanded ? "400px" : "260px";
 
   return (
@@ -972,14 +986,24 @@ export default function DriverView({ tr }: { tr: Translation }) {
         });
       };
 
+      const GPS_MIN_DIST_M = 15; // 15m未満の移動はノイズとして無視
+      const GPS_MAX_POINTS = 100; // 地図に表示する最大ポイント数
+
       const wid = navigator.geolocation.watchPosition(
         (pos) => {
-          lastLat = pos.coords.latitude;
-          lastLng = pos.coords.longitude;
+          const newLat = pos.coords.latitude;
+          const newLng = pos.coords.longitude;
+          // 前回地点から15m以上移動した場合のみ更新（ノイズ除去）
+          if (lastLat !== 0 && calcDistanceM(lastLat, lastLng, newLat, newLng) < GPS_MIN_DIST_M) return;
+          lastLat = newLat;
+          lastLng = newLng;
           const dist = distToNarita(lastLat, lastLng);
           setDeliveries((prev) => prev.map((d) => {
             if (d.bookingId !== bookingId) return d;
-            const updated = { ...d, trackPoints: [...d.trackPoints, { lat: lastLat, lng: lastLng }] };
+            const newPoints = [...d.trackPoints, { lat: lastLat, lng: lastLng }];
+            // 100件超えたら古い点を削除（スライディングウィンドウ）
+            const trimmed = newPoints.length > GPS_MAX_POINTS ? newPoints.slice(-GPS_MAX_POINTS) : newPoints;
+            const updated = { ...d, trackPoints: trimmed };
             // heading 中で500m以内 → 「近くにいます」自動切替
             if (d.status === "heading" && dist <= NEARBY_THRESHOLD_M) {
               pushStatus(bookingId, "nearby", d.routeType);
@@ -995,7 +1019,7 @@ export default function DriverView({ tr }: { tr: Translation }) {
             console.warn("[GPS] watchPosition error:", err.message);
           }
         },
-        { enableHighAccuracy: true, timeout: 10000 },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 },
       );
 
       const iid = setInterval(send, GPS_INTERVAL_MS);
