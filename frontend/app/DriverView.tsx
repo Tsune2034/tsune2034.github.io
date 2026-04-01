@@ -52,6 +52,7 @@ interface ActiveDelivery {
   customsExited: boolean;
   customerMessage: string | null;
   customerMessageAt: string | null;
+  heading: number | null; // GPS進行方向（度、北=0）
 }
 
 // お客から届くメッセージのラベル（ドライバー向け日本語表示）
@@ -423,7 +424,7 @@ function loadGoogleMaps(): Promise<typeof google.maps> {
   });
 }
 
-function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number }[]; sendCount: number }) {
+function GpsTrackMap({ points, sendCount, heading }: { points: { lat: number; lng: number }[]; sendCount: number; heading: number | null }) {
   const mapDivRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapRef = useRef<any>(null);
@@ -436,6 +437,8 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const destMarkerRef = useRef<any>(null);
   const [followMode, setFollowMode] = useState(true); // true=現在地追従 / false=全体表示
+  const [headingUp, setHeadingUp] = useState(false);  // true=進行方向UP / false=北UP固定
+  const [driveMode, setDriveMode] = useState(false);  // true=ドライブモード（地図大・最小UI）
   const [expanded, setExpanded] = useState(false);    // 拡大表示モード
 
   // レースコンディション防止用 ref（init effect が async で完了した後に最新ポイントを参照するため）
@@ -443,6 +446,10 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
   pointsRef.current = points;
   const followModeRef = useRef(followMode);
   followModeRef.current = followMode;
+  const headingRef = useRef(heading);
+  headingRef.current = heading;
+  const headingUpRef = useRef(headingUp);
+  headingUpRef.current = headingUp;
 
   // ポイント・マーカー・パン/ズームを地図に反映する共通関数
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -539,6 +546,14 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
       map.setCenter(last);
       map.setZoom(16);
     }
+
+    // 進行方向UP（ヘディングアップ）/ 北UP
+    const h = headingRef.current;
+    if (headingUpRef.current && h !== null && !Number.isNaN(h)) {
+      map.setHeading(h);
+    } else {
+      map.setHeading(0);
+    }
   }
 
   // マップ初期化（マウント時1回）― 完了後に既存ポイントを即描画してレースコンディション解消
@@ -583,7 +598,7 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [points, followMode]);
 
-  // 拡大/縮小切替時にGoogleマップへリサイズ通知（CSS transition 300ms後に実行）
+  // 拡大/縮小・ドライブモード切替時にGoogleマップへリサイズ通知
   useEffect(() => {
     if (!mapRef.current) return;
     const t = setTimeout(() => {
@@ -595,9 +610,15 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
     }, 320);
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [expanded]);
+  }, [expanded, driveMode]);
 
-  const mapHeight = expanded ? "400px" : "260px";
+  // 進行方向が変わったら地図を回転（ヘディングアップ有効時）
+  useEffect(() => {
+    if (!mapRef.current || !headingUp || heading === null || Number.isNaN(heading)) return;
+    mapRef.current.setHeading(heading);
+  }, [heading, headingUp]);
+
+  const mapHeight = driveMode ? "560px" : expanded ? "400px" : "280px";
 
   // Googleマップナビ URL（現在地→成田空港）
   const navUrl = points.length > 0
@@ -616,36 +637,61 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
         🗺 Googleマップでナビ開始（成田空港）
       </a>
 
-      {/* ツールバー */}
-      <div className="flex items-center justify-between px-1">
-        <div className="flex gap-1.5">
+      {/* ドライブモードON/OFF（ミラーリング時はこれをON） */}
+      <button
+        type="button"
+        onClick={() => { setDriveMode((v) => !v); setFollowMode(true); setHeadingUp(true); }}
+        className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm transition-colors ${
+          driveMode
+            ? "bg-amber-500 text-black"
+            : "bg-gray-800 border border-gray-600 text-gray-300 hover:border-amber-500"
+        }`}
+      >
+        {driveMode ? "🚗 ドライブモード ON（タップで解除）" : "🚗 ドライブモード（ミラーリング時）"}
+      </button>
+
+      {/* ツールバー（ドライブモード中は非表示） */}
+      {!driveMode && (
+        <div className="flex items-center justify-between px-1">
+          <div className="flex gap-1.5">
+            <button
+              type="button"
+              onClick={() => setFollowMode(true)}
+              className={`text-[10px] px-2.5 py-1 rounded-full font-semibold transition-colors ${
+                followMode ? "bg-sky-600 text-white" : "bg-gray-800 text-gray-400 border border-gray-700"
+              }`}
+            >
+              📍 追従
+            </button>
+            <button
+              type="button"
+              onClick={() => setFollowMode(false)}
+              className={`text-[10px] px-2.5 py-1 rounded-full font-semibold transition-colors ${
+                !followMode ? "bg-green-700 text-white" : "bg-gray-800 text-gray-400 border border-gray-700"
+              }`}
+            >
+              🗺 全体
+            </button>
+            <button
+              type="button"
+              onClick={() => setHeadingUp((v) => !v)}
+              className={`text-[10px] px-2.5 py-1 rounded-full font-semibold transition-colors ${
+                headingUp ? "bg-orange-600 text-white" : "bg-gray-800 text-gray-400 border border-gray-700"
+              }`}
+              title="進行方向を常に上に表示"
+            >
+              {headingUp ? "🧭 進行方向UP" : "🧭 北UP"}
+            </button>
+          </div>
           <button
             type="button"
-            onClick={() => setFollowMode(true)}
-            className={`text-[10px] px-2.5 py-1 rounded-full font-semibold transition-colors ${
-              followMode ? "bg-sky-600 text-white" : "bg-gray-800 text-gray-400 border border-gray-700"
-            }`}
+            onClick={() => setExpanded((v) => !v)}
+            className="text-[10px] px-2.5 py-1 rounded-full bg-gray-800 text-gray-400 border border-gray-700"
           >
-            📍 追従
-          </button>
-          <button
-            type="button"
-            onClick={() => setFollowMode(false)}
-            className={`text-[10px] px-2.5 py-1 rounded-full font-semibold transition-colors ${
-              !followMode ? "bg-green-700 text-white" : "bg-gray-800 text-gray-400 border border-gray-700"
-            }`}
-          >
-            🗺 全体
+            {expanded ? "⬆ 縮小" : "⬇ 拡大"}
           </button>
         </div>
-        <button
-          type="button"
-          onClick={() => setExpanded((v) => !v)}
-          className="text-[10px] px-2.5 py-1 rounded-full bg-gray-800 text-gray-400 border border-gray-700"
-        >
-          {expanded ? "⬆ 縮小" : "⬇ 拡大"}
-        </button>
-      </div>
+      )}
 
       {/* 地図本体 */}
       <div className="relative">
@@ -659,12 +705,20 @@ function GpsTrackMap({ points, sendCount }: { points: { lat: number; lng: number
             GPS記録待機中…
           </div>
         )}
+        {/* ドライブモード中：進行方向インジケーター */}
+        {driveMode && heading !== null && !Number.isNaN(heading) && (
+          <div className="absolute top-2 right-2 bg-black/70 text-white text-xs font-bold px-2 py-1 rounded-lg">
+            🧭 {Math.round(heading)}°
+          </div>
+        )}
       </div>
 
-      <div className="flex justify-between text-[10px] text-gray-600 px-1">
-        <span>🟢 出発地 &nbsp;🟠 現在地 &nbsp;🔵 成田空港</span>
-        <span>📡 {sendCount} 回送信</span>
-      </div>
+      {!driveMode && (
+        <div className="flex justify-between text-[10px] text-gray-600 px-1">
+          <span>🟢 出発地 &nbsp;🟠 現在地 &nbsp;🔵 成田空港</span>
+          <span>📡 {sendCount} 回送信</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -904,7 +958,7 @@ function DeliveryCard({
 
       {/* GPS地図 */}
       {delivery.gpsActive && (
-        <GpsTrackMap points={delivery.trackPoints} sendCount={delivery.sendCount} />
+        <GpsTrackMap points={delivery.trackPoints} sendCount={delivery.sendCount} heading={delivery.heading} />
       )}
 
       {/* ステータス更新ボタン */}
@@ -1062,7 +1116,7 @@ export default function DriverView({ tr }: { tr: Translation }) {
   function addDelivery() {
     const id = bookingInput.trim().toUpperCase();
     if (!id.startsWith("KRX-") || deliveries.find((d) => d.bookingId === id)) return;
-    setDeliveries((prev) => [...prev, { bookingId: id, status: "heading", gpsActive: false, routeType: "local", trackPoints: [], sendCount: 0, customsExited: false, customerMessage: null, customerMessageAt: null }]);
+    setDeliveries((prev) => [...prev, { bookingId: id, status: "heading", gpsActive: false, routeType: "local", trackPoints: [], sendCount: 0, customsExited: false, customerMessage: null, customerMessageAt: null, heading: null }]);
     setBookingInput("");
   }
 
@@ -1113,6 +1167,7 @@ export default function DriverView({ tr }: { tr: Translation }) {
         (pos) => {
           const newLat = pos.coords.latitude;
           const newLng = pos.coords.longitude;
+          const newHeading = pos.coords.heading; // 進行方向（度、北=0）※静止中はnull
           // 前回地点から15m以上移動した場合のみ更新（ノイズ除去）
           if (lastLat !== 0 && calcDistanceM(lastLat, lastLng, newLat, newLng) < GPS_MIN_DIST_M) return;
           lastLat = newLat;
@@ -1123,7 +1178,7 @@ export default function DriverView({ tr }: { tr: Translation }) {
             const newPoints = [...d.trackPoints, { lat: lastLat, lng: lastLng }];
             // 100件超えたら古い点を削除（スライディングウィンドウ）
             const trimmed = newPoints.length > GPS_MAX_POINTS ? newPoints.slice(-GPS_MAX_POINTS) : newPoints;
-            const updated = { ...d, trackPoints: trimmed };
+            const updated = { ...d, trackPoints: trimmed, heading: newHeading };
             // heading 中で500m以内 → 「近くにいます」自動切替
             if (d.status === "heading" && dist <= NEARBY_THRESHOLD_M) {
               pushStatus(bookingId, "nearby", d.routeType);
