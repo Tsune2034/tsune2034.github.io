@@ -481,16 +481,16 @@ function GpsTrackMap({ points, sendCount, heading }: { points: { lat: number; ln
     if (pts.length === 0) return;
     const latlngs = pts.map((p) => ({ lat: p.lat, lng: p.lng }));
 
-    // ルートライン
+    // ルートライン（走行済み軌跡）
     if (polylineRef.current) {
       polylineRef.current.setPath(latlngs);
     } else {
       polylineRef.current = new gmaps.Polyline({
         path: latlngs,
         geodesic: true,
-        strokeColor: "#22c55e",
-        strokeOpacity: 0.9,
-        strokeWeight: 4,
+        strokeColor: "#3b82f6",  // 青: 走行済みルート
+        strokeOpacity: 0.85,
+        strokeWeight: 6,
         map,
       });
     }
@@ -514,24 +514,28 @@ function GpsTrackMap({ points, sendCount, heading }: { points: { lat: number; ln
       });
     }
 
-    // 現在地マーカー（オレンジ丸）― ポイント追加のたびに移動
+    // 現在地マーカー（進行方向を向いたナビ矢印）― ポイント追加のたびに移動・回転
     const last = latlngs[latlngs.length - 1];
+    const h = headingRef.current;
+    const navIcon = {
+      path: gmaps.SymbolPath.FORWARD_CLOSED_ARROW,
+      scale: 7,
+      fillColor: "#f97316",
+      fillOpacity: 1,
+      strokeColor: "#fff",
+      strokeWeight: 2,
+      rotation: (h !== null && !Number.isNaN(h)) ? h : 0,
+    };
     if (currentMarkerRef.current) {
       currentMarkerRef.current.setPosition(last);
+      currentMarkerRef.current.setIcon(navIcon); // heading変化のたびに回転更新
     } else {
       currentMarkerRef.current = new gmaps.Marker({
         position: last,
         map,
         zIndex: 10,
         title: "現在地",
-        icon: {
-          path: gmaps.SymbolPath.CIRCLE,
-          scale: 13,
-          fillColor: "#f97316",
-          fillOpacity: 1,
-          strokeColor: "#fff",
-          strokeWeight: 2.5,
-        },
+        icon: navIcon,
       });
     }
 
@@ -549,8 +553,7 @@ function GpsTrackMap({ points, sendCount, heading }: { points: { lat: number; ln
       map.setZoom(16);
     }
 
-    // 進行方向UP（ヘディングアップ）/ 北UP
-    const h = headingRef.current;
+    // 進行方向UP（ヘディングアップ）/ 北UP（hは上で定義済み）
     if (headingUpRef.current && h !== null && !Number.isNaN(h)) {
       map.setHeading(h);
     } else {
@@ -614,10 +617,22 @@ function GpsTrackMap({ points, sendCount, heading }: { points: { lat: number; ln
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expanded, driveMode]);
 
-  // 進行方向が変わったら地図を回転（ヘディングアップ有効時）
+  // 進行方向が変わったら: 地図回転（ヘディングアップ時）+ 矢印マーカー回転（常時）
   useEffect(() => {
-    if (!mapRef.current || !headingUp || heading === null || Number.isNaN(heading)) return;
-    mapRef.current.setHeading(heading);
+    if (!mapRef.current || heading === null || Number.isNaN(heading)) return;
+    if (headingUp) mapRef.current.setHeading(heading);
+    if (currentMarkerRef.current) {
+      currentMarkerRef.current.setIcon({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        path: (window as any).google?.maps?.SymbolPath?.FORWARD_CLOSED_ARROW ?? 1,
+        scale: 7,
+        fillColor: "#f97316",
+        fillOpacity: 1,
+        strokeColor: "#fff",
+        strokeWeight: 2,
+        rotation: heading,
+      });
+    }
   }, [heading, headingUp]);
 
   const mapHeight = driveMode ? "560px" : expanded ? "400px" : "280px";
