@@ -125,9 +125,10 @@ function etaLabel(f: FlightInfo): { text: string; color: string; urgent: boolean
 
 const CUSTOMS_WAIT_SEC = 45 * 60; // 平均入国審査+税関 45分
 
-function FlightBoard({ watchedFlightIata, onWatch }: {
+function FlightBoard({ watchedFlightIata, onWatch, onLanding }: {
   watchedFlightIata: string | null;
   onWatch: (iata: string | null) => void;
+  onLanding?: (flightIata: string, terminal: string | null) => void;
 }) {
   const [flights, setFlights] = useState<FlightInfo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -176,13 +177,14 @@ function FlightBoard({ watchedFlightIata, onWatch }: {
     ? flights.find((f) => f.flightIata.toUpperCase() === watchedFlightIata.toUpperCase()) ?? null
     : null;
 
-  // 着陸検知 → landedAt記録
+  // 着陸検知 → landedAt記録 + onLanding通知
   useEffect(() => {
     if (watchedFlightInfo?.status === "landed" && !landedAt) {
       const t = watchedFlightInfo.actualArrival
         ? new Date(watchedFlightInfo.actualArrival)
         : new Date();
       setLandedAt(t);
+      onLanding?.(watchedFlightInfo.flightIata, watchedFlightInfo.terminal ?? null);
     }
     if (!watchedFlightInfo) {
       setLandedAt(null);
@@ -1041,6 +1043,32 @@ export default function DriverView({ tr }: { tr: Translation }) {
   const [tomorrowBookings, setTomorrowBookings] = useState<{ booking_id: string; name: string; total_amount: number }[]>([]);
   const [watchedFlightIata, setWatchedFlightIata] = useState<string | null>(null);
   const [parkingStart, setParkingStart] = useState<Date | null>(null);
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+
+  // GPS ON時に画面スリープを防止、OFF時に解除
+  const acquireWakeLock = async () => {
+    if (!("wakeLock" in navigator)) return;
+    try {
+      wakeLockRef.current = await navigator.wakeLock.request("screen");
+    } catch { /* 非対応端末は無視 */ }
+  };
+  const releaseWakeLock = () => {
+    wakeLockRef.current?.release();
+    wakeLockRef.current = null;
+  };
+
+  // 着陸検知 → OpenClaw経由でオペレーターへLINE通知
+  const handleLanding = async (flightIata: string, terminal: string | null) => {
+    const t = terminal ? `T${terminal}` : "成田";
+    const msg = `✈️ [KAIROX] ${flightIata} が着陸しました。${t}出口に約45分後にお客様が出てきます。`;
+    try {
+      await fetch("/api/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to: "operator", message: msg, event: "landing" }),
+      });
+    } catch { /* 通知失敗は無視 */ }
+  };
   const [parkingRemain, setParkingRemain] = useState(1800);
   const watchIds = useRef<Map<string, number>>(new Map());
   const intervals = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
@@ -1133,13 +1161,14 @@ export default function DriverView({ tr }: { tr: Translation }) {
     if (!delivery) return;
 
     if (delivery.gpsActive) {
-      // GPS停止
+      // GPS停止 + Wake Lock解除
       const wid = watchIds.current.get(bookingId);
       if (wid !== undefined) navigator.geolocation?.clearWatch(wid);
       const iid = intervals.current.get(bookingId);
       if (iid !== undefined) clearInterval(iid);
       watchIds.current.delete(bookingId);
       intervals.current.delete(bookingId);
+      releaseWakeLock();
       setDeliveries((prev) => prev.map((d) => d.bookingId === bookingId ? { ...d, gpsActive: false } : d));
     } else {
       // GPS開始
@@ -1200,6 +1229,7 @@ export default function DriverView({ tr }: { tr: Translation }) {
       const iid = setInterval(send, GPS_INTERVAL_MS);
       watchIds.current.set(bookingId, wid);
       intervals.current.set(bookingId, iid);
+      acquireWakeLock(); // 画面スリープを防止
 
       setDeliveries((prev) => prev.map((d) => d.bookingId === bookingId ? { ...d, gpsActive: true } : d));
     }
@@ -1356,7 +1386,7 @@ export default function DriverView({ tr }: { tr: Translation }) {
 
       {/* ─── フライト情報ボード ─── */}
       <div className="border-t border-gray-800 pt-5">
-        <FlightBoard watchedFlightIata={watchedFlightIata} onWatch={setWatchedFlightIata} />
+        <FlightBoard watchedFlightIata={watchedFlightIata} onWatch={setWatchedFlightIata} onLanding={handleLanding} />
       </div>
 
     </div>
