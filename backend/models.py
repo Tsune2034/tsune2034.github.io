@@ -125,6 +125,8 @@ class BookingResponse(BaseModel):
     customer_message_at: Optional[str] = None
     driver_message: Optional[str] = None
     driver_message_at: Optional[str] = None
+    destination: Optional[str] = None   # "hotel" | "narita" | "haneda"
+    hotel_name: Optional[str] = None    # 配達先ホテル名（destinationがhotelの場合）
 
 
 

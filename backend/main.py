@@ -336,6 +336,8 @@ def get_booking_endpoint(booking_id: str, db: Session = Depends(get_db)):
         customer_message_at=record.customer_message_at.isoformat() if record.customer_message_at else None,
         driver_message=record.driver_message,
         driver_message_at=record.driver_message_at.isoformat() if record.driver_message_at else None,
+        destination=record.destination,
+        hotel_name=record.hotel_name,
     )
 
 
