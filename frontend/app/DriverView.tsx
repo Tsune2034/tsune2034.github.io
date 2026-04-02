@@ -53,6 +53,7 @@ interface ActiveDelivery {
   customerMessage: string | null;
   customerMessageAt: string | null;
   heading: number | null; // GPS進行方向（度、北=0）
+  speed: number | null;   // 速度（km/h）
 }
 
 // お客から届くメッセージのラベル（ドライバー向け日本語表示）
@@ -426,7 +427,7 @@ function loadGoogleMaps(): Promise<typeof google.maps> {
   });
 }
 
-function GpsTrackMap({ points, sendCount, heading }: { points: { lat: number; lng: number }[]; sendCount: number; heading: number | null }) {
+function GpsTrackMap({ points, sendCount, heading, speed }: { points: { lat: number; lng: number }[]; sendCount: number; heading: number | null; speed: number | null }) {
   const mapDivRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapRef = useRef<any>(null);
@@ -438,6 +439,10 @@ function GpsTrackMap({ points, sendCount, heading }: { points: { lat: number; ln
   const currentMarkerRef = useRef<any>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const destMarkerRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const routePolylineRef = useRef<any>(null); // Directions APIの先行ルート線
+  const speedRef = useRef(speed);
+  speedRef.current = speed;
   const [followMode, setFollowMode] = useState(true); // true=現在地追従 / false=全体表示
   const [headingUp, setHeadingUp] = useState(false);  // true=進行方向UP / false=北UP固定
   const [driveMode, setDriveMode] = useState(false);  // true=ドライブモード（地図大・最小UI）
@@ -539,10 +544,16 @@ function GpsTrackMap({ points, sendCount, heading }: { points: { lat: number; ln
       });
     }
 
+    // 速度連動ズーム（高速走行時は広域表示・市街地は詳細表示）
+    const kmh = speedRef.current;
+    const targetZoom = kmh !== null && kmh > 80 ? 13    // 高速道路（80km/h超）
+                     : kmh !== null && kmh > 40 ? 15    // 郊外（40-80km/h）
+                     : 17;                              // 市街地・低速
+
     // パン / ズーム
     if (follow) {
       map.panTo(last);
-      if (map.getZoom() < 15) map.setZoom(16);
+      map.setZoom(targetZoom);
     } else if (pts.length >= 2) {
       const bounds = new gmaps.LatLngBounds();
       latlngs.forEach((p) => bounds.extend(p));
@@ -550,7 +561,7 @@ function GpsTrackMap({ points, sendCount, heading }: { points: { lat: number; ln
       map.fitBounds(bounds, 40);
     } else {
       map.setCenter(last);
-      map.setZoom(16);
+      map.setZoom(targetZoom);
     }
 
     // 進行方向UP（ヘディングアップ）/ 北UP（hは上で定義済み）
@@ -559,6 +570,39 @@ function GpsTrackMap({ points, sendCount, heading }: { points: { lat: number; ln
     } else {
       map.setHeading(0);
     }
+  }
+
+  // Directions APIで現在地→成田のルートを取得して先行ルート線を描画
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function fetchRoute(gmaps: any, origin: { lat: number; lng: number }) {
+    const map = mapRef.current;
+    if (!map) return;
+    const svc = new gmaps.DirectionsService();
+    svc.route(
+      {
+        origin,
+        destination: NARITA_DEST,
+        travelMode: gmaps.TravelMode.DRIVING,
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (result: any, status: any) => {
+        if (status !== "OK" || !result?.routes?.[0]) return;
+        const path = result.routes[0].overview_path;
+        if (routePolylineRef.current) {
+          routePolylineRef.current.setPath(path);
+        } else {
+          routePolylineRef.current = new gmaps.Polyline({
+            path,
+            geodesic: true,
+            strokeColor: "#a855f7", // 紫: 先行ルート（走行済み青と区別）
+            strokeOpacity: 0.6,
+            strokeWeight: 5,
+            map,
+            zIndex: 1,
+          });
+        }
+      }
+    );
   }
 
   // マップ初期化（マウント時1回）― 完了後に既存ポイントを即描画してレースコンディション解消
@@ -587,6 +631,7 @@ function GpsTrackMap({ points, sendCount, heading }: { points: { lat: number; ln
       mounted = false;
       mapRef.current = null;
       polylineRef.current = null;
+      routePolylineRef.current = null;
       startMarkerRef.current = null;
       currentMarkerRef.current = null;
       destMarkerRef.current = null;
@@ -595,21 +640,32 @@ function GpsTrackMap({ points, sendCount, heading }: { points: { lat: number; ln
   }, []);
 
   // ポイント更新時にルート・マーカーを反映（mapRef.current が null なら init 完了後に描画される）
+  const lastRouteFetchRef = useRef(0);
   useEffect(() => {
     if (!mapRef.current) return;
     loadGoogleMaps().then((gmaps) => {
       applyPoints(gmaps, points, followMode);
+      // 先行ルート: 初回 or 2分以上経過した場合に再取得
+      if (points.length > 0) {
+        const now = Date.now();
+        if (now - lastRouteFetchRef.current > 120_000) {
+          lastRouteFetchRef.current = now;
+          fetchRoute(gmaps, points[points.length - 1]);
+        }
+      }
     }).catch((err) => console.error("[Map] Google Maps error:", err));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [points, followMode]);
 
-  // 拡大/縮小・ドライブモード切替時にGoogleマップへリサイズ通知
+  // 拡大/縮小・ドライブモード切替時にGoogleマップへリサイズ通知 + tilt設定
   useEffect(() => {
     if (!mapRef.current) return;
     const t = setTimeout(() => {
       loadGoogleMaps().then((gmaps) => {
         if (!mapRef.current) return;
         gmaps.event.trigger(mapRef.current, "resize");
+        // ドライブモードON → 45°チルト（高速立体交差・分岐が見やすい）
+        mapRef.current.setTilt(driveMode ? 45 : 0);
         applyPoints(gmaps, pointsRef.current, followModeRef.current);
       }).catch(() => {});
     }, 320);
@@ -722,17 +778,26 @@ function GpsTrackMap({ points, sendCount, heading }: { points: { lat: number; ln
             GPS記録待機中…
           </div>
         )}
-        {/* ドライブモード中：進行方向インジケーター */}
-        {driveMode && heading !== null && !Number.isNaN(heading) && (
-          <div className="absolute top-2 right-2 bg-black/70 text-white text-xs font-bold px-2 py-1 rounded-lg">
-            🧭 {Math.round(heading)}°
+        {/* ドライブモード中：進行方向 + 速度インジケーター */}
+        {driveMode && (
+          <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
+            {heading !== null && !Number.isNaN(heading) && (
+              <div className="bg-black/70 text-white text-xs font-bold px-2 py-1 rounded-lg">
+                🧭 {Math.round(heading)}°
+              </div>
+            )}
+            {speed !== null && (
+              <div className={`bg-black/70 text-xs font-bold px-2 py-1 rounded-lg ${speed > 80 ? "text-purple-300" : speed > 40 ? "text-amber-300" : "text-green-300"}`}>
+                {speed} km/h
+              </div>
+            )}
           </div>
         )}
       </div>
 
       {!driveMode && (
         <div className="flex justify-between text-[10px] text-gray-600 px-1">
-          <span>🟢 出発地 &nbsp;🟠 現在地 &nbsp;🔵 成田空港</span>
+          <span>🟢 出発地 &nbsp;🔶 現在地 &nbsp;🔵 成田空港 &nbsp;🟣 先行ルート</span>
           <span>📡 {sendCount} 回送信</span>
         </div>
       )}
@@ -975,7 +1040,7 @@ function DeliveryCard({
 
       {/* GPS地図 */}
       {delivery.gpsActive && (
-        <GpsTrackMap points={delivery.trackPoints} sendCount={delivery.sendCount} heading={delivery.heading} />
+        <GpsTrackMap points={delivery.trackPoints} sendCount={delivery.sendCount} heading={delivery.heading} speed={delivery.speed} />
       )}
 
       {/* ステータス更新ボタン */}
@@ -1159,7 +1224,7 @@ export default function DriverView({ tr }: { tr: Translation }) {
   function addDelivery() {
     const id = bookingInput.trim().toUpperCase();
     if (!id.startsWith("KRX-") || deliveries.find((d) => d.bookingId === id)) return;
-    setDeliveries((prev) => [...prev, { bookingId: id, status: "heading", gpsActive: false, routeType: "local", trackPoints: [], sendCount: 0, customsExited: false, customerMessage: null, customerMessageAt: null, heading: null }]);
+    setDeliveries((prev) => [...prev, { bookingId: id, status: "heading", gpsActive: false, routeType: "local", trackPoints: [], sendCount: 0, customsExited: false, customerMessage: null, customerMessageAt: null, heading: null, speed: null }]);
     setBookingInput("");
   }
 
@@ -1212,6 +1277,8 @@ export default function DriverView({ tr }: { tr: Translation }) {
           const newLat = pos.coords.latitude;
           const newLng = pos.coords.longitude;
           const newHeading = pos.coords.heading; // 進行方向（度、北=0）※静止中はnull
+          // speed: m/s → km/h変換（nullの場合はnullのまま）
+          const newSpeed = pos.coords.speed !== null ? Math.round(pos.coords.speed * 3.6) : null;
           // 前回地点から15m以上移動した場合のみ更新（ノイズ除去）
           if (lastLat !== 0 && calcDistanceM(lastLat, lastLng, newLat, newLng) < GPS_MIN_DIST_M) return;
           lastLat = newLat;
@@ -1222,7 +1289,7 @@ export default function DriverView({ tr }: { tr: Translation }) {
             const newPoints = [...d.trackPoints, { lat: lastLat, lng: lastLng }];
             // 100件超えたら古い点を削除（スライディングウィンドウ）
             const trimmed = newPoints.length > GPS_MAX_POINTS ? newPoints.slice(-GPS_MAX_POINTS) : newPoints;
-            const updated = { ...d, trackPoints: trimmed, heading: newHeading };
+            const updated = { ...d, trackPoints: trimmed, heading: newHeading, speed: newSpeed };
             // heading 中で500m以内 → 「近くにいます」自動切替
             if (d.status === "heading" && dist <= NEARBY_THRESHOLD_M) {
               pushStatus(bookingId, "nearby", d.routeType);
