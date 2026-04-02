@@ -54,6 +54,8 @@ interface ActiveDelivery {
   customerMessageAt: string | null;
   heading: number | null; // GPS進行方向（度、北=0）
   speed: number | null;   // 速度（km/h）
+  destType: string | null;   // "hotel" | "narita" | "haneda"
+  destLabel: string | null;  // ホテル名 or 空港名（ナビ表示用）
 }
 
 // お客から届くメッセージのラベル（ドライバー向け日本語表示）
@@ -427,7 +429,7 @@ function loadGoogleMaps(): Promise<typeof google.maps> {
   });
 }
 
-function GpsTrackMap({ points, sendCount, heading, speed }: { points: { lat: number; lng: number }[]; sendCount: number; heading: number | null; speed: number | null }) {
+function GpsTrackMap({ points, sendCount, heading, speed, destLabel }: { points: { lat: number; lng: number }[]; sendCount: number; heading: number | null; speed: number | null; destLabel: string | null }) {
   const mapDivRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapRef = useRef<any>(null);
@@ -464,18 +466,22 @@ function GpsTrackMap({ points, sendCount, heading, speed }: { points: { lat: num
     const map = mapRef.current;
     if (!map) return;
 
-    // 成田空港ピン（常時表示）
+    // 目的地ピン（成田空港 or ホテル名）
+    const destTitle = destLabel ?? "成田空港";
+    const destLabelShort = destLabel
+      ? destLabel.length > 5 ? destLabel.slice(0, 5) + "…" : destLabel
+      : "空港";
     if (!destMarkerRef.current) {
       destMarkerRef.current = new gmaps.Marker({
-        position: NARITA_DEST,
+        position: NARITA_DEST, // ホテルは後でGeocodeされるが、初期表示は成田
         map,
         zIndex: 5,
-        title: "成田空港",
-        label: { text: "空港", color: "#fff", fontWeight: "bold", fontSize: "10px" },
+        title: destTitle,
+        label: { text: destLabelShort, color: "#fff", fontWeight: "bold", fontSize: "10px" },
         icon: {
           path: gmaps.SymbolPath.CIRCLE,
           scale: 14,
-          fillColor: "#3b82f6",
+          fillColor: destLabel ? "#16a34a" : "#3b82f6", // ホテル=緑 / 空港=青
           fillOpacity: 1,
           strokeColor: "#fff",
           strokeWeight: 2.5,
@@ -572,16 +578,18 @@ function GpsTrackMap({ points, sendCount, heading, speed }: { points: { lat: num
     }
   }
 
-  // Directions APIで現在地→成田のルートを取得して先行ルート線を描画
+  // Directions APIで現在地→目的地のルートを取得して先行ルート線を描画
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function fetchRoute(gmaps: any, origin: { lat: number; lng: number }) {
     const map = mapRef.current;
     if (!map) return;
+    // destLabelがホテル名ならテキスト検索、なければ成田座標
+    const destination = destLabel ? `${destLabel} 日本` : NARITA_DEST;
     const svc = new gmaps.DirectionsService();
     svc.route(
       {
         origin,
-        destination: NARITA_DEST,
+        destination,
         travelMode: gmaps.TravelMode.DRIVING,
       },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -694,9 +702,13 @@ function GpsTrackMap({ points, sendCount, heading, speed }: { points: { lat: num
   const mapHeight = driveMode ? "560px" : expanded ? "400px" : "280px";
 
   // Googleマップナビ URL（現在地→成田空港）
+  // 目的地: ホテル名（テキスト）or 成田空港座標
+  const daddr = destLabel
+    ? encodeURIComponent(`${destLabel} 日本`)
+    : `${NARITA_DEST.lat},${NARITA_DEST.lng}`;
   const navUrl = points.length > 0
-    ? `https://maps.google.com/?saddr=${points[points.length - 1].lat},${points[points.length - 1].lng}&daddr=${NARITA_DEST.lat},${NARITA_DEST.lng}&travelmode=driving`
-    : `https://maps.google.com/?daddr=${NARITA_DEST.lat},${NARITA_DEST.lng}&travelmode=driving`;
+    ? `https://maps.google.com/?saddr=${points[points.length - 1].lat},${points[points.length - 1].lng}&daddr=${daddr}&travelmode=driving`
+    : `https://maps.google.com/?daddr=${daddr}&travelmode=driving`;
 
   return (
     <div className="space-y-1.5">
@@ -707,7 +719,7 @@ function GpsTrackMap({ points, sendCount, heading, speed }: { points: { lat: num
         rel="noopener noreferrer"
         className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm transition-colors"
       >
-        🗺 Googleマップでナビ開始（成田空港）
+        🗺 Googleマップでナビ開始（{destLabel ?? "成田空港"}）
       </a>
 
       {/* ドライブモードON/OFF（ミラーリング時はこれをON） */}
@@ -1040,7 +1052,7 @@ function DeliveryCard({
 
       {/* GPS地図 */}
       {delivery.gpsActive && (
-        <GpsTrackMap points={delivery.trackPoints} sendCount={delivery.sendCount} heading={delivery.heading} speed={delivery.speed} />
+        <GpsTrackMap points={delivery.trackPoints} sendCount={delivery.sendCount} heading={delivery.heading} speed={delivery.speed} destLabel={delivery.destLabel} />
       )}
 
       {/* ステータス更新ボタン */}
@@ -1221,10 +1233,26 @@ export default function DriverView({ tr }: { tr: Translation }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deliveries.map((d) => d.bookingId + d.status).join(",")]);
 
-  function addDelivery() {
+  async function addDelivery() {
     const id = bookingInput.trim().toUpperCase();
     if (!id.startsWith("KRX-") || deliveries.find((d) => d.bookingId === id)) return;
-    setDeliveries((prev) => [...prev, { bookingId: id, status: "heading", gpsActive: false, routeType: "local", trackPoints: [], sendCount: 0, customsExited: false, customerMessage: null, customerMessageAt: null, heading: null, speed: null }]);
+
+    // 予約情報を取得して宛先を確認
+    let destType: string | null = null;
+    let destLabel: string | null = null;
+    try {
+      const res = await fetch(`/api/booking?id=${encodeURIComponent(id)}`);
+      if (res.ok) {
+        const data = await res.json();
+        destType = data.destination ?? null;
+        // hotelなら hotel_name、naritaなら null（デフォルト成田）、hanedaなら "羽田空港"
+        destLabel = destType === "hotel" ? (data.hotel_name || null)
+                  : destType === "haneda" ? "羽田空港"
+                  : null;
+      }
+    } catch { /* 取得失敗時はデフォルト（成田）で継続 */ }
+
+    setDeliveries((prev) => [...prev, { bookingId: id, status: "heading", gpsActive: false, routeType: "local", trackPoints: [], sendCount: 0, customsExited: false, customerMessage: null, customerMessageAt: null, heading: null, speed: null, destType, destLabel }]);
     setBookingInput("");
   }
 
