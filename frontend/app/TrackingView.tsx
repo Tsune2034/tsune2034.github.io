@@ -806,8 +806,14 @@ export default function TrackingView({ tr, initialNumber, locale = "en" }: { tr:
           {/* ドライバーからのメッセージ */}
           {info.driverMessage && DRIVER_MSG_DISPLAY[info.driverMessage] && (() => {
             const msg = DRIVER_MSG_DISPLAY[info.driverMessage][locale] ?? DRIVER_MSG_DISPLAY[info.driverMessage].en;
-            const isRecent = info.driverMessageAt
-              ? (Date.now() - new Date(info.driverMessageAt).getTime()) < 5 * 60 * 1000
+            // バックエンドのタイムスタンプはUTC（Zなし）→ Zを付けてUTCとして解釈
+            const msgTs = info.driverMessageAt
+              ? info.driverMessageAt.endsWith("Z") || info.driverMessageAt.includes("+")
+                ? info.driverMessageAt
+                : info.driverMessageAt + "Z"
+              : null;
+            const isRecent = msgTs
+              ? (Date.now() - new Date(msgTs).getTime()) < 5 * 60 * 1000
               : false;
             return (
               <div className={`flex items-center gap-3 rounded-2xl px-4 py-3 ${
@@ -817,7 +823,7 @@ export default function TrackingView({ tr, initialNumber, locale = "en" }: { tr:
                   <p className={`text-sm font-bold ${isRecent ? "text-sky-200" : "text-gray-400"}`}>{msg}</p>
                   {info.driverMessageAt && (
                     <p className="text-[10px] text-gray-600 mt-0.5">
-                      {new Date(info.driverMessageAt).toLocaleTimeString(locale === "ja" ? "ja-JP" : "en-US", { hour: "2-digit", minute: "2-digit" })}
+                      {new Date(msgTs!).toLocaleTimeString(locale === "ja" ? "ja-JP" : "en-US", { hour: "2-digit", minute: "2-digit" })}
                     </p>
                   )}
                 </div>

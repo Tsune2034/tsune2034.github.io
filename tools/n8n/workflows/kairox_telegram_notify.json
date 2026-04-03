@@ -1,0 +1,163 @@
+{
+  "name": "KAIROX — Telegram通知ブリッジ",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "notify",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001",
+      "name": "Webhook /notify",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true },
+          "conditions": [
+            {
+              "id": "auth-cond",
+              "leftValue": "={{ $request.headers['x-bridge-secret'] }}",
+              "rightValue": "={{ $env.OPENCLAW_BRIDGE_SECRET }}",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ]
+        }
+      },
+      "id": "a1b2c3d4-0002",
+      "name": "認証チェック",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "statusCode": 401,
+        "responseBody": "={\"error\": \"Unauthorized\"}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0003",
+      "name": "401 Unauthorized",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [650, 500]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.to }}",
+                    "rightValue": "operator",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "operator"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.to }}",
+                    "rightValue": "driver",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "driver"
+            }
+          ]
+        }
+      },
+      "id": "a1b2c3d4-0004",
+      "name": "送信先振り分け",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $env.OPERATOR_CHAT_ID }}",
+        "text": "={{ $('Webhook /notify').item.json.body.message }}",
+        "additionalFields": { "parse_mode": "HTML" }
+      },
+      "id": "a1b2c3d4-0005",
+      "name": "Telegram → Operator",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [850, 200],
+      "credentials": {
+        "telegramApi": { "id": "1", "name": "KAIROX Bot" }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $env.DRIVER_CHAT_ID }}",
+        "text": "={{ $('Webhook /notify').item.json.body.message }}",
+        "additionalFields": { "parse_mode": "HTML" }
+      },
+      "id": "a1b2c3d4-0006",
+      "name": "Telegram → Driver",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [850, 400],
+      "credentials": {
+        "telegramApi": { "id": "1", "name": "KAIROX Bot" }
+      }
+    },
+    {
+      "parameters": {
+        "statusCode": 200,
+        "responseBody": "={\"ok\": true}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0007",
+      "name": "200 OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    }
+  ],
+  "connections": {
+    "Webhook /notify": {
+      "main": [[{ "node": "認証チェック", "type": "main", "index": 0 }]]
+    },
+    "認証チェック": {
+      "main": [
+        [{ "node": "送信先振り分け", "type": "main", "index": 0 }],
+        [{ "node": "401 Unauthorized", "type": "main", "index": 0 }]
+      ]
+    },
+    "送信先振り分け": {
+      "main": [
+        [{ "node": "Telegram → Operator", "type": "main", "index": 0 }],
+        [{ "node": "Telegram → Driver", "type": "main", "index": 0 }]
+      ]
+    },
+    "Telegram → Operator": {
+      "main": [[{ "node": "200 OK", "type": "main", "index": 0 }]]
+    },
+    "Telegram → Driver": {
+      "main": [[{ "node": "200 OK", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "tags": ["kairox", "telegram"]
+}

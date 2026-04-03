@@ -1053,6 +1053,35 @@ def list_languages():
     ]
 
 
+@app.get("/stats/today")
+def stats_today(db: Session = Depends(get_db)):
+    """n8nデイリーレポート用 — 当日(JST)の予約統計"""
+    from sqlalchemy import func, case
+    jst = timezone(timedelta(hours=9))
+    today_jst = datetime.now(jst).date()
+    today_start = datetime(today_jst.year, today_jst.month, today_jst.day, tzinfo=timezone.utc) - timedelta(hours=9)
+    today_end = today_start + timedelta(days=1)
+
+    rows = db.query(
+        func.count(BookingRecord.id).label("total_bookings"),
+        func.sum(case((BookingRecord.status == "completed", 1), else_=0)).label("completed"),
+        func.sum(case((BookingRecord.status == "pending", 1), else_=0)).label("pending"),
+        func.sum(case((BookingRecord.status == "in_transit", 1), else_=0)).label("in_transit"),
+        func.coalesce(func.sum(BookingRecord.total_amount), 0).label("total_revenue"),
+    ).filter(
+        BookingRecord.created_at >= today_start,
+        BookingRecord.created_at < today_end,
+    ).first()
+
+    return {
+        "total_bookings": rows.total_bookings or 0,
+        "completed": rows.completed or 0,
+        "pending": rows.pending or 0,
+        "in_transit": rows.in_transit or 0,
+        "total_revenue": rows.total_revenue or 0,
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)

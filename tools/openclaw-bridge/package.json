@@ -1,0 +1,12 @@
+{
+  "name": "kairox-telegram-bridge",
+  "version": "2.0.0",
+  "description": "KAIROX Telegram notification bridge",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

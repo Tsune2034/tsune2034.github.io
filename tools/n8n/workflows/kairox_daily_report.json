@@ -1,0 +1,77 @@
+{
+  "name": "KAIROX — デイリーレポート（毎日22時）",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 22 * * *"
+            }
+          ]
+        }
+      },
+      "id": "b1c2d3e4-0001",
+      "name": "毎日22時",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.KAIROX_API_URL }}/api/stats/today",
+        "options": {}
+      },
+      "id": "b1c2d3e4-0002",
+      "name": "今日の予約統計取得",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst today = new Date().toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' });\n\nconst total = data.total_bookings ?? 0;\nconst revenue = data.total_revenue ?? 0;\nconst pending = data.pending ?? 0;\nconst completed = data.completed ?? 0;\n\nconst msg = [\n  `📊 <b>KAIROX デイリーレポート</b>`,\n  `📅 ${today}`,\n  ``,\n  `📦 予約数: <b>${total}件</b>`,\n  `✅ 完了: ${completed}件`,\n  `⏳ 待機中: ${pending}件`,\n  `💰 売上: ¥${revenue.toLocaleString()}`,\n].join('\\n');\n\nreturn [{ json: { message: msg } }];"
+      },
+      "id": "b1c2d3e4-0003",
+      "name": "レポート文章生成",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $env.DRIVER_CHAT_ID }}",
+        "text": "={{ $json.message }}",
+        "additionalFields": { "parse_mode": "HTML" }
+      },
+      "id": "b1c2d3e4-0004",
+      "name": "Telegram → Driver",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [850, 300],
+      "credentials": {
+        "telegramApi": { "id": "1", "name": "KAIROX Bot" }
+      }
+    }
+  ],
+  "connections": {
+    "毎日22時": {
+      "main": [[{ "node": "今日の予約統計取得", "type": "main", "index": 0 }]]
+    },
+    "今日の予約統計取得": {
+      "main": [[{ "node": "レポート文章生成", "type": "main", "index": 0 }]]
+    },
+    "レポート文章生成": {
+      "main": [[{ "node": "Telegram → Driver", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "timezone": "Asia/Tokyo"
+  },
+  "tags": ["kairox", "telegram", "daily-report"]
+}
