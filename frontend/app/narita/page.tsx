@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import dynamic from "next/dynamic";
+const JapanHeatMap = dynamic(() => import("../components/JapanHeatMap"), { ssr: false });
 
 // ─────────────────────────────────────────────
 // Types
@@ -1779,6 +1781,23 @@ export default function NaritaApp() {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* Japan Demand Heatmap */}
+      <section className="px-4 pb-8 max-w-lg mx-auto w-full">
+        <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
+          {locale === "ja" ? "配送エリア需要マップ" :
+           locale === "zh" ? "配送区域需求地图" :
+           locale === "ko" ? "배송 지역 수요 지도" :
+           "Inbound Demand Map"}
+        </h2>
+        <p className="text-[11px] text-gray-400 mb-3">
+          {locale === "ja" ? "成田空港から全国主要エリアへ手ぶら配送" :
+           locale === "zh" ? "从成田机场到全国主要地区的无行李配送" :
+           locale === "ko" ? "나리타 공항에서 전국 주요 지역으로 수하물 배송" :
+           "Luggage-free delivery from Narita to Japan's top destinations"}
+        </p>
+        <JapanHeatMap locale={locale} />
       </section>
 
       {/* Footer */}
