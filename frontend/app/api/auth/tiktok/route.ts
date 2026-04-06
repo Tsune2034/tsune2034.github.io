@@ -7,7 +7,7 @@ export async function GET() {
   }
 
   const redirectUri = `${process.env.NEXT_PUBLIC_BASE_URL ?? "https://kairox.jp"}/api/auth/tiktok/callback`;
-  const scope = "user.info.basic,video.upload,video.publish,video.list";
+  const scope = "user.info.basic,video.upload,video.publish";
   const state = Math.random().toString(36).substring(2);
 
   const params = new URLSearchParams({
