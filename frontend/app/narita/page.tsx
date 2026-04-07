@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import dynamic from "next/dynamic";
-const JapanHeatMap = dynamic(() => import("../components/JapanHeatMap"), { ssr: false });
 
 // ─────────────────────────────────────────────
 // Types
@@ -1059,6 +1057,17 @@ export default function NaritaApp() {
       .catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // 気象庁 天気警告
+  const [weatherAlert, setWeatherAlert] = useState<{
+    severe: boolean; typhoon: boolean; weather: string; pop: number;
+  } | null>(null);
+  useEffect(() => {
+    fetch("/api/weather")
+      .then((r) => r.ok ? r.json() : null)
+      .then((d) => { if (d) setWeatherAlert(d); })
+      .catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Luggage + payment
   const [bags, setBags] = useState(1);
   const [payMethod, setPayMethod] = useState<PayMethod>("credit");
@@ -1244,6 +1253,19 @@ export default function NaritaApp() {
 
       {/* Rideshare Ticker */}
       <RideShareTicker locale={locale} tr={tr} />
+
+      {/* 気象庁 悪天候バナー */}
+      {weatherAlert?.severe && (
+        <div className={`px-4 py-2.5 flex items-center gap-2 text-xs font-bold ${weatherAlert.typhoon ? "bg-red-900/90 text-red-100" : "bg-amber-900/90 text-amber-100"}`}>
+          <span className="text-base">{weatherAlert.typhoon ? "🌀" : "⛈"}</span>
+          <span>
+            {weatherAlert.typhoon
+              ? (locale === "ja" ? "台風・暴風警報 — 配達に遅延が生じる場合があります" : locale === "zh" ? "台风预警 — 可能发生延误" : locale === "ko" ? "태풍 경보 — 배송이 지연될 수 있습니다" : "Typhoon warning — Delays possible")
+              : (locale === "ja" ? `悪天候予報（降水確率${weatherAlert.pop}%）— 配達に遅延が生じる場合があります` : locale === "zh" ? `恶劣天气预报 — 可能发生延误` : locale === "ko" ? `악천후 예보 — 배송이 지연될 수 있습니다` : `Severe weather forecast — Delays possible`)}
+          </span>
+          <span className="ml-auto text-[10px] opacity-60">気象庁</span>
+        </div>
+      )}
 
       <main className="flex-1 max-w-lg mx-auto w-full px-4 py-6 space-y-5">
 
@@ -1783,22 +1805,6 @@ export default function NaritaApp() {
         </div>
       </section>
 
-      {/* Japan Demand Heatmap */}
-      <section className="px-4 pb-8 max-w-lg mx-auto w-full">
-        <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
-          {locale === "ja" ? "配送エリア需要マップ" :
-           locale === "zh" ? "配送区域需求地图" :
-           locale === "ko" ? "배송 지역 수요 지도" :
-           "Inbound Demand Map"}
-        </h2>
-        <p className="text-[11px] text-gray-400 mb-3">
-          {locale === "ja" ? "成田空港から全国主要エリアへ手ぶら配送" :
-           locale === "zh" ? "从成田机场到全国主要地区的无行李配送" :
-           locale === "ko" ? "나리타 공항에서 전국 주요 지역으로 수하물 배송" :
-           "Luggage-free delivery from Narita to Japan's top destinations"}
-        </p>
-        <JapanHeatMap locale={locale} />
-      </section>
 
       {/* Footer */}
       <footer className="border-t border-gray-200 mt-8 py-6 px-4 max-w-lg mx-auto w-full">
