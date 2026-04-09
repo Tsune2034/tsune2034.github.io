@@ -341,7 +341,10 @@ const TR = {
       { q: "Where do I hand over my bags?", a: "At the terminal exit / arrival hall. No dedicated counter — just meet our driver." },
       { q: "How long until bags arrive at my hotel?", a: "Typically 2–4 hours after pickup. Real-time tracking included." },
       { q: "What if my bags are lost or damaged?", a: "Covered up to ¥100,000 per booking." },
+      { q: "Can I use KAIROX for hotel check-out too?", a: "Coming soon. Currently we operate inbound only (airport → hotel)." },
     ],
+    contact_cta: "Still have questions?",
+    contact_link: "Contact us",
   },
   ja: {
     brand: "KAIROX", tagline: "日本を、手ぶらで。",
@@ -417,7 +420,10 @@ const TR = {
       { q: "荷物はどこで渡しますか？", a: "ターミナル出口・到着ロビー。専用カウンター不要 — ドライバーが直接お迎えします。" },
       { q: "荷物はいつホテルに届きますか？", a: "受け取りから通常2〜4時間。リアルタイム追跡機能付き。" },
       { q: "荷物が紛失・破損した場合は？", a: "1回の予約につき最大¥100,000まで補償します。" },
+      { q: "ホテルチェックアウト時にも使えますか？", a: "近日公開予定です。現在は空港→ホテルの片道のみ対応しています。" },
     ],
+    contact_cta: "他にご不明な点はありますか？",
+    contact_link: "お問い合わせはこちら",
   },
   zh: {
     brand: "KAIROX", tagline: "畅游日本，轻装出行。",
@@ -485,7 +491,10 @@ const TR = {
       { q: "在哪里交行李？", a: "在航站楼出口/到达大厅。无需专用柜台 — 司机会直接来接。" },
       { q: "行李多久到达酒店？", a: "取件后通常2–4小时内送达，附实时追踪功能。" },
       { q: "行李丢失或损坏怎么办？", a: "每次预订最高赔偿¥100,000。" },
+      { q: "酒店退房时也可以使用吗？", a: "即将推出。目前仅支持机场→酒店的单程服务。" },
     ],
+    contact_cta: "还有其他问题？",
+    contact_link: "联系我们",
   },
   ko: {
     brand: "KAIROX", tagline: "일본을 손 가볍게.",
@@ -553,7 +562,10 @@ const TR = {
       { q: "짐은 어디서 건네나요?", a: "터미널 출구/도착 로비. 전용 카운터 불필요 — 기사님이 직접 만나러 옵니다." },
       { q: "짐은 언제 호텔에 도착하나요?", a: "수령 후 보통 2~4시간 이내. 실시간 추적 기능 포함." },
       { q: "짐이 분실되거나 파손되면?", a: "1회 예약당 최대 ¥100,000까지 보상합니다." },
+      { q: "호텔 체크아웃 시에도 이용 가능한가요?", a: "곧 출시 예정입니다. 현재는 공항→호텔 편도만 지원합니다." },
     ],
+    contact_cta: "다른 궁금한 점이 있으신가요?",
+    contact_link: "문의하기",
   },
 } as const;
 
@@ -1784,6 +1796,17 @@ export default function NaritaApp() {
       {/* FAQ */}
       <FaqSection items={tr.faq} title={tr.faq_title} />
 
+      {/* Contact CTA */}
+      <div className="px-4 pb-6 max-w-lg mx-auto w-full text-center">
+        <p className="text-xs text-gray-400 mb-2">{tr.contact_cta}</p>
+        <a
+          href="/contact"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0052ff] hover:text-[#003fcc] border border-[#0052ff]/40 hover:border-[#0052ff] px-4 py-2 rounded-full transition-all"
+        >
+          ✉️ {tr.contact_link}
+        </a>
+      </div>
+
       {/* Reviews */}
       <section className="px-4 pb-8 max-w-lg mx-auto w-full">
         <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">{tr.reviews_title}</h2>
@@ -1820,8 +1843,19 @@ export default function NaritaApp() {
             <span key={b} className="text-[10px] text-gray-400">{b}</span>
           ))}
         </div>
+        <div className="flex justify-center gap-4 mb-2">
+          <a href="/contact" className="text-[10px] text-gray-500 hover:text-[#0052ff] transition-colors">
+            {locale === "ja" ? "お問い合わせ" : locale === "zh" ? "联系我们" : locale === "ko" ? "문의하기" : "Contact"}
+          </a>
+          <a href="/terms" className="text-[10px] text-gray-500 hover:text-[#0052ff] transition-colors">
+            {locale === "ja" ? "利用規約" : locale === "zh" ? "服务条款" : locale === "ko" ? "이용약관" : "Terms"}
+          </a>
+          <a href="/privacy" className="text-[10px] text-gray-500 hover:text-[#0052ff] transition-colors">
+            {locale === "ja" ? "プライバシー" : locale === "zh" ? "隐私政策" : locale === "ko" ? "개인정보" : "Privacy"}
+          </a>
+        </div>
         <p className="text-center text-[10px] text-gray-700">
-          © 2025 KAIROX · Narita Beta · contact@kairox.jp
+          © 2025 KAIROX · Narita Beta
         </p>
         <p className="text-center text-[10px] text-gray-800 mt-1">
           {locale === "ja" ? "荷物の紛失・破損は最大¥100,000まで補償" :
