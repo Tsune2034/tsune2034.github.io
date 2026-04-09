@@ -59,11 +59,14 @@ export async function POST(req: NextRequest) {
       model: "claude-haiku-4-5-20251001",
       max_tokens: 512,
       system: SYSTEM_PROMPT,
+      tools: [{ type: "web_search_20250305", name: "web_search" }] as Parameters<typeof client.messages.create>[0]["tools"],
       messages: trimmed,
     });
 
-    const text =
-      response.content[0].type === "text" ? response.content[0].text : "";
+    const text = response.content
+      .filter((c) => c.type === "text")
+      .map((c) => (c as { type: "text"; text: string }).text)
+      .join("");
 
     return NextResponse.json({ text });
   } catch (err) {

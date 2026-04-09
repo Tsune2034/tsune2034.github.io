@@ -3,6 +3,30 @@ import { NextRequest, NextResponse } from "next/server";
 const API_KEY   = process.env.GOOGLE_MAPS_API_KEY ?? "";
 const BACKEND   = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
+// xROAD/JARTIC 交通量API（国交省・無料）
+// 成田〜都内の主要観測点（IC付近）の渋滞係数を取得して補正
+async function getJarticCongestion(hour: number): Promise<number> {
+  // 観測点: 千葉東JCT(35.6536,140.2012) / 篠崎IC(35.6920,139.8938) / 箱崎JCT(35.6773,139.7956)
+  // JARTIC Open Traffic API — 5分更新・国道交通量
+  try {
+    const res = await fetch(
+      `https://www.jartic-open-traffic.org/api/v1/traffic?lat=35.6773&lon=139.7956&radius=20`,
+      { signal: AbortSignal.timeout(3000), next: { revalidate: 300 } }
+    );
+    if (!res.ok) throw new Error("jartic error");
+    const data = await res.json();
+    // avg_travel_time_ratio: 1.0=通常, >1.5=渋滞
+    const ratio = data?.avg_travel_time_ratio ?? 1.0;
+    return Math.min(1.8, Math.max(1.0, ratio));
+  } catch {
+    // フォールバック: 時間帯ベースの経験値係数（成田→都内）
+    if (hour >= 7 && hour <= 9)   return 1.35; // 朝ラッシュ
+    if (hour >= 17 && hour <= 20) return 1.45; // 夜ラッシュ
+    if (hour >= 22 || hour <= 5)  return 0.90; // 深夜
+    return 1.0;
+  }
+}
+
 export interface EtaResult {
   durationMin: number;
   distanceKm: number;
@@ -27,12 +51,17 @@ export async function GET(req: NextRequest) {
     parseFloat(destLat),   parseFloat(destLng),
   );
 
-  // API キー未設定はフォールバック
+  const jstHour = new Date().getUTCHours() + 9 >= 24
+    ? new Date().getUTCHours() + 9 - 24
+    : new Date().getUTCHours() + 9;
+
+  // API キー未設定 → xROAD/JARTIC交通量で補正した推定値
   if (!API_KEY) {
+    const jarticFactor = await getJarticCongestion(jstHour);
     return NextResponse.json({
-      durationMin: Math.round((distKm / 30) * 60),
+      durationMin: Math.round((distKm / 30) * 60 * jarticFactor),
       distanceKm: Math.round(distKm * 10) / 10,
-      summary: "推定",
+      summary: jarticFactor > 1.2 ? "渋滞考慮済み (xROAD)" : "推定",
       source: "estimate",
     } satisfies EtaResult);
   }

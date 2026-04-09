@@ -574,26 +574,47 @@ function GpsStatsTab() {
                 📍現在地
               </button>
             </div>
-            <input
-              type="text"
-              value={testForm.dest}
-              onChange={(e) => {
-                const v = e.target.value;
-                const zone =
-                  /成田/.test(v)   ? "narita"  :
-                  /千葉/.test(v)   ? "chiba"   :
-                  /新宿/.test(v)   ? "shinjuku":
-                  /東京|丸の内|銀座|浅草|渋谷|品川/.test(v) ? "tokyo" :
-                  /札幌|大通|すすきの/.test(v) ? "sapporo":
-                  /小樽/.test(v)   ? "otaru"   :
-                  /富良野/.test(v) ? "furano"  :
-                  /千歳/.test(v)   ? "chitose" :
-                  null;
-                setTestForm((p) => ({ ...p, dest: v, ...(zone ? { zone } : {}) }));
-              }}
-              placeholder="目的地（住所貼り付けOK）"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-gray-500"
-            />
+            <div className="relative w-full">
+              <input
+                type="text"
+                value={testForm.dest}
+                onChange={async (e) => {
+                  const v = e.target.value;
+                  const zone =
+                    /成田/.test(v)   ? "narita"  :
+                    /千葉/.test(v)   ? "chiba"   :
+                    /新宿/.test(v)   ? "shinjuku":
+                    /東京|丸の内|銀座|浅草|渋谷|品川/.test(v) ? "tokyo" :
+                    /札幌|大通|すすきの/.test(v) ? "sapporo":
+                    /小樽/.test(v)   ? "otaru"   :
+                    /富良野/.test(v) ? "furano"  :
+                    /千歳/.test(v)   ? "chitose" :
+                    null;
+                  setTestForm((p) => ({ ...p, dest: v, ...(zone ? { zone } : {}) }));
+                  // 〒番号 or 住所テキストでジオコード（/api/geocode 経由）
+                  const zip = v.replace(/[〒\-ー－]/g, "").match(/^\d{7}$/);
+                  const looksLikeAddress = /[都道府県市区町村]/.test(v) && v.length >= 5;
+                  if (zip || looksLikeAddress) {
+                    try {
+                      const r = await fetch(`/api/geocode?q=${encodeURIComponent(v)}`);
+                      const j = await r.json();
+                      if (j.address && zip) {
+                        const addr = j.address;
+                        const autoZone =
+                          /千葉/.test(addr)   ? "chiba"   :
+                          /新宿/.test(addr)   ? "shinjuku":
+                          /東京|港区|渋谷|品川/.test(addr) ? "tokyo" :
+                          /成田/.test(addr)   ? "narita"  : null;
+                        setTestForm((p) => ({ ...p, dest: addr, ...(autoZone ? { zone: autoZone } : {}) }));
+                      }
+                    } catch { /* ignore */ }
+                  }
+                }}
+                placeholder="目的地（住所 or 〒1234567）"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-gray-500 pr-8"
+              />
+              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-500">〒</span>
+            </div>
             <select
               value={testForm.zone}
               onChange={(e) => setTestForm((p) => ({ ...p, zone: e.target.value }))}

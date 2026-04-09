@@ -5,6 +5,7 @@ const ALLOWED = new Set([CANONICAL, `www.${CANONICAL}`]);
 
 export function middleware(req: NextRequest) {
   const host = req.headers.get("host")?.split(":")[0] ?? "";
+  if (host === "localhost" || host === "127.0.0.1") return NextResponse.next();
   if (!ALLOWED.has(host)) {
     const url = req.nextUrl.clone();
     url.protocol = "https:";
