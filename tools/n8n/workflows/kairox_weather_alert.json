@@ -1,0 +1,122 @@
+{
+  "name": "KAIROX — 気象庁アラート（毎朝6時チェック）",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 6 * * *"
+            }
+          ]
+        }
+      },
+      "id": "w001-aa01",
+      "name": "毎朝6時",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://www.jma.go.jp/bosai/forecast/data/forecast/120000.json",
+        "options": {}
+      },
+      "id": "w001-aa02",
+      "name": "気象庁 千葉県予報取得",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 気象庁API レスポンスを解析して悪天候を検出\nconst data = $input.first().json;\n\n// 最初の予報エリア（千葉県北西部 = 成田エリア）\nconst area = data[0];\nconst timeSeries = area?.timeSeries ?? [];\n\n// 天気コード系列を取得（0番目: 天気・風・波）\nconst weatherSeries = timeSeries[0];\nconst areas = weatherSeries?.areas ?? [];\n\n// 千葉県北西部（area.area.code = 130010）または最初のエリア\nconst targetArea = areas.find(a => a.area?.code === '130010') ?? areas[0];\nconst weatherCodes = targetArea?.weatherCodes ?? [];\nconst weathers = targetArea?.weathers ?? [];\nconst winds = targetArea?.winds ?? [];\n\n// 降水確率系列\nconst rainSeries = timeSeries[1];\nconst rainAreas = rainSeries?.areas ?? [];\nconst rainArea = rainAreas.find(a => a.area?.code === '130010') ?? rainAreas[0];\nconst pops = rainArea?.pops ?? [];\n\n// 悪天候判定\nconst SEVERE_CODES = ['300','302','303','308','309','313','314','315','316','317','320','321','323','324','325','326','327','328','329','340','350','361','371','400','401','402','403','405','406','407','409','411','413','414','420','421','422','423','424','425','426','427','450'];\nconst TYPHOON_WORDS = ['台風','暴風','大雨','暴雨','特別警報'];\nconst RAIN_THRESHOLD = 70;\n\nconst hasSevereCode = weatherCodes.slice(0, 4).some(c => SEVERE_CODES.includes(c));\nconst hasTyphoonWord = weathers.slice(0, 4).some(w => TYPHOON_WORDS.some(t => w.includes(t)));\nconst hasHeavyRain = pops.slice(0, 4).some(p => parseInt(p) >= RAIN_THRESHOLD);\nconst hasHighWind = winds.slice(0, 4).some(w => w.includes('非常に強') || w.includes('暴風'));\n\nconst isSevere = hasSevereCode || hasTyphoonWord || hasHeavyRain || hasHighWind;\n\nif (!isSevere) {\n  return [{ json: { skip: true, reason: '通常天気' } }];\n}\n\n// アラートメッセージ生成\nconst tomorrow = new Date();\ntomorrow.setDate(tomorrow.getDate() + 1);\nconst dateStr = tomorrow.toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo', month: 'long', day: 'numeric', weekday: 'short' });\n\nconst weatherDesc = weathers[0] ?? '悪天候';\nconst maxPop = Math.max(...pops.slice(0, 4).map(p => parseInt(p) || 0));\nconst windDesc = winds[0] ?? '';\n\nconst reasons = [];\nif (hasTyphoonWord) reasons.push('🌀 台風・暴風警報');\nif (hasHeavyRain) reasons.push(`🌧 降水確率 ${maxPop}%`);\nif (hasHighWind) reasons.push(`💨 暴風: ${windDesc}`);\nif (hasSevereCode && !hasTyphoonWord && !hasHeavyRain) reasons.push('⛈ 荒天コード検知');\n\nconst msg = [\n  `⚠️ <b>KAIROX 悪天候アラート</b>`,\n  `📅 対象: ${dateStr}`,\n  ``,\n  `🔴 検知内容:`,\n  ...reasons.map(r => `  ${r}`),\n  ``,\n  `📋 予報: ${weatherDesc}`,\n  ``,\n  `🚨 アクション確認:`,\n  `  ・受付制限 or 配達時間延長を検討`,\n  `  ・顧客へ遅延可能性を事前通知`,\n  `  ・ドライバー安全確認`,\n].join('\\n');\n\nreturn [{ json: { skip: false, message: msg } }];"
+      },
+      "id": "w001-aa03",
+      "name": "悪天候を判定",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "cond1",
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": false,
+              "operator": { "type": "boolean", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "w001-aa04",
+      "name": "悪天候のみ通過",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $env.OPERATOR_CHAT_ID }}",
+        "text": "={{ $json.message }}",
+        "additionalFields": { "parse_mode": "HTML" }
+      },
+      "id": "w001-aa05",
+      "name": "Telegram → 役員",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1050, 250],
+      "credentials": {
+        "telegramApi": { "id": "1", "name": "KAIROX Bot" }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $env.DRIVER_CHAT_ID }}",
+        "text": "={{ $json.message }}",
+        "additionalFields": { "parse_mode": "HTML" }
+      },
+      "id": "w001-aa06",
+      "name": "Telegram → Driver",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1050, 380],
+      "credentials": {
+        "telegramApi": { "id": "1", "name": "KAIROX Bot" }
+      }
+    }
+  ],
+  "connections": {
+    "毎朝6時": {
+      "main": [[{ "node": "気象庁 千葉県予報取得", "type": "main", "index": 0 }]]
+    },
+    "気象庁 千葉県予報取得": {
+      "main": [[{ "node": "悪天候を判定", "type": "main", "index": 0 }]]
+    },
+    "悪天候を判定": {
+      "main": [[{ "node": "悪天候のみ通過", "type": "main", "index": 0 }]]
+    },
+    "悪天候のみ通過": {
+      "main": [
+        [{ "node": "Telegram → 役員", "type": "main", "index": 0 }],
+        [{ "node": "Telegram → Driver", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "timezone": "Asia/Tokyo"
+  },
+  "tags": ["kairox", "telegram", "weather", "jma"]
+}

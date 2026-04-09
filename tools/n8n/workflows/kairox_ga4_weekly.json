@@ -1,0 +1,78 @@
+{
+  "name": "KAIROX — GA4週次レポート（毎週月曜9時）",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "field": "cronExpression", "expression": "0 9 * * 1" }
+          ]
+        }
+      },
+      "id": "ga4-001",
+      "name": "毎週月曜9時",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://analyticsdata.googleapis.com/v1beta/properties/={{ $env.GA4_PROPERTY_ID }}:runReport",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer={{ $env.GA4_ACCESS_TOKEN }}" },
+            { "name": "Content-Type",  "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "body",
+              "value": "{\"dateRanges\":[{\"startDate\":\"7daysAgo\",\"endDate\":\"today\"}],\"dimensions\":[{\"name\":\"sessionDefaultChannelGroup\"},{\"name\":\"country\"}],\"metrics\":[{\"name\":\"sessions\"},{\"name\":\"conversions\"},{\"name\":\"totalRevenue\"}]}"
+            }
+          ]
+        }
+      },
+      "id": "ga4-002",
+      "name": "GA4 レポート取得",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.first().json.rows ?? [];\n\n// チャネル別セッション集計\nconst channels = {};\nfor (const row of rows) {\n  const ch = row.dimensionValues[0].value;\n  const sessions = parseInt(row.metricValues[0].value) || 0;\n  const conv = parseInt(row.metricValues[1].value) || 0;\n  const rev = parseFloat(row.metricValues[2].value) || 0;\n  if (!channels[ch]) channels[ch] = { sessions: 0, conv: 0, rev: 0 };\n  channels[ch].sessions += sessions;\n  channels[ch].conv += conv;\n  channels[ch].rev += rev;\n}\n\nconst topChannels = Object.entries(channels)\n  .sort((a, b) => b[1].sessions - a[1].sessions)\n  .slice(0, 5);\n\nconst total = topChannels.reduce((s, [, v]) => s + v.sessions, 0);\nconst totalConv = topChannels.reduce((s, [, v]) => s + v.conv, 0);\nconst totalRev = topChannels.reduce((s, [, v]) => s + v.rev, 0);\n\nconst lines = topChannels.map(([ch, v]) => {\n  const pct = total ? Math.round(v.sessions / total * 100) : 0;\n  return `  ${ch}: ${v.sessions}セッション (${pct}%) | CV:${v.conv}`;\n});\n\nconst msg = [\n  '📊 <b>KAIROX GA4 週次レポート</b>',\n  `📅 過去7日間`,\n  '',\n  `👥 総セッション: <b>${total.toLocaleString()}</b>`,\n  `✅ コンバージョン: <b>${totalConv}</b>`,\n  `💰 収益: ¥<b>${Math.round(totalRev).toLocaleString()}</b>`,\n  '',\n  '📡 チャネル別:',\n  ...lines,\n].join('\\n');\n\nreturn [{ json: { message: msg } }];"
+      },
+      "id": "ga4-003",
+      "name": "レポート整形",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $env.DRIVER_CHAT_ID }}",
+        "text": "={{ $json.message }}",
+        "additionalFields": { "parse_mode": "HTML" }
+      },
+      "id": "ga4-004",
+      "name": "Telegram → 役員",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [850, 300],
+      "credentials": { "telegramApi": { "id": "1", "name": "KAIROX Bot" } }
+    }
+  ],
+  "connections": {
+    "毎週月曜9時":   { "main": [[{ "node": "GA4 レポート取得", "type": "main", "index": 0 }]] },
+    "GA4 レポート取得": { "main": [[{ "node": "レポート整形",   "type": "main", "index": 0 }]] },
+    "レポート整形":  { "main": [[{ "node": "Telegram → 役員", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "saveManualExecutions": true, "timezone": "Asia/Tokyo" },
+  "tags": ["kairox", "ga4", "weekly", "telegram"]
+}

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>お問い合わせ・予約 | KAIROX</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ヘッダー -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="site-logo">KAIROX</a>
+      <nav class="site-nav" id="site-nav">
+        <ul>
+          <li><a href="index.html">ホーム</a></li>
+          <li><a href="service.html">サービス</a></li>
+          <li><a href="about.html">会社概要</a></li>
+          <li><a href="contact.html" class="nav-cta">予約する</a></li>
+        </ul>
+      </nav>
+      <button class="hamburger" id="hamburger" aria-label="メニュー">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ページヒーロー -->
+  <section class="page-hero">
+    <h1>お問い合わせ・予約</h1>
+    <p>ご予約・ご質問はこちらから</p>
+  </section>
+
+  <!-- コンタクトフォーム -->
+  <section class="section section-bg">
+    <div class="section-inner">
+      <div class="contact-form">
+        <h2 class="section-title" style="margin-bottom:8px;">予約フォーム</h2>
+        <p class="section-subtitle" style="margin-bottom:32px;">お届け情報をご入力ください</p>
+
+        <form id="contact-form">
+          <div class="form-group">
+            <label for="name">お名前<span>*</span></label>
+            <input type="text" id="name" name="name" placeholder="Taro Yamada" required>
+          </div>
+
+          <div class="form-group">
+            <label for="email">メールアドレス<span>*</span></label>
+            <input type="email" id="email" name="email" placeholder="example@email.com" required>
+          </div>
+
+          <div class="form-group">
+            <label for="flight">フライト番号<span>*</span></label>
+            <input type="text" id="flight" name="flight" placeholder="例：JL001">
+          </div>
+
+          <div class="form-group">
+            <label for="arrival">到着日時<span>*</span></label>
+            <input type="datetime-local" id="arrival" name="arrival" required>
+          </div>
+
+          <div class="form-group">
+            <label for="hotel">宿泊先ホテル名<span>*</span></label>
+            <input type="text" id="hotel" name="hotel" placeholder="例：新宿プリンスホテル" required>
+          </div>
+
+          <div class="form-group">
+            <label for="luggage">荷物の種類・個数<span>*</span></label>
+            <select id="luggage" name="luggage">
+              <option value="">選択してください</option>
+              <option value="s">スーツケース S/M × 1個</option>
+              <option value="l">スーツケース L/XL × 1個</option>
+              <option value="2s">スーツケース S/M × 2個</option>
+              <option value="2l">スーツケース L/XL × 2個</option>
+              <option value="other">その他（備考欄に記入）</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="message">備考・ご質問</label>
+            <textarea id="message" name="message" placeholder="特記事項があればご記入ください"></textarea>
+          </div>
+
+          <button type="submit" class="form-submit">予約を送信する</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- フッター -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="site-logo">KAIROX</div>
+        <p>Japan Luggage Freedom<br>訪日旅行者のための手ぶら配送サービス</p>
+      </div>
+      <div class="footer-col">
+        <h4>メニュー</h4>
+        <ul>
+          <li><a href="index.html">ホーム</a></li>
+          <li><a href="service.html">サービス</a></li>
+          <li><a href="about.html">会社概要</a></li>
+          <li><a href="contact.html">お問い合わせ</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>サービスエリア</h4>
+        <ul>
+          <li><a href="#">成田空港 第1ターミナル</a></li>
+          <li><a href="#">成田空港 第2ターミナル</a></li>
+          <li><a href="#">成田空港 第3ターミナル</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 KAIROX. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    const hamburger = document.getElementById('hamburger');
+    const nav = document.getElementById('site-nav');
+    hamburger.addEventListener('click', () => {
+      nav.classList.toggle('open');
+    });
+
+    document.getElementById('contact-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      alert('予約を受け付けました。確認メールをお送りします。');
+    });
+  </script>
+
+</body>
+</html>

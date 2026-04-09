@@ -1,0 +1,62 @@
+{
+  "name": "KAIROX — e-Stat訪日外客統計（毎月1日9時）",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "field": "cronExpression", "expression": "0 9 1 * *" }
+          ]
+        }
+      },
+      "id": "estat-001",
+      "name": "毎月1日9時",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData?appId={{ $env.ESTAT_APP_ID }}&statsDataId=0003448896&metaGetFlg=Y&cntGetFlg=N&sectionHeaderFlg=1&replaceSpChars=0",
+        "options": {}
+      },
+      "id": "estat-002",
+      "name": "e-Stat 訪日外客統計取得",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// e-Stat APIレスポンスから訪日外客数を取得\nconst data = $input.first().json;\nconst values = data?.GET_STATS_DATA?.STATISTICAL_DATA?.DATA_INF?.VALUE ?? [];\n\n// 最新月データを取得\nconst latest = values.slice(-3);\nconst total = latest.reduce((s, v) => s + (parseInt(v['$']) || 0), 0);\nconst month = latest[latest.length - 1]?.['@time'] ?? '不明';\n\nconst msg = [\n  '✈️ <b>KAIROX 月次インバウンド統計</b>',\n  `📅 ${month}`,\n  '',\n  `👥 訪日外客数: <b>${(total / 10000).toFixed(1)}万人</b>`,\n  '',\n  '📌 出典: 観光庁・法務省 / e-Stat (0003448896)',\n  '🎯 KAIROXターゲット市場の規模確認用',\n].join('\\n');\n\nreturn [{ json: { message: msg, total, month } }];"
+      },
+      "id": "estat-003",
+      "name": "統計整形",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $env.OPERATOR_CHAT_ID }}",
+        "text": "={{ $json.message }}",
+        "additionalFields": { "parse_mode": "HTML" }
+      },
+      "id": "estat-004",
+      "name": "Telegram → 役員",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [850, 300],
+      "credentials": { "telegramApi": { "id": "1", "name": "KAIROX Bot" } }
+    }
+  ],
+  "connections": {
+    "毎月1日9時":            { "main": [[{ "node": "e-Stat 訪日外客統計取得", "type": "main", "index": 0 }]] },
+    "e-Stat 訪日外客統計取得": { "main": [[{ "node": "統計整形",              "type": "main", "index": 0 }]] },
+    "統計整形":              { "main": [[{ "node": "Telegram → 役員",       "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "saveManualExecutions": true, "timezone": "Asia/Tokyo" },
+  "tags": ["kairox", "estat", "inbound", "monthly"]
+}
