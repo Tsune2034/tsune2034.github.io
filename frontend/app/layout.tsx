@@ -17,8 +17,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Kairox — Geopolitical Intelligence",
-  description: "Real-time geopolitical intelligence briefings powered by AI",
+  title: "KAIROX — Japan Luggage Freedom",
+  description: "成田空港から手ぶら旅。荷物を先にホテルへ。Luggage delivery from Narita Airport.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "KAIROX",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "theme-color": "#0052ff",
+  },
 };
 
 export default function RootLayout({
