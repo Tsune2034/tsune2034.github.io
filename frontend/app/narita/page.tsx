@@ -292,7 +292,7 @@ const TR = {
     pay_title: "Payment method",
     pay_credit: "Credit Card", pay_jpyc: "JPYC", pay_usdc: "USDC",
     card_fee_note: "Standard rate — no extra fees", crypto_note: "JPYC / USDC: −5% discount applied",
-    summary_pickup: "Pickup", summary_dest: "Delivery", summary_bags: "Pieces", summary_total: "Total",
+    summary_pickup: "Pickup", summary_dest: "Delivery", summary_bags: "Pieces", summary_total: "Total", fuel_surcharge_label: "Fuel Surcharge",
     total_incl: "Tax included",
     confirm_title: "Confirm & Book",
     confirm_sub: "Tell us where to reach you",
@@ -368,7 +368,7 @@ const TR = {
     pay_title: "お支払い方法",
     pay_credit: "クレジットカード", pay_jpyc: "JPYC", pay_usdc: "USDC",
     card_fee_note: "標準料金 — 追加手数料なし", crypto_note: "JPYC / USDC：−5%割引適用",
-    summary_pickup: "集荷場所", summary_dest: "配達先", summary_bags: "個数", summary_total: "合計",
+    summary_pickup: "集荷場所", summary_dest: "配達先", summary_bags: "個数", summary_total: "合計", fuel_surcharge_label: "燃油サーチャージ",
     total_incl: "税込み",
     confirm_title: "確認と予約",
     confirm_sub: "ご連絡先を教えてください",
@@ -440,7 +440,7 @@ const TR = {
     name_label: "姓名", phone_label: "电话 / WhatsApp",
     pay_title: "支付方式", pay_credit: "信用卡", pay_jpyc: "JPYC", pay_usdc: "USDC",
     card_fee_note: "标准费率 — 无额外手续费", crypto_note: "JPYC / USDC：享受−5%折扣",
-    summary_pickup: "取件地点", summary_dest: "送达地点", summary_bags: "件数", summary_total: "合计",
+    summary_pickup: "取件地点", summary_dest: "送达地点", summary_bags: "件数", summary_total: "合计", fuel_surcharge_label: "燃油附加费",
     total_incl: "含税",
     confirm_title: "确认预订",
     confirm_sub: "请提供您的联系方式",
@@ -508,7 +508,7 @@ const TR = {
     name_label: "이름", phone_label: "전화 / WhatsApp",
     pay_title: "결제 방법", pay_credit: "신용카드", pay_jpyc: "JPYC", pay_usdc: "USDC",
     card_fee_note: "기본 요금 — 추가 수수료 없음", crypto_note: "JPYC / USDC：−5% 할인 적용",
-    summary_pickup: "픽업 장소", summary_dest: "배송지", summary_bags: "개수", summary_total: "합계",
+    summary_pickup: "픽업 장소", summary_dest: "배송지", summary_bags: "개수", summary_total: "합계", fuel_surcharge_label: "유류 할증료",
     total_incl: "세금 포함",
     confirm_title: "확인 및 예약",
     confirm_sub: "연락처를 알려주세요",
@@ -569,6 +569,7 @@ const LOCALES: { value: Locale; label: string }[] = [
 const EXTRA_BAG = 1500;
 const CARD_FEE = 0;
 const CRYPTO_DISC = 0.05;
+const FUEL_SURCHARGE = 500;
 
 const OPERATOR = { name: "KAIROX Driver", car: "Toyota HiAce", rating: "5.0", initial: "K" };
 
@@ -1106,13 +1107,14 @@ export default function NaritaApp() {
 
   // Price
   const base = dest ? dest.priceJpy + (bags - 1) * EXTRA_BAG : 0;
+  const fuelSurcharge = dest ? FUEL_SURCHARGE : 0;
   const hoursUntilPickup = pickupDate ? (new Date(pickupDate).getTime() - Date.now()) / 3600000 : 0;
   const earlyDisc = pickupDate && hoursUntilPickup >= 48 ? 2500 : pickupDate && hoursUntilPickup >= 24 ? 1500 : 0;
   const afterEarlyDisc = Math.max(0, base - earlyDisc);
   const cryptoDisc = payMethod !== "credit" ? Math.floor(afterEarlyDisc * CRYPTO_DISC) : 0;
   const afterDisc = afterEarlyDisc - cryptoDisc;
   const cardFee = payMethod === "credit" ? Math.floor(afterDisc * CARD_FEE) : 0;
-  const total = afterDisc + cardFee;
+  const total = afterDisc + cardFee + fuelSurcharge;
 
   // GPS
   function handleGps() {
@@ -1557,6 +1559,10 @@ export default function NaritaApp() {
               ))}
               {earlyDisc > 0 && <div className="flex items-center justify-between"><span className="text-green-400 text-xs">🎉 {earlyDisc === 2500 ? tr.early_disc_48 : tr.early_disc_24}</span><span className="text-green-400">−¥{earlyDisc.toLocaleString()}</span></div>}
               {cryptoDisc > 0 && <div className="flex items-center justify-between"><span className="text-green-400">JPYC/USDC discount</span><span className="text-green-400">−¥{cryptoDisc.toLocaleString()}</span></div>}
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>⛽ {tr.fuel_surcharge_label}</span>
+                <span>+¥{fuelSurcharge.toLocaleString()}</span>
+              </div>
               <div className="border-t border-gray-300 pt-2 flex items-end justify-between">
                 <div>
                   <p className="text-[10px] text-[#0052ff]/80 uppercase tracking-wide font-semibold">{tr.summary_total}</p>
@@ -1564,7 +1570,7 @@ export default function NaritaApp() {
                 </div>
                 <div className="text-right">
                   {earlyDisc > 0 && (
-                    <p className="text-sm text-gray-400 line-through">¥{base.toLocaleString()}</p>
+                    <p className="text-sm text-gray-400 line-through">¥{(base + fuelSurcharge).toLocaleString()}</p>
                   )}
                   <p className="text-3xl font-black text-gray-900">¥{total.toLocaleString()}</p>
                 </div>
@@ -1620,6 +1626,7 @@ export default function NaritaApp() {
               {flightNumber.trim() && <div className="flex justify-between"><span className="text-gray-500">✈️ Flight</span><span className="text-gray-700 font-mono">{flightNumber.trim()}</span></div>}
               {earlyDisc > 0 && <div className="flex justify-between"><span className="text-green-400 text-xs">🎉 {earlyDisc === 2500 ? tr.early_disc_48 : tr.early_disc_24}</span><span className="text-green-400">−¥{earlyDisc.toLocaleString()}</span></div>}
               {cryptoDisc > 0 && <div className="flex justify-between"><span className="text-green-400">JPYC/USDC −5%</span><span className="text-green-400">−¥{cryptoDisc.toLocaleString()}</span></div>}
+              <div className="flex justify-between"><span className="text-gray-500">⛽ {tr.fuel_surcharge_label}</span><span className="text-gray-700">+¥{fuelSurcharge.toLocaleString()}</span></div>
               <div className="border-t border-gray-300 pt-2 flex justify-between items-center">
                 <span className="text-gray-500">{tr.summary_total}</span>
                 <span className="text-2xl font-black text-gray-900">¥{total.toLocaleString()}</span>
