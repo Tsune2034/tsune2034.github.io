@@ -1262,10 +1262,10 @@ export default function NaritaApp() {
           <span className="text-base">{weatherAlert.typhoon ? "🌀" : "⛈"}</span>
           <span>
             {weatherAlert.typhoon
-              ? (locale === "ja" ? "台風・暴風警報 — 配達に遅延が生じる場合があります" : locale === "zh" ? "台风预警 — 可能发生延误" : locale === "ko" ? "태풍 경보 — 배송이 지연될 수 있습니다" : "Typhoon warning — Delays possible")
-              : (locale === "ja" ? `悪天候予報（降水確率${weatherAlert.pop}%）— 配達に遅延が生じる場合があります` : locale === "zh" ? `恶劣天气预报 — 可能发生延误` : locale === "ko" ? `악천후 예보 — 배송이 지연될 수 있습니다` : `Severe weather forecast — Delays possible`)}
+              ? (locale === "ja" ? "台風・暴風警報 — 配達に遅延が生じる場合があります" : locale === "zh" ? "台风预警 — 配送可能延误" : locale === "ko" ? "태풍 경보 — 배송이 지연될 수 있습니다" : "Typhoon warning — Delays possible")
+              : (locale === "ja" ? `悪天候予報（降水確率${weatherAlert.pop}%）— 配達に遅延が生じる場合があります` : locale === "zh" ? `恶劣天气预报（降水概率${weatherAlert.pop}%）— 配送可能延误` : locale === "ko" ? `악천후 예보（강수확률 ${weatherAlert.pop}%）— 배송이 지연될 수 있습니다` : `Severe weather forecast (Rain ${weatherAlert.pop}%) — Delays possible`)}
           </span>
-          <span className="ml-auto text-[10px] opacity-60">気象庁</span>
+          <span className="ml-auto text-[10px] opacity-60">{locale === "ja" ? "気象庁" : locale === "zh" ? "日本气象厅" : locale === "ko" ? "일본기상청" : "JMA"}</span>
         </div>
       )}
 
