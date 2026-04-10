@@ -82,6 +82,7 @@ export async function notifyNewBooking(p: {
   bags: number;
   total: number;
 }) {
+  const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.dest)}&travelmode=driving`;
   const text = [
     `🆕 *新規予約*`,
     `📋 ID: \`${p.bookingId}\``,
@@ -90,6 +91,8 @@ export async function notifyNewBooking(p: {
     `🏨 届け先: ${p.dest}`,
     `🧳 荷物: ${p.bags}個`,
     `💴 合計: ¥${p.total.toLocaleString()}`,
+    ``,
+    `[🗺 Googleマップでナビ開始](${navUrl})`,
   ].join("\n");
 
   return sendOperator(text, [

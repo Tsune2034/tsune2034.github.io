@@ -1145,8 +1145,9 @@ class VehicleLocationIn(BaseModel):
 
 @app.post("/vehicle/location")
 def vehicle_location_post(req: VehicleLocationIn, db: Session = Depends(get_db)):
-    """車両GPS更新"""
+    """車両GPS更新 — 現在地（最新1件）+ 学習履歴（GpsTrackPoint）に同時保存"""
     upsert_vehicle_gps(db, req.lat, req.lng)
+    save_gps_point(db, req.lat, req.lng)
     return {"ok": True}
 
 

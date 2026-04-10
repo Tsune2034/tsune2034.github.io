@@ -209,12 +209,14 @@ async function handleQueue(chatId: string) {
         lines.push(`（待ち予約なし）`);
       } else {
         data.slice(0, 10).forEach((b, i) => {
+          const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(b.destination)}&travelmode=driving`;
           lines.push(
             ``,
             `*${i + 1}. \`${b.booking_id}\`*`,
             `✈️ ${b.flight_number ?? "便名未定"}`,
             `📍 ${b.pickup_location} → 🏨 ${b.destination}`,
             `🧳 ${(b.extra_bags ?? 0) + 1}個`,
+            `[🗺 ナビ開始](${navUrl})`,
           );
         });
       }
