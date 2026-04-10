@@ -1025,7 +1025,7 @@ export default function BookingApp({ zone }: { zone: ZoneConfig }) {
     step === "pickup" ? true :
     step === "destination" ? !!dest :
     step === "luggage" ? bags > 0 :
-    step === "confirm" ? name.trim().length > 0 :
+    step === "confirm" ? name.trim().length > 0 && flightNumber.trim().length > 0 :
     step === "matching" ? matchPhase === "found" :
     false;
 
@@ -1386,15 +1386,29 @@ export default function BookingApp({ zone }: { zone: ZoneConfig }) {
 
             {/* Bag counter */}
             <div className="space-y-2">
-              <label className="text-xs text-gray-500">{tr.bags_label}</label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs text-gray-500">{tr.bags_label}</label>
+                <span className="text-[10px] text-gray-400">🚐 {locale === "ja" ? `最大5個 / 車1台` : locale === "zh" ? `最多5件 / 1辆车` : locale === "ko" ? `최대 5개 / 차량 1대` : `Max 5 pcs / 1 vehicle`}</span>
+              </div>
               <div className="flex items-center gap-4">
                 <button type="button" onClick={() => setBags((b) => Math.max(1, b - 1))}
                   className="w-10 h-10 rounded-xl bg-gray-100 border border-gray-300 text-gray-700 text-xl hover:bg-gray-700 transition-colors">−</button>
                 <span className="text-3xl font-black text-gray-900 tabular-nums w-10 text-center">{bags}</span>
-                <button type="button" onClick={() => setBags((b) => Math.min(10, b + 1))}
-                  className="w-10 h-10 rounded-xl bg-gray-100 border border-gray-300 text-gray-700 text-xl hover:bg-gray-700 transition-colors">＋</button>
+                <button type="button" onClick={() => setBags((b) => Math.min(5, b + 1))}
+                  className={`w-10 h-10 rounded-xl border text-xl transition-colors ${bags >= 5 ? "bg-gray-50 border-gray-200 text-gray-300 cursor-not-allowed" : "bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-700"}`}>＋</button>
                 {bags > 1 && <p className="text-xs text-[#0052ff]">+¥{((bags - 1) * EXTRA_BAG).toLocaleString()} ({tr.per_extra})</p>}
               </div>
+              {/* Capacity bar */}
+              <div className="flex gap-1 pt-1">
+                {[1,2,3,4,5].map((n) => (
+                  <div key={n} className={`flex-1 h-1.5 rounded-full transition-colors ${n <= bags ? "bg-[#0052ff]" : "bg-gray-200"}`} />
+                ))}
+              </div>
+              {bags >= 5 && (
+                <p className="text-[11px] text-amber-400 font-medium">
+                  {locale === "ja" ? "🚐 車1台の上限（5個）に達しました" : locale === "zh" ? "🚐 已达到单车上限（5件）" : locale === "ko" ? "🚐 차량 최대 수량(5개)에 도달했습니다" : "🚐 Vehicle capacity reached (5 pcs max)"}
+                </p>
+              )}
             </div>
 
             {/* Pickup date for early discount */}
@@ -1504,13 +1518,18 @@ export default function BookingApp({ zone }: { zone: ZoneConfig }) {
               <p className="text-[10px] text-gray-400">予約確認・追跡URLをお送りします / Confirmation & tracking link</p>
             </div>
 
-            {/* Flight number */}
+            {/* Flight number — required */}
             <div className="space-y-1">
-              <label className="text-xs text-gray-500">フライト番号 / Flight No. <span className="text-gray-400">(任意)</span></label>
+              <label className="text-xs text-gray-500">
+                {locale === "ja" ? "✈️ フライト番号" : locale === "zh" ? "✈️ 航班号" : locale === "ko" ? "✈️ 항공편 번호" : "✈️ Flight Number"}
+                <span className="text-red-400 ml-1">*</span>
+              </label>
               <input type="text" value={flightNumber} onChange={(e) => setFlightNumber(e.target.value.toUpperCase())}
-                placeholder="NH847 / JL717 / KE705..."
-                className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 placeholder-gray-400 font-mono focus:outline-none focus:border-[#0052ff]" />
-              <p className="text-[10px] text-gray-400">入力するとドライバーに着陸アラートが届きます / Driver gets landing alert</p>
+                placeholder="NH847 / JL717 / KE705 / OZ101..."
+                className={`w-full bg-gray-100 border rounded-lg px-3 py-2 text-sm text-gray-800 placeholder-gray-400 font-mono focus:outline-none transition-colors ${flightNumber.trim() ? "border-[#0052ff]" : "border-gray-300 focus:border-[#0052ff]"}`} />
+              <p className="text-[10px] text-gray-400">
+                {locale === "ja" ? "ドライバーが到着時刻を把握し、ルートを最適化します" : locale === "zh" ? "司机将根据到达时间优化路线" : locale === "ko" ? "드라이버가 도착 시간을 파악해 루트를 최적화합니다" : "Driver tracks your landing to optimize the route"}
+              </p>
             </div>
 
             {/* Order recap */}
