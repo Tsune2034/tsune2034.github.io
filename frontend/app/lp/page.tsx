@@ -352,7 +352,7 @@ export default function LPPage() {
         <div className="max-w-2xl mx-auto px-5 py-12">
           <h2 className="text-xl font-bold text-center mb-6 text-slate-900">{tr.sol_title}</h2>
           <div className="flex flex-wrap justify-center gap-3 mb-6">
-            {["Uber", "×", "ヤマト", "×", "AI"].map((w, i) => (
+            {["Uber", "×", "急配", "×", "AI"].map((w, i) => (
               <span key={i} className={`${w === "×" ? "text-slate-400 text-xl font-light self-center" : "px-4 py-2 rounded-xl border text-sm font-bold " + (w === "AI" ? "border-cyan-200 bg-cyan-50 text-cyan-700" : "border-blue-200 bg-blue-50 text-blue-700")}`}>
                 {w}
               </span>
