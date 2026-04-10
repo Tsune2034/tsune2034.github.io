@@ -8,6 +8,8 @@ const withPWA = require("next-pwa")({
   disable: process.env.NODE_ENV === "development",
 });
 
-const nextConfig: NextConfig = {};
+const nextConfig: NextConfig = {
+  turbopack: {}, // Next.js 16 Turbopack default + next-pwa webpack config の競合を抑制
+};
 
 export default withPWA(nextConfig);
