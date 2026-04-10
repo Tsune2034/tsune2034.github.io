@@ -122,6 +122,7 @@ const CHITOSE_CONFIG: ZoneConfig = {
     { id: "h-otaru-asari",     nameJa: "小樽朝里クラッセホテル",         nameEn: "Otaru Asari Klasse Hotel",             nameZh: "小樽朝里克拉斯酒店",     nameKo: "오타루 아사리 클라세 호텔",   area: "Otaru",         distanceKm: 68,  etaMin: 72,  priceJpy: 6000,  emoji: "🏨", lat: 43.1605, lng: 141.0220 },
     { id: "h-otaru-ospa",      nameJa: "小樽温泉オスパ",                 nameEn: "Otaru Onsen Ospa",                     nameZh: "小樽温泉OSPA",           nameKo: "오타루 온천 오스파",          area: "Otaru",         distanceKm: 70,  etaMin: 75,  priceJpy: 5500,  emoji: "🏨", lat: 43.1890, lng: 141.0030 },
     { id: "h-otaru-baycity",   nameJa: "ホテルノルド小樽",               nameEn: "Hotel Nord Otaru",                     nameZh: "北方酒店小樽",           nameKo: "호텔 노르드 오타루",          area: "Otaru",         distanceKm: 70,  etaMin: 75,  priceJpy: 5800,  emoji: "🏨", lat: 43.1930, lng: 141.0010 },
+    { id: "h-otaru-omo5",      nameJa: "OMO5小樽 by 星野リゾート",       nameEn: "OMO5 Otaru by Hoshino Resorts",        nameZh: "OMO5小樽 星野度假村",    nameKo: "OMO5 오타루 by 호시노 리조트", area: "Otaru",         distanceKm: 70,  etaMin: 75,  priceJpy: 7500,  emoji: "🏨", lat: 43.1892, lng: 141.0038 },
   ],
 
   rideshare: [
