@@ -176,10 +176,14 @@ async function handleStatus(chatId: string) {
   }
 
   const gps = await api<{ ok: boolean; lat?: number; lng?: number; recorded_at?: string }>("/vehicle/location");
-  if (gps?.ok && gps.lat && gps.lng) {
+  const GPS_STALE_MIN = 10;
+  const gpsAge = gps?.recorded_at
+    ? (Date.now() - new Date(gps.recorded_at + "Z").getTime()) / 60000
+    : Infinity;
+  if (gps?.ok && gps.lat && gps.lng && gpsAge < GPS_STALE_MIN) {
     const mapsUrl = `https://maps.google.com/maps?q=${gps.lat},${gps.lng}`;
     const jstGps = gps.recorded_at
-      ? new Date(gps.recorded_at).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })
+      ? new Date(gps.recorded_at + "Z").toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })
       : "不明";
     lines.push(``, `📍 [現在地を地図で見る](${mapsUrl})`);
     lines.push(`🕐 GPS更新: ${jstGps}`);
