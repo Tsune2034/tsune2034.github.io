@@ -1101,6 +1101,20 @@ export default function NaritaApp() {
   const [bookingLoading, setBookingLoading] = useState(false);
   const [aiConfirmMsg, setAiConfirmMsg] = useState("");
 
+  // Waitlist
+  const [waitlistEmail, setWaitlistEmail] = useState("");
+  const [waitlistStatus, setWaitlistStatus] = useState<"idle" | "loading" | "done">("idle");
+  async function submitWaitlist() {
+    if (!waitlistEmail.trim() || waitlistStatus !== "idle") return;
+    setWaitlistStatus("loading");
+    await fetch("/api/waitlist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: waitlistEmail.trim(), zone: "narita", locale }),
+    }).catch(() => {});
+    setWaitlistStatus("done");
+  }
+
   const tr = TR[locale];
   const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
@@ -1662,14 +1676,40 @@ export default function NaritaApp() {
               ))}
             </div>
 
-            {/* Book button — 試作段階のため受付停止中 */}
-            <div className="w-full py-4 rounded-xl bg-gray-100 border-2 border-dashed border-gray-300 text-center">
-              <p className="text-sm font-black text-gray-500">🚧 {{
-                ja: "現在、受付準備中です。正式リリースまでお待ちください。",
-                en: "Booking coming soon. Stay tuned for our official launch.",
-                zh: "预约功能即将开放，敬请期待正式上线。",
-                ko: "예약 기능 준비 중입니다. 정식 출시를 기다려 주세요.",
+            {/* Waitlist — テストラン中につき空き待ち登録 */}
+            <div className="w-full rounded-xl bg-amber-50 border border-amber-300 p-4 space-y-3">
+              <p className="text-sm font-bold text-amber-800">🚗 {{
+                ja: "現在テストランを実施中です。空きが出次第ご案内します。",
+                en: "We're running test operations. Register to be notified when available.",
+                zh: "目前正在进行试运行，有空位时会第一时间通知您。",
+                ko: "현재 테스트 운행 중입니다. 이용 가능 시 알림을 받으세요.",
               }[locale]}</p>
+              {waitlistStatus === "done" ? (
+                <p className="text-sm font-black text-green-700 text-center py-2">✅ {{
+                  ja: "登録しました。空きが出次第ご連絡します！",
+                  en: "Registered! We'll notify you when available.",
+                  zh: "已登录！有空位时我们会通知您。",
+                  ko: "등록되었습니다! 이용 가능 시 연락드리겠습니다。",
+                }[locale]}</p>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    value={waitlistEmail}
+                    onChange={e => setWaitlistEmail(e.target.value)}
+                    placeholder={{ ja: "メールアドレス", en: "Email address", zh: "电子邮件", ko: "이메일 주소" }[locale]}
+                    className="flex-1 px-3 py-2 rounded-lg border border-amber-300 text-sm bg-white focus:outline-none focus:border-[#0052ff]"
+                  />
+                  <button
+                    type="button"
+                    onClick={submitWaitlist}
+                    disabled={!waitlistEmail.trim() || waitlistStatus === "loading"}
+                    className="px-4 py-2 rounded-lg bg-[#0052ff] text-white text-sm font-bold disabled:opacity-40"
+                  >
+                    {{ ja: "登録", en: "Notify me", zh: "登录", ko: "등록" }[locale]}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
