@@ -5,22 +5,27 @@ import * as topojson from "topojson-client";
 import type { Topology, GeometryCollection } from "topojson-specification";
 
 // ─── 2024年 JNTO訪日外客実績データ（観光庁・JNTO 2024年確報）───
-// 総数: 36,869,900人（2024年）
-const HEAT: Record<string, { level: number; en: string; ja: string; count: string }> = {
-  "13": { level: 5, en: "Tokyo",     ja: "東京都",  count: "17.9M visits" },
-  "12": { level: 5, en: "Chiba",     ja: "千葉県",  count: "KAIROX Base ✈" },
-  "14": { level: 4, en: "Kanagawa",  ja: "神奈川県", count: "7.9M visits" },
-  "27": { level: 4, en: "Osaka",     ja: "大阪府",  count: "11.4M visits" },
-  "26": { level: 3, en: "Kyoto",     ja: "京都府",  count: "7.0M visits" },
-  "01": { level: 3, en: "Hokkaido",  ja: "北海道",  count: "4.5M visits" },
-  "28": { level: 3, en: "Hyogo",     ja: "兵庫県",  count: "3.7M visits" },
-  "23": { level: 2, en: "Aichi",     ja: "愛知県",  count: "3.1M visits" },
-  "40": { level: 2, en: "Fukuoka",   ja: "福岡県",  count: "3.4M visits" },
-  "47": { level: 2, en: "Okinawa",   ja: "沖縄県",  count: "2.6M visits" },
-  "22": { level: 1, en: "Shizuoka",  ja: "静岡県",  count: "1.9M visits" },
-  "11": { level: 1, en: "Saitama",   ja: "埼玉県",  count: "1.5M visits" },
-  "33": { level: 1, en: "Okayama",   ja: "岡山県",  count: "0.8M visits" },
-  "34": { level: 1, en: "Hiroshima", ja: "広島県",  count: "1.2M visits" },
+// 総数: 36,869,900人（2024年） / 出典: 観光庁インバウンド消費動向調査
+const HEAT: Record<string, { level: number; en: string; ja: string; count: string; base?: boolean }> = {
+  "13": { level: 5, en: "Tokyo",      ja: "東京都",  count: "14.5M visitors" },
+  "27": { level: 5, en: "Osaka",      ja: "大阪府",  count: "12.9M visitors" },
+  "12": { level: 5, en: "Chiba",      ja: "千葉県",  count: "10.6M visitors", base: true },
+  "26": { level: 4, en: "Kyoto",      ja: "京都府",  count: "9.7M visitors" },
+  "29": { level: 3, en: "Nara",       ja: "奈良県",  count: "2.9M visitors" },
+  "28": { level: 3, en: "Hyogo",      ja: "兵庫県",  count: "3.7M visitors" },
+  "40": { level: 3, en: "Fukuoka",    ja: "福岡県",  count: "3.6M visitors" },
+  "01": { level: 3, en: "Hokkaido",   ja: "北海道",  count: "2.2M visitors / 10.3M nights" },
+  "14": { level: 2, en: "Kanagawa",   ja: "神奈川県", count: "2.5M visitors" },
+  "19": { level: 2, en: "Yamanashi",  ja: "山梨県",  count: "2.6M visitors" },
+  "23": { level: 2, en: "Aichi",      ja: "愛知県",  count: "1.9M visitors" },
+  "47": { level: 2, en: "Okinawa",    ja: "沖縄県",  count: "2.6M visitors" },
+  "30": { level: 2, en: "Wakayama",   ja: "和歌山県", count: "1.2M visitors" },
+  "22": { level: 1, en: "Shizuoka",   ja: "静岡県",  count: "1.9M visitors" },
+  "11": { level: 1, en: "Saitama",    ja: "埼玉県",  count: "1.5M visitors" },
+  "34": { level: 1, en: "Hiroshima",  ja: "広島県",  count: "1.2M visitors" },
+  "33": { level: 1, en: "Okayama",    ja: "岡山県",  count: "0.8M visitors" },
+  "20": { level: 1, en: "Nagano",     ja: "長野県",  count: "1.0M visitors" },
+  "04": { level: 1, en: "Miyagi",     ja: "宮城県",  count: "0.6M visitors" },
 };
 
 // ─── 千葉・東京 市区町村レベルKAIROX配送エリアデータ ───
@@ -139,6 +144,7 @@ export default function JapanHeatMap({ locale = "en" }: { locale?: string }) {
     (async () => {
       const res = await fetch(
         "https://raw.githubusercontent.com/digital-go-jp/policy-dashboard-assets/main/data/map/ja_prefecture_area.json"
+        // 出典: デジタル庁 行政区域ポリゴンデータ 2025年（令和7年）版 CC BY 4.0
       );
       const topo = (await res.json()) as Topology;
       const objKey = Object.keys(topo.objects)[0];
@@ -165,7 +171,8 @@ export default function JapanHeatMap({ locale = "en" }: { locale?: string }) {
     setMuniLoading(true);
     try {
       const res = await fetch(
-        "https://raw.githubusercontent.com/digital-go-jp/policy-dashboard-assets/main/data/map/ja_municipality_area.json"
+        "https://raw.githubusercontent.com/digital-go-jp/policy-dashboard-assets/main/data/map/ja_municipality_area_with_pref_boundary.json"
+        // 2025年版・都道府県界強調版に更新
       );
       const topo = (await res.json()) as Topology;
       const objKey = Object.keys(topo.objects)[0];
@@ -399,7 +406,7 @@ export default function JapanHeatMap({ locale = "en" }: { locale?: string }) {
       </div>
 
       <p className="text-xs text-slate-500 text-center">
-        Data: JNTO 2024年訪日外客統計 × 国土交通省 行政区域データ（CC BY 4.0）via デジタル庁
+        Data: JNTO 2024年訪日外客統計（確報）× デジタル庁 行政区域データ 2025年版（CC BY 4.0）× 国土交通省 MLIT 駅別乗降客数
       </p>
     </div>
   );
