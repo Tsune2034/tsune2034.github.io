@@ -177,7 +177,7 @@ def get_db():
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "time": datetime.now(timezone.utc).isoformat(), "version": "v0.11.0"}
+    return {"status": "ok", "time": datetime.now(timezone.utc).isoformat(), "version": "v0.16.0"}
 
 
 # ───────────────────────── Payment endpoints ─────────────────────────

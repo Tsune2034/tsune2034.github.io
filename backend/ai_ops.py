@@ -164,7 +164,11 @@ async def ai_monitor(db) -> list[dict]:
 
         # GPS更新が途絶している場合
         if booking.driver_updated_at:
-            stale_min = (now - booking.driver_updated_at).total_seconds() / 60
+            # naive datetime（TZ情報なし）を UTC として扱う
+            updated = booking.driver_updated_at
+            if updated.tzinfo is None:
+                updated = updated.replace(tzinfo=timezone.utc)
+            stale_min = (now - updated).total_seconds() / 60
 
             # ② GPS更新途絶（15分以上）
             if stale_min >= STALE_GPS_MIN:
