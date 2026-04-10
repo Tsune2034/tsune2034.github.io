@@ -283,12 +283,13 @@ async function handleOdometer(chatId: string, km: number) {
     body: JSON.stringify({ km }),
   });
 
-  if (!result?.ok) {
+  // Railway 未デプロイ時は result=null → 出庫メーターとして扱う
+  if (!result?.ok && result !== null) {
     await sendMessage(chatId, `⚠️ 勤務セッションがありません。/duty\\_on で出庫してください`);
     return;
   }
 
-  if (!result.ended) {
+  if (!result?.ended) {
     // 出庫メーター記録
     await sendMessage(chatId,
       `✅ 出庫メーター記録: *${km.toLocaleString()} km*\n🕐 ${jst}\n\n📍 ライブロケーションを共有して出発してください`,
@@ -371,13 +372,12 @@ async function handleCallback(cq: TgCallbackQuery) {
 
   // ── 点呼完了・出庫 ──
   if (data === "duty_on_confirm") {
-    const result = await api<{ ok: boolean; already_active?: boolean }>("/duty/start", { method: "POST" });
-    if (result?.ok) {
-      await editMessage(chatId, msgId,
-        `✅ *点呼完了*\n🕐 出庫: ${jst}\n\n出庫時メーター(km)を送ってください`,
-      );
-      await sendOperator(`🚗 *ドライバー出庫* 🕐 ${jst}`);
-    }
+    await api<{ ok: boolean }>("/duty/start", { method: "POST" }).catch(() => null);
+    // API失敗でも必ずメッセージを返す（Railway未デプロイ中も動作）
+    await editMessage(chatId, msgId,
+      `✅ *点呼完了*\n🕐 出庫: ${jst}\n\n出庫時メーター(km)を送ってください`,
+    );
+    await sendOperator(`🚗 *ドライバー出庫* 🕐 ${jst}`);
     return;
   }
 
