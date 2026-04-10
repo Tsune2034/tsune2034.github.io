@@ -42,6 +42,7 @@ interface BaseInfo {
 }
 
 const BASES: BaseInfo[] = [
+  // ─── フェーズ1（優先展開）───
   {
     city: "成田 / 東京", flag: "✈", status: "稼働中", color: "#22c55e",
     visitors: "14.5M", nights: "56.8M泊", station: "新宿JR 1,473,430/日",
@@ -50,7 +51,15 @@ const BASES: BaseInfo[] = [
     why: "訪日の約1/3が成田着。空港直結配送で到着即・手ぶら観光を実現。",
   },
   {
-    city: "大阪 / 京都", flag: "🏯", status: "次の一手", color: "#f97316",
+    city: "千歳（空港）/ 札幌", flag: "🏔️", status: "フェーズ1", color: "#22c55e",
+    visitors: "2.2M", nights: "10.3M泊（4.7泊/人）", station: "札幌JR 180,098/日",
+    airport: "新千歳空港", airportPax: "2,200万人/年",
+    zone: "新千歳→札幌・小樽・富良野・ニセコ 全道カバー",
+    why: "平均4.7泊の長期滞在。冬はスキー機材・夏はラベンダー観光の大荷物。年間通じて手ぶら需要が大きい。",
+  },
+  // ─── 次フェーズ ───
+  {
+    city: "大阪 / 京都", flag: "🏯", status: "フェーズ2", color: "#f97316",
     visitors: "12.9M + 9.7M", nights: "42.3M泊", station: "大阪JR 813,153/日",
     airport: "関西国際空港", airportPax: "3,000万人/年",
     zone: "関空→大阪・京都・奈良 広域カバー",
@@ -62,13 +71,6 @@ const BASES: BaseInfo[] = [
     airport: "福岡空港", airportPax: "2,500万人/年（国内+国際）",
     zone: "博多→天神 市内完結型",
     why: "韓国・中国からの短距離フライト集中。リピーター比率が高く消費力大。",
-  },
-  {
-    city: "北海道", flag: "🏔️", status: "4シーズン対応", color: "#8b5cf6",
-    visitors: "2.2M", nights: "10.3M泊（4.7泊/人）", station: "札幌JR 180,098/日",
-    airport: "新千歳空港", airportPax: "2,200万人/年",
-    zone: "新千歳→札幌・小樽・富良野・ニセコ 全道カバー",
-    why: "平均4.7泊の長期滞在。冬はスキー機材・夏はラベンダー観光の大荷物。年間通じて手ぶら需要が大きい。",
   },
   {
     city: "名古屋", flag: "🏙️", status: "フェーズ5", color: "#64748b",

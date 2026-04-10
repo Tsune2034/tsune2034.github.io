@@ -92,7 +92,7 @@ const DRILL_LABELS: Record<string, string> = {
   "13": "東京都 — 配送カバレッジ",
   "27": "大阪府 — 関西ハブ",
   "40": "福岡県 — 九州ハブ",
-  "01": "北海道 — スキーリゾート拠点",
+  "01": "北海道 — 千歳（空港）/ 札幌 フェーズ1",
 };
 const DRILL_MARKER: Record<string, { lat: number; lng: number; label: string }> = {
   "12": { lat: 35.7647, lng: 140.3864, label: "✈ Narita HQ" },
@@ -107,7 +107,7 @@ const KAIROX_BASES = [
   { lat: 35.7647, lng: 140.3864, color: "#22c55e", active: true,  label: "成田HQ", r: 18 },
   { lat: 34.6937, lng: 135.5023, color: "#f97316", active: false, label: "大阪",   r: 16 },
   { lat: 33.5898, lng: 130.4214, color: "#3b82f6", active: false, label: "福岡",   r: 14 },
-  { lat: 43.0642, lng: 141.3469, color: "#8b5cf6", active: false, label: "北海道", r: 14 },
+  { lat: 43.0642, lng: 141.3469, color: "#22c55e", active: true,  label: "千歳/札幌", r: 16 },
   { lat: 35.1815, lng: 136.9066, color: "#64748b", active: false, label: "名古屋", r: 13 },
 ];
 
