@@ -109,11 +109,11 @@ async function handleCommand(msg: TgMessage) {
   switch (cmd.toLowerCase()) {
     // ── 運行管理 ──
     case "/duty_on":
-      await sendDutyOnForm();
+      await sendDutyOnForm(chatId);
       break;
 
     case "/duty_off":
-      await sendDutyOffForm();
+      await sendDutyOffForm(chatId);
       break;
 
     case "/status":

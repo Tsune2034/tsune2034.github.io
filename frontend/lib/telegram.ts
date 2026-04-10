@@ -100,8 +100,8 @@ export async function notifyNewBooking(p: {
   ]);
 }
 
-/** 出庫前点呼フォーム（ドライバーへ） */
-export async function sendDutyOnForm() {
+/** 出庫前点呼フォーム（chatId 省略時はドライバーへ） */
+export async function sendDutyOnForm(chatId?: string) {
   const now = jstNow();
   const text = [
     `📋 *出庫前点呼チェック*`,
@@ -115,13 +115,13 @@ export async function sendDutyOnForm() {
     `🚗 出庫時メーター(km)を次のメッセージで送ってください`,
   ].join("\n");
 
-  return sendDriver(text, [
+  return sendMessage(chatId ?? DRIVER_CHAT, text, [
     [{ text: "✅ 点呼完了・出庫", callback_data: "duty_on_confirm" }],
   ]);
 }
 
-/** 帰着報告フォーム（ドライバーへ） */
-export async function sendDutyOffForm() {
+/** 帰着報告フォーム（chatId 省略時はドライバーへ） */
+export async function sendDutyOffForm(chatId?: string) {
   const now = jstNow();
   const text = [
     `📋 *帰着報告*`,
@@ -130,7 +130,7 @@ export async function sendDutyOffForm() {
     `🚗 帰着時メーター(km)を次のメッセージで送ってください`,
   ].join("\n");
 
-  return sendDriver(text, [
+  return sendMessage(chatId ?? DRIVER_CHAT, text, [
     [{ text: "✅ 帰着報告完了", callback_data: "duty_off_confirm" }],
   ]);
 }
