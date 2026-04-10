@@ -1,23 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { notifyNewBooking } from "@/lib/telegram";
 
 const BACKEND = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-
-/** Telegram通知ブリッジ経由で送信（失敗してもメイン処理は止めない） */
-async function notify(to: string, message: string, event: string) {
-  const bridgeUrl = process.env.OPENCLAW_BRIDGE_URL;
-  if (!bridgeUrl) return;
-  try {
-    await fetch(`${bridgeUrl}/notify`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Bridge-Secret": process.env.OPENCLAW_BRIDGE_SECRET ?? "",
-      },
-      body: JSON.stringify({ to, message, event }),
-      signal: AbortSignal.timeout(5000),
-    });
-  } catch { /* 通知失敗は無視 */ }
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,15 +13,16 @@ export async function POST(req: NextRequest) {
     });
     const data = await res.json();
 
-    // 予約確定時にオペレーター・ドライバーへTelegram通知（非同期・ノンブロッキング）
+    // 予約確定時にオペレーターへTelegram通知（受諾/対応不可ボタン付き）
     if (res.ok && data.booking_id) {
-      const name = body.name ?? "Guest";
-      const plan = body.plan ?? "-";
-      const amount = body.total_amount ? `¥${Number(body.total_amount).toLocaleString()}` : "";
-      const flight = body.flight_number ? ` / ${body.flight_number}` : "";
-      const msg = `📦 [KAIROX] 新規予約 ${data.booking_id}\n${name} / ${plan}${flight} / ${amount}`;
-      notify("operator", msg, "booking_created");
-      notify("driver", msg, "booking_created");
+      notifyNewBooking({
+        bookingId:  data.booking_id,
+        flight:     body.flight_number ?? "便名未定",
+        pickup:     body.pickup_location ?? "-",
+        dest:       body.hotel_name ?? body.destination ?? "-",
+        bags:       (body.extra_bags ?? 0) + 1,
+        total:      body.total_amount ?? 0,
+      }).catch(() => {});
     }
 
     return NextResponse.json(data, { status: res.status });
