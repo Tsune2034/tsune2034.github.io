@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 type Locale = "en" | "ja" | "zh" | "ko";
@@ -39,14 +40,14 @@ const copy: Record<Locale, {
     prob2_title: "チェックイン待ち", prob2_body: "ホテルに荷物を預けられず、半日を無駄に過ごしてしまう。",
     prob3_title: "言語の壁", prob3_body: "日本語が読めない外国人旅行者には、既存サービスは使えない。",
     sol_title: "KAIROXの答え",
-    sol_body: "AIが最適ルートを計算し、アプリで予約、スポットで集荷、ホテルに届ける。\n4言語対応、相乗りで割安、分単位の時間保証。\nこれはSaaSではない——リアル × デジタルのハイブリッドで動く急行配送プラットフォームです。",
+    sol_body: "AIが最適ルートを計算し、アプリで予約、スポットで集荷、ホテルに届ける。\n4言語対応、相乗りで割安、分単位の時間保証。",
     reviews_title: "旅行者の声",
     how_title: "3ステップで完結",
     step1_title: "① アプリで予約", step1_body: "30秒で完了。スロット選択・相乗り設定・支払いまで全てアプリで。",
     step2_title: "② スポットで集荷", step2_body: "空港・ホテル・観光地の指定スポットでドライバーが受け取り。",
     step3_title: "③ ホテルに届く", step3_body: "追跡アプリでリアルタイム確認。千歳・札幌は最短60〜75分、小樽・富良野は当日中にお届け。",
     price_title: "シンプルな料金",
-    price_note: "相乗りで最大15%OFF。GPS割引・急行保証料など詳細はアプリで。",
+    price_note: "相乗りで最大15%OFF。燃油サーチャージ（¥500）込み。",
     sim_title: "料金シミュレーター",
     sim_sub: "出発地・目的地・荷物数を選んで即時見積もり",
     sim_from: "出発空港", sim_to: "目的地", sim_bags: "荷物の数（個）",
@@ -54,7 +55,7 @@ const copy: Record<Locale, {
     sim_book: "この料金で予約する",
     narita_label: "成田空港", chitose_label: "新千歳空港",
     area_title: "対応エリア",
-    area_body: "新千歳空港 / 千歳・苫小牧 / 札幌 / 小樽 / 富良野・美瑛（旭川空港経由）/ 成田空港 / 東京都心",
+    area_body: "新千歳空港 / 千歳・苫小牧 / 札幌 / 小樽 / 富良野・美瑛 / 成田空港 / 東京都心",
     cta2: "手ぶらで、日本を全力で楽しもう。",
     cta2_sub: "予約は30秒。今すぐ始める。",
     footer_company: "One Hour Value Inc.",
@@ -79,7 +80,7 @@ const copy: Record<Locale, {
     step2_title: "② Drop off at a spot", step2_body: "Hand your bags to the driver at a designated spot at the airport, hotel, or attraction.",
     step3_title: "③ Arrives at your hotel", step3_body: "Track in real time. Chitose & Sapporo: from 60–75 min. Otaru & Furano: same-day delivery.",
     price_title: "Simple pricing",
-    price_note: "Up to 15% off with shared rides. GPS discount & express fee details in the app.",
+    price_note: "Up to 15% off with shared rides. Fuel surcharge (¥500) included.",
     sim_title: "Price Simulator",
     sim_sub: "Choose departure, destination & bags — instant estimate",
     sim_from: "Departure airport", sim_to: "Destination", sim_bags: "Number of bags",
@@ -112,7 +113,7 @@ const copy: Record<Locale, {
     step2_title: "② 指定地點交件", step2_body: "在機場、飯店或景點的指定地點，將行李交給司機。",
     step3_title: "③ 送達飯店", step3_body: "即時追蹤。千歲・札幌最快60〜75分，小樽・富良野當日送達。",
     price_title: "簡單明瞭的收費",
-    price_note: "共乘最高享 15% 折扣。GPS 折扣及急行費詳情請見 App。",
+    price_note: "共乘最高享 15% 折扣。含燃油附加費（¥500）。",
     sim_title: "費用試算",
     sim_sub: "選擇出發地、目的地和行李件數，即時試算費用",
     sim_from: "出發機場", sim_to: "目的地", sim_bags: "行李件數",
@@ -145,7 +146,7 @@ const copy: Record<Locale, {
     step2_title: "② 지정 장소에서 픽업", step2_body: "공항, 호텔, 관광지의 지정 장소에서 드라이버가 수령.",
     step3_title: "③ 호텔로 배달", step3_body: "실시간 추적 가능. 치토세・삿포로 최단 60〜75분, 오타루・후라노 당일 배달.",
     price_title: "간단한 요금",
-    price_note: "카풀 이용 시 최대 15% 할인. GPS 할인 및 특급 요금 상세는 앱에서 확인.",
+    price_note: "카풀 이용 시 최대 15% 할인. 연료 할증료（¥500）포함.",
     sim_title: "요금 시뮬레이터",
     sim_sub: "출발지・목적지・수하물 수를 선택하면 즉시 견적",
     sim_from: "출발 공항", sim_to: "목적지", sim_bags: "수하물 수（개）",
@@ -161,7 +162,6 @@ const copy: Record<Locale, {
   },
 };
 
-// ─── 料金シミュレーター ───
 const SIMULATOR = {
   narita: {
     destinations: [
@@ -174,12 +174,12 @@ const SIMULATOR = {
   },
   chitose: {
     destinations: [
-      { label: "札幌（中心部）",         base: 3500 },
-      { label: "小樽",                   base: 5000 },
+      { label: "札幌（中心部）",            base: 3500 },
+      { label: "小樽",                      base: 5000 },
       { label: "富良野・美瑛（ラベンダー）", base: 6000 },
-      { label: "ニセコ・倶知安（スキー）",  base: 6500 },
-      { label: "函館",                   base: 8500 },
-      { label: "知床・網走",             base: 9500 },
+      { label: "ニセコ・倶知安（スキー）",   base: 6500 },
+      { label: "函館",                      base: 8500 },
+      { label: "知床・網走",                base: 9500 },
     ],
   },
 } as const;
@@ -192,7 +192,6 @@ function calcPrice(base: number, bags: number): number {
   return Math.round((base * factor + FUEL) / 100) * 100;
 }
 
-// ─── 口コミ（国別）───
 const REVIEWS_BY_COUNTRY = [
   {
     country: "🇺🇸 USA / Australia",
@@ -212,7 +211,7 @@ const REVIEWS_BY_COUNTRY = [
     country: "🇹🇼 Taiwan / 🇨🇳 China",
     items: [
       { name: "李佳穎", rating: 5, text: "行李直接送到飯店，輕鬆遊北海道！App很好用，中文支援超貼心，完全不用擔心語言問題。", date: "Mar 2025" },
-      { name: "王浩然", rating: 5, text: "从成田机场到酒店的行李配送，价格合理，速度快。下次还会用！强烈推荐给来日本的朋友。", date: "Feb 2025" },
+      { name: "王浩然", rating: 5, text: "从成田机场到酒店的行李配送，价格合理，速度快。下次还会用！强烈推荐。", date: "Feb 2025" },
     ],
   },
   {
@@ -237,34 +236,39 @@ const PLANS = [
   { icon: "🧳🧳🧳🧳", label: "Family", ja: "ファミリー", price: "¥10,000〜" },
 ];
 
+// Tailwind gradient shorthand helpers (string literals for purge safety)
+const BTN_PRIMARY = "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-md shadow-blue-200";
+const BTN_ACTIVE  = "bg-gradient-to-r from-blue-600 to-cyan-500 text-white";
+
 export default function LPPage() {
   const [locale, setLocale] = useState<Locale>("ja");
   const [simFrom, setSimFrom] = useState<SimFrom>("narita");
   const [simDest, setSimDest] = useState(0);
   const [simBags, setSimBags] = useState(1);
   const tr = copy[locale];
-
   const simPrice = calcPrice(SIMULATOR[simFrom].destinations[simDest].base, simBags);
 
   return (
-    <div className="min-h-screen bg-[#080C18] text-white font-sans">
+    <div className="min-h-screen bg-white text-slate-900 font-sans">
 
       {/* ── Nav ── */}
-      <nav className="sticky top-0 z-20 bg-[#080C18]/90 backdrop-blur border-b border-white/5">
-        <div className="max-w-2xl mx-auto px-5 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <span className="text-base font-bold tracking-widest text-white">KAIROX</span>
-            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400">β</span>
+      <nav className="sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-slate-100 shadow-sm">
+        <div className="max-w-3xl mx-auto px-5 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-base font-black tracking-widest bg-gradient-to-r from-blue-700 to-cyan-500 bg-clip-text text-transparent">
+              KAIROX
+            </span>
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-500">β</span>
           </div>
           <div className="flex items-center gap-1">
             {LOCALES.map((l) => (
               <button key={l.value} onClick={() => setLocale(l.value)}
-                className={`px-2 py-1 rounded-md text-xs transition-all ${locale === l.value ? "bg-amber-500 text-gray-950 font-semibold" : "text-gray-500 hover:text-gray-300"}`}>
+                className={`px-2 py-1 rounded-md text-xs transition-all font-medium ${locale === l.value ? "bg-blue-600 text-white" : "text-slate-500 hover:text-slate-800"}`}>
                 {l.label}
               </button>
             ))}
             <Link href="/"
-              className="ml-2 px-3 py-1.5 rounded-lg bg-amber-500 text-gray-950 text-xs font-bold hover:bg-amber-400 transition-colors">
+              className={`ml-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${BTN_PRIMARY}`}>
               {tr.cta}
             </Link>
           </div>
@@ -272,95 +276,115 @@ export default function LPPage() {
       </nav>
 
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[-80px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-amber-500/10 rounded-full blur-[100px]" />
-        </div>
-        <div className="relative max-w-2xl mx-auto px-5 pt-20 pb-16 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-gray-400 mb-8">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-            {tr.badge}
+      <section className="relative overflow-hidden bg-white">
+        {/* 右上 blue glow */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-blue-100 via-cyan-50 to-transparent rounded-full -translate-y-1/3 translate-x-1/4 pointer-events-none" />
+
+        <div className="relative max-w-3xl mx-auto px-5 pt-14 pb-10">
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            {/* テキスト */}
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-xs text-blue-600 mb-6 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                {tr.badge}
+              </div>
+              <h1 className="text-4xl sm:text-5xl font-black leading-tight tracking-tight mb-5 text-slate-900 whitespace-pre-line">
+                {tr.hero.split("\n")[0]}
+                <br />
+                <span className="bg-gradient-to-r from-blue-700 to-cyan-500 bg-clip-text text-transparent">
+                  {tr.hero.split("\n")[1]}
+                </span>
+              </h1>
+              <p className="text-slate-500 text-sm sm:text-base leading-relaxed whitespace-pre-line mb-8">{tr.sub}</p>
+              <Link href="/"
+                className={`inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-bold text-base transition-all hover:scale-105 active:scale-95 ${BTN_PRIMARY}`}>
+                {tr.cta} <span className="text-lg">→</span>
+              </Link>
+            </div>
+            {/* ロゴ */}
+            <div className="flex justify-center md:justify-end">
+              <Image
+                src="/icon-512.png"
+                alt="KAIROX Japan"
+                width={300}
+                height={300}
+                className="drop-shadow-xl"
+                priority
+              />
+            </div>
           </div>
-          <h1 className="text-4xl sm:text-5xl font-black leading-tight tracking-tight mb-6 whitespace-pre-line">
-            {tr.hero.split("\n")[0]}
-            <br />
-            <span className="text-amber-400">{tr.hero.split("\n")[1]}</span>
-          </h1>
-          <p className="text-gray-400 text-sm sm:text-base leading-relaxed whitespace-pre-line mb-10">{tr.sub}</p>
-          <Link href="/"
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-amber-500 text-gray-950 font-bold text-base hover:bg-amber-400 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-amber-500/30">
-            {tr.cta} <span className="text-lg">→</span>
-          </Link>
         </div>
       </section>
 
       {/* ── Kairos brand story ── */}
-      <section className="max-w-2xl mx-auto px-5 py-12">
-        <div className="bg-gradient-to-br from-amber-950/30 to-amber-900/10 border border-amber-500/20 rounded-2xl p-6 sm:p-8">
-          <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-3">{tr.kairos_label}</p>
-          <p className="text-gray-300 text-sm sm:text-base leading-relaxed whitespace-pre-line">{tr.kairos_body}</p>
-          <div className="mt-5 flex items-center gap-3">
-            <div className="flex-1 h-px bg-amber-500/20" />
-            <span className="text-2xl font-black text-amber-400 tracking-widest">KAIROX</span>
-            <div className="flex-1 h-px bg-amber-500/20" />
+      <section className="bg-slate-50">
+        <div className="max-w-2xl mx-auto px-5 py-12">
+          <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-100 rounded-2xl p-6 sm:p-8">
+            <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-3">{tr.kairos_label}</p>
+            <p className="text-slate-700 text-sm sm:text-base leading-relaxed whitespace-pre-line">{tr.kairos_body}</p>
+            <div className="mt-5 flex items-center gap-3">
+              <div className="flex-1 h-px bg-blue-200" />
+              <span className="text-2xl font-black bg-gradient-to-r from-blue-700 to-cyan-500 bg-clip-text text-transparent tracking-widest">KAIROX</span>
+              <div className="flex-1 h-px bg-blue-200" />
+            </div>
           </div>
         </div>
       </section>
 
       {/* ── Problem ── */}
       <section className="max-w-2xl mx-auto px-5 py-12">
-        <h2 className="text-xl font-bold text-center mb-8 text-white">{tr.prob_title}</h2>
+        <h2 className="text-xl font-bold text-center mb-8 text-slate-900">{tr.prob_title}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { icon: "😰", title: tr.prob1_title, body: tr.prob1_body },
             { icon: "⏳", title: tr.prob2_title, body: tr.prob2_body },
             { icon: "🌐", title: tr.prob3_title, body: tr.prob3_body },
           ].map((p, i) => (
-            <div key={i} className="bg-gray-900/60 border border-gray-800 rounded-2xl p-5">
+            <div key={i} className="bg-white border border-slate-100 shadow-sm rounded-2xl p-5 hover:shadow-md transition-shadow">
               <div className="text-3xl mb-3">{p.icon}</div>
-              <p className="text-sm font-bold text-white mb-2">{p.title}</p>
-              <p className="text-xs text-gray-500 leading-relaxed">{p.body}</p>
+              <p className="text-sm font-bold text-slate-800 mb-2">{p.title}</p>
+              <p className="text-xs text-slate-500 leading-relaxed">{p.body}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* ── Solution ── */}
-      <section className="max-w-2xl mx-auto px-5 py-12">
-        <div className="text-center mb-8">
-          <h2 className="text-xl font-bold text-white mb-2">{tr.sol_title}</h2>
+      <section className="bg-slate-50">
+        <div className="max-w-2xl mx-auto px-5 py-12">
+          <h2 className="text-xl font-bold text-center mb-6 text-slate-900">{tr.sol_title}</h2>
+          <div className="flex flex-wrap justify-center gap-3 mb-6">
+            {["Uber", "×", "ヤマト", "×", "AI"].map((w, i) => (
+              <span key={i} className={`${w === "×" ? "text-slate-400 text-xl font-light self-center" : "px-4 py-2 rounded-xl border text-sm font-bold " + (w === "AI" ? "border-cyan-200 bg-cyan-50 text-cyan-700" : "border-blue-200 bg-blue-50 text-blue-700")}`}>
+                {w}
+              </span>
+            ))}
+          </div>
+          <p className="text-slate-600 text-sm sm:text-base leading-relaxed whitespace-pre-line text-center">{tr.sol_body}</p>
         </div>
-        <div className="flex flex-wrap justify-center gap-3 mb-8">
-          {["Uber", "×", "ヤマト", "×", "AI"].map((w, i) => (
-            <span key={i} className={`${w === "×" ? "text-gray-600 text-xl font-light self-center" : "px-4 py-2 rounded-xl border text-sm font-bold " + (w === "AI" ? "border-sky-500/40 bg-sky-500/10 text-sky-300" : "border-amber-500/40 bg-amber-500/10 text-amber-300")}`}>
-              {w}
-            </span>
-          ))}
-        </div>
-        <p className="text-gray-400 text-sm sm:text-base leading-relaxed whitespace-pre-line text-center">{tr.sol_body}</p>
       </section>
 
       {/* ── Reviews（国別）── */}
       <section className="max-w-2xl mx-auto px-5 py-12">
-        <h2 className="text-xl font-bold text-center mb-8 text-white">{tr.reviews_title}</h2>
+        <h2 className="text-xl font-bold text-center mb-8 text-slate-900">{tr.reviews_title}</h2>
         <div className="space-y-6">
           {REVIEWS_BY_COUNTRY.map((group) => (
             <div key={group.country}>
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-sm font-bold text-amber-400">{group.country}</span>
-                <div className="flex-1 h-px bg-amber-500/10" />
+                <span className="text-sm font-bold text-blue-600">{group.country}</span>
+                <div className="flex-1 h-px bg-blue-100" />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {group.items.map((r, i) => (
-                  <div key={i} className="bg-gray-900/60 border border-gray-800 rounded-2xl p-4">
+                  <div key={i} className="bg-white border border-slate-100 shadow-sm rounded-2xl p-4 hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold text-white">{r.name}</span>
+                      <span className="text-xs font-bold text-slate-800">{r.name}</span>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-amber-400 text-xs">{"★".repeat(r.rating)}</span>
-                        <span className="text-[10px] text-gray-600">{r.date}</span>
+                        <span className="text-blue-500 text-xs">{"★".repeat(r.rating)}</span>
+                        <span className="text-[10px] text-slate-400">{r.date}</span>
                       </div>
                     </div>
-                    <p className="text-xs text-gray-400 leading-relaxed">{r.text}</p>
+                    <p className="text-xs text-slate-500 leading-relaxed">{r.text}</p>
                   </div>
                 ))}
               </div>
@@ -370,132 +394,134 @@ export default function LPPage() {
       </section>
 
       {/* ── How it works ── */}
-      <section className="max-w-2xl mx-auto px-5 py-12">
-        <h2 className="text-xl font-bold text-center mb-8 text-white">{tr.how_title}</h2>
-        <div className="space-y-4">
-          {[
-            { emoji: "📱", title: tr.step1_title, body: tr.step1_body },
-            { emoji: "🤝", title: tr.step2_title, body: tr.step2_body },
-            { emoji: "🏨", title: tr.step3_title, body: tr.step3_body },
-          ].map((s, i) => (
-            <div key={i} className="flex items-start gap-4 bg-gray-900/40 border border-gray-800 rounded-2xl px-5 py-4">
-              <span className="text-3xl flex-shrink-0 mt-0.5">{s.emoji}</span>
-              <div>
-                <p className="text-sm font-bold text-amber-300 mb-1">{s.title}</p>
-                <p className="text-xs text-gray-400 leading-relaxed">{s.body}</p>
+      <section className="bg-slate-50">
+        <div className="max-w-2xl mx-auto px-5 py-12">
+          <h2 className="text-xl font-bold text-center mb-8 text-slate-900">{tr.how_title}</h2>
+          <div className="space-y-4">
+            {[
+              { emoji: "📱", title: tr.step1_title, body: tr.step1_body },
+              { emoji: "🤝", title: tr.step2_title, body: tr.step2_body },
+              { emoji: "🏨", title: tr.step3_title, body: tr.step3_body },
+            ].map((s, i) => (
+              <div key={i} className="flex items-start gap-4 bg-white border border-slate-100 shadow-sm rounded-2xl px-5 py-4">
+                <span className="text-3xl flex-shrink-0 mt-0.5">{s.emoji}</span>
+                <div>
+                  <p className="text-sm font-bold text-blue-600 mb-1">{s.title}</p>
+                  <p className="text-xs text-slate-500 leading-relaxed">{s.body}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
       {/* ── Pricing ── */}
       <section className="max-w-2xl mx-auto px-5 py-12">
-        <h2 className="text-xl font-bold text-center mb-8 text-white">{tr.price_title}</h2>
+        <h2 className="text-xl font-bold text-center mb-8 text-slate-900">{tr.price_title}</h2>
         <div className="grid grid-cols-3 gap-3">
           {PLANS.map((p) => (
-            <div key={p.label} className="bg-gray-900/60 border border-gray-800 rounded-2xl p-4 text-center">
+            <div key={p.label} className="bg-white border border-slate-100 shadow-sm rounded-2xl p-4 text-center hover:shadow-md transition-shadow">
               <div className="text-2xl mb-2">{p.icon}</div>
-              <p className="text-xs font-bold text-white mb-0.5">{locale === "ja" ? p.ja : p.label}</p>
-              <p className="text-lg font-black text-amber-400">{p.price}</p>
+              <p className="text-xs font-bold text-slate-700 mb-0.5">{locale === "ja" ? p.ja : p.label}</p>
+              <p className="text-lg font-black bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">{p.price}</p>
             </div>
           ))}
         </div>
-        <p className="text-center text-xs text-gray-600 mt-4">{tr.price_note}</p>
+        <p className="text-center text-xs text-slate-400 mt-4">{tr.price_note}</p>
       </section>
 
       {/* ── Simulator ── */}
-      <section className="max-w-2xl mx-auto px-5 py-12">
-        <h2 className="text-xl font-bold text-center mb-2 text-white">💰 {tr.sim_title}</h2>
-        <p className="text-center text-xs text-gray-500 mb-6">{tr.sim_sub}</p>
-        <div className="bg-gradient-to-br from-amber-950/20 to-gray-900/80 border border-amber-500/20 rounded-2xl p-5 space-y-4">
+      <section className="bg-slate-50">
+        <div className="max-w-2xl mx-auto px-5 py-12">
+          <h2 className="text-xl font-bold text-center mb-2 text-slate-900">💰 {tr.sim_title}</h2>
+          <p className="text-center text-xs text-slate-400 mb-6">{tr.sim_sub}</p>
+          <div className="bg-white border border-blue-100 shadow-sm rounded-2xl p-5 space-y-4">
 
-          {/* 出発空港 */}
-          <div>
-            <p className="text-xs text-gray-500 mb-2">{tr.sim_from}</p>
-            <div className="flex gap-2">
-              <button onClick={() => { setSimFrom("narita"); setSimDest(0); }}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${simFrom === "narita" ? "bg-amber-500 text-gray-950" : "bg-gray-800 text-gray-400 hover:text-gray-200"}`}>
-                ✈ {tr.narita_label}
-              </button>
-              <button onClick={() => { setSimFrom("chitose"); setSimDest(0); }}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${simFrom === "chitose" ? "bg-amber-500 text-gray-950" : "bg-gray-800 text-gray-400 hover:text-gray-200"}`}>
-                ✈ {tr.chitose_label}
-              </button>
+            {/* 出発空港 */}
+            <div>
+              <p className="text-xs text-slate-500 mb-2 font-medium">{tr.sim_from}</p>
+              <div className="flex gap-2">
+                {(["narita", "chitose"] as const).map((f) => (
+                  <button key={f} onClick={() => { setSimFrom(f); setSimDest(0); }}
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${simFrom === f ? BTN_ACTIVE : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}>
+                    ✈ {f === "narita" ? tr.narita_label : tr.chitose_label}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* 目的地 */}
-          <div>
-            <p className="text-xs text-gray-500 mb-2">{tr.sim_to}</p>
-            <select value={simDest} onChange={e => { setSimDest(Number(e.target.value)); }}
-              className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-amber-500">
-              {SIMULATOR[simFrom].destinations.map((d, i) => (
-                <option key={i} value={i}>{d.label}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* 荷物数 */}
-          <div>
-            <p className="text-xs text-gray-500 mb-2">{tr.sim_bags}</p>
-            <div className="flex gap-2">
-              {[1, 2, 3, 4, 5].map(n => (
-                <button key={n} onClick={() => setSimBags(n)}
-                  className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all ${simBags === n ? "bg-amber-500 text-gray-950" : "bg-gray-800 text-gray-400 hover:text-gray-200"}`}>
-                  {n}
-                </button>
-              ))}
+            {/* 目的地 */}
+            <div>
+              <p className="text-xs text-slate-500 mb-2 font-medium">{tr.sim_to}</p>
+              <select value={simDest} onChange={e => setSimDest(Number(e.target.value))}
+                className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200">
+                {SIMULATOR[simFrom].destinations.map((d, i) => (
+                  <option key={i} value={i}>{d.label}</option>
+                ))}
+              </select>
             </div>
-          </div>
 
-          {/* 結果 */}
-          <div className="bg-gray-900 rounded-xl p-4 text-center border border-gray-800">
-            <div className="text-xs text-gray-500 mb-1">{tr.sim_total}</div>
-            <div className="text-4xl font-black text-amber-400">
-              ¥{simPrice.toLocaleString()}
+            {/* 荷物数 */}
+            <div>
+              <p className="text-xs text-slate-500 mb-2 font-medium">{tr.sim_bags}</p>
+              <div className="flex gap-2">
+                {[1, 2, 3, 4, 5].map(n => (
+                  <button key={n} onClick={() => setSimBags(n)}
+                    className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all ${simBags === n ? BTN_ACTIVE : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}>
+                    {n}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="text-[10px] text-gray-600 mt-1">{tr.sim_note}</div>
-          </div>
 
-          <Link href="/"
-            className="block text-center py-3 rounded-xl bg-amber-500 text-gray-950 font-bold text-sm hover:bg-amber-400 transition-colors">
-            {tr.sim_book} →
-          </Link>
+            {/* 結果 */}
+            <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 text-center border border-blue-100">
+              <div className="text-xs text-slate-500 mb-1 font-medium">{tr.sim_total}</div>
+              <div className="text-4xl font-black bg-gradient-to-r from-blue-700 to-cyan-500 bg-clip-text text-transparent">
+                ¥{simPrice.toLocaleString()}
+              </div>
+              <div className="text-[10px] text-slate-400 mt-1">{tr.sim_note}</div>
+            </div>
+
+            <Link href="/"
+              className={`block text-center py-3 rounded-xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-95 ${BTN_PRIMARY}`}>
+              {tr.sim_book} →
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* ── Area ── */}
       <section className="max-w-2xl mx-auto px-5 py-8">
-        <div className="bg-gray-900/40 border border-gray-800 rounded-2xl px-6 py-5 text-center">
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{tr.area_title}</p>
-          <p className="text-sm text-gray-300 leading-relaxed">📍 {tr.area_body}</p>
-          <Link href="/map" className="inline-block mt-3 text-xs text-amber-500 hover:text-amber-400 underline underline-offset-2">
+        <div className="bg-white border border-slate-100 shadow-sm rounded-2xl px-6 py-5 text-center">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">{tr.area_title}</p>
+          <p className="text-sm text-slate-600 leading-relaxed">📍 {tr.area_body}</p>
+          <Link href="/map" className="inline-block mt-3 text-xs text-blue-500 hover:text-blue-700 underline underline-offset-2 font-medium">
             拠点マップを見る →
           </Link>
         </div>
       </section>
 
       {/* ── Final CTA ── */}
-      <section className="max-w-2xl mx-auto px-5 py-16 text-center">
-        <div className="relative">
+      <section className="bg-gradient-to-br from-slate-900 to-blue-950 py-20 text-white text-center px-5">
+        <div className="max-w-2xl mx-auto relative">
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[200px] bg-amber-500/10 rounded-full blur-[80px]" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[200px] bg-blue-500/20 rounded-full blur-[80px]" />
           </div>
           <h2 className="relative text-2xl sm:text-3xl font-black mb-3 whitespace-pre-line">{tr.cta2}</h2>
-          <p className="text-gray-400 text-sm mb-8">{tr.cta2_sub}</p>
+          <p className="text-slate-400 text-sm mb-8">{tr.cta2_sub}</p>
           <Link href="/"
-            className="inline-flex items-center gap-2 px-10 py-4 rounded-2xl bg-amber-500 text-gray-950 font-bold text-base hover:bg-amber-400 transition-all hover:scale-105 active:scale-95 shadow-xl shadow-amber-500/20">
+            className="inline-flex items-center gap-2 px-10 py-4 rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-400 text-white font-bold text-base hover:from-blue-600 hover:to-cyan-500 transition-all hover:scale-105 active:scale-95 shadow-xl shadow-blue-500/30">
             {tr.cta} <span className="text-lg">→</span>
           </Link>
         </div>
       </section>
 
       {/* ── Footer ── */}
-      <footer className="border-t border-white/5 max-w-2xl mx-auto px-5 py-8 text-center space-y-2">
-        <p className="text-xs font-bold text-gray-500 tracking-widest uppercase">{tr.footer_company}</p>
-        <p className="text-[10px] text-gray-700">{tr.footer_service}</p>
-        <p className="text-[10px] text-gray-800">© 2026 One Hour Value Inc. All rights reserved.</p>
+      <footer className="bg-slate-50 border-t border-slate-100 max-w-full px-5 py-8 text-center space-y-2">
+        <p className="text-xs font-bold text-slate-400 tracking-widest uppercase">{tr.footer_company}</p>
+        <p className="text-[10px] text-slate-400">{tr.footer_service}</p>
+        <p className="text-[10px] text-slate-300">© 2026 One Hour Value Inc. All rights reserved.</p>
       </footer>
     </div>
   );
