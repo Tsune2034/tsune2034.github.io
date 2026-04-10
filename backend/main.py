@@ -18,13 +18,14 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from fastapi import FastAPI, HTTPException, Depends, Security, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from fastapi.security import APIKeyHeader
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 
 from .models import BriefingRequest, BriefingResponse, Industry, Language, BookingCreate, BookingResponse, MatchResult, DriverLocationUpdate, DriverRegistrationCreate, PlayerCreate, PlayerReviewCreate, PlayerResponse, PlayerLocationUpdate, DispatchResult, MonitorAlert, CustomerMessageCreate, DriverMessageCreate
 from .briefing import generate_briefing
-from .database import SessionLocal, init_db, save_briefing, get_latest_briefing, BookingRecord, get_booking, save_booking, list_bookings, get_active_drivers, DriverRegistrationRecord, save_driver_registration, list_driver_registrations, PlayerRecord, PlayerReviewRecord, save_player, get_player, get_player_by_email, list_players, save_review, get_reviews_for_player, update_player_score, update_player_location, get_available_players_near, assign_player_to_booking, get_active_bookings_for_monitor, GpsTrackPoint, RouteStats, RouteStatsBand, save_gps_point, get_gps_track, upsert_route_stats, get_route_correction, aggregate_route_to_bands, get_route_stats_all, CongestionSegment, upsert_congestion, get_congestion_data, BookingPhoto, save_photo, get_photos
+from .database import SessionLocal, init_db, save_briefing, get_latest_briefing, BookingRecord, get_booking, save_booking, list_bookings, get_active_drivers, DriverRegistrationRecord, save_driver_registration, list_driver_registrations, PlayerRecord, PlayerReviewRecord, save_player, get_player, get_player_by_email, list_players, save_review, get_reviews_for_player, update_player_score, update_player_location, get_available_players_near, assign_player_to_booking, get_active_bookings_for_monitor, GpsTrackPoint, RouteStats, RouteStatsBand, save_gps_point, get_gps_track, upsert_route_stats, get_route_correction, aggregate_route_to_bands, get_route_stats_all, CongestionSegment, upsert_congestion, get_congestion_data, BookingPhoto, save_photo, get_photos, DutySession, VehicleGps, get_current_duty, start_duty, set_odometer, upsert_vehicle_gps, get_vehicle_gps
 from .trust_score import calculate, recalculate_from_reviews
 from .matching import find_and_match
 from .scheduler import TARGET_JOBS, run_daily_briefings
@@ -1079,6 +1080,87 @@ def stats_today(db: Session = Depends(get_db)):
         "pending": rows.pending or 0,
         "in_transit": rows.in_transit or 0,
         "total_revenue": rows.total_revenue or 0,
+    }
+
+
+# ─────────────────────────────────────────────────────────────────
+# 運行管理 API（Telegram Bot Webhook から呼ばれる）
+# ─────────────────────────────────────────────────────────────────
+
+@app.get("/duty/current")
+def duty_current(db: Session = Depends(get_db)):
+    """現在の勤務セッションを返す（なければ null）"""
+    duty = get_current_duty(db)
+    if not duty:
+        return {"active": False}
+    return {
+        "active": True,
+        "id": duty.id,
+        "start_at": duty.start_at.isoformat(),
+        "odometer_start": duty.odometer_start,
+    }
+
+
+@app.post("/duty/start")
+def duty_start(db: Session = Depends(get_db)):
+    """勤務開始（点呼完了）"""
+    existing = get_current_duty(db)
+    if existing:
+        return {
+            "ok": True,
+            "id": existing.id,
+            "start_at": existing.start_at.isoformat(),
+            "already_active": True,
+        }
+    duty = start_duty(db)
+    return {"ok": True, "id": duty.id, "start_at": duty.start_at.isoformat()}
+
+
+class OdometerIn(BaseModel):
+    km: int
+
+@app.post("/duty/odometer")
+def duty_odometer(req: OdometerIn, db: Session = Depends(get_db)):
+    """メーター入力（出庫または帰着）"""
+    duty = set_odometer(db, req.km)
+    if not duty:
+        raise HTTPException(status_code=404, detail="No active duty session")
+    result = {
+        "ok": True,
+        "id": duty.id,
+        "odometer_start": duty.odometer_start,
+        "odometer_end": duty.odometer_end,
+        "driven_km": duty.driven_km,
+        "ended": duty.end_at is not None,
+    }
+    if duty.end_at:
+        result["end_at"] = duty.end_at.isoformat()
+    return result
+
+
+class VehicleLocationIn(BaseModel):
+    lat: float
+    lng: float
+    recorded_at: str | None = None
+
+@app.post("/vehicle/location")
+def vehicle_location_post(req: VehicleLocationIn, db: Session = Depends(get_db)):
+    """車両GPS更新"""
+    upsert_vehicle_gps(db, req.lat, req.lng)
+    return {"ok": True}
+
+
+@app.get("/vehicle/location")
+def vehicle_location_get(db: Session = Depends(get_db)):
+    """最新GPS取得"""
+    gps = get_vehicle_gps(db)
+    if not gps:
+        return {"ok": False}
+    return {
+        "ok": True,
+        "lat": gps.lat,
+        "lng": gps.lng,
+        "recorded_at": gps.recorded_at.isoformat(),
     }
 
 

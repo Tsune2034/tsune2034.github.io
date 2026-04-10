@@ -424,6 +424,79 @@ class BriefingRecord(Base):
     generated_at = Column(DateTime(timezone=True), nullable=False)
 
 
+# ───────────────────────── 運行管理テーブル ─────────────────────────
+
+class DutySession(Base):
+    """ドライバー勤務セッション（法定1年保存）"""
+    __tablename__ = "duty_sessions"
+
+    id             = Column(Integer, primary_key=True, autoincrement=True)
+    start_at       = Column(DateTime(timezone=True), nullable=False)
+    odometer_start = Column(Integer, nullable=True)
+    end_at         = Column(DateTime(timezone=True), nullable=True)
+    odometer_end   = Column(Integer, nullable=True)
+    driven_km      = Column(Integer, nullable=True)
+
+
+class VehicleGps(Base):
+    """車両最新GPS位置（常時1行 upsert）"""
+    __tablename__ = "vehicle_gps"
+
+    id          = Column(Integer, primary_key=True, autoincrement=True)
+    lat         = Column(Float, nullable=False)
+    lng         = Column(Float, nullable=False)
+    recorded_at = Column(DateTime(timezone=True), nullable=False)
+
+
+def get_current_duty(db: Session) -> DutySession | None:
+    """最新の未終了勤務セッションを返す"""
+    return (
+        db.query(DutySession)
+        .filter(DutySession.end_at.is_(None))
+        .order_by(DutySession.start_at.desc())
+        .first()
+    )
+
+
+def start_duty(db: Session) -> DutySession:
+    session = DutySession(start_at=datetime.now(timezone.utc))
+    db.add(session)
+    db.commit()
+    db.refresh(session)
+    return session
+
+
+def set_odometer(db: Session, km: int) -> DutySession | None:
+    """開いているセッションのメーターを記録（start → end の順）"""
+    duty = get_current_duty(db)
+    if duty is None:
+        return None
+    if duty.odometer_start is None:
+        duty.odometer_start = km
+    else:
+        duty.odometer_end = km
+        duty.driven_km = km - duty.odometer_start
+        duty.end_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(duty)
+    return duty
+
+
+def upsert_vehicle_gps(db: Session, lat: float, lng: float) -> None:
+    row = db.query(VehicleGps).first()
+    if row:
+        row.lat = lat
+        row.lng = lng
+        row.recorded_at = datetime.now(timezone.utc)
+    else:
+        db.add(VehicleGps(lat=lat, lng=lng, recorded_at=datetime.now(timezone.utc)))
+    db.commit()
+
+
+def get_vehicle_gps(db: Session) -> VehicleGps | None:
+    return db.query(VehicleGps).first()
+
+
 def _run_migrations() -> None:
     """既存テーブルへ新カラムを追加するマイグレーション（べき等）"""
     is_sqlite = DATABASE_URL.startswith("sqlite")

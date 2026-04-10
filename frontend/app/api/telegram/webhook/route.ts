@@ -11,18 +11,11 @@ import {
   sendOperator, sendDriver,
   sendDutyOnForm, sendDutyOffForm,
   notifyNewBooking, HELP_TEXT,
-  chatIdOf,
 } from "@/lib/telegram";
 
 const API_URL     = process.env.NEXT_PUBLIC_API_URL ?? "";
 const OPERATOR_ID = process.env.TELEGRAM_CHAT_ID          ?? "7002592682";
 const DRIVER_ID   = process.env.TELEGRAM_DRIVER_CHAT_ID   ?? "6982319714";
-
-// ── ドライバーGPS最終位置（メモリ。再起動でリセット） ──
-let latestGps: { lat: number; lng: number; updatedAt: string } | null = null;
-
-// ── 勤務セッション（メモリ） ──
-let dutySession: { startAt: string; odometerStart?: number } | null = null;
 
 // ─────────────────────────────────────────────
 // Telegram update 型（最小限）
@@ -46,6 +39,22 @@ interface TgUpdate {
   message?:         TgMessage;
   edited_message?:  TgMessage;
   callback_query?:  TgCallbackQuery;
+}
+
+// ─────────────────────────────────────────────
+// FastAPI ヘルパー
+// ─────────────────────────────────────────────
+async function api<T = unknown>(path: string, opts?: RequestInit): Promise<T | null> {
+  if (!API_URL) return null;
+  try {
+    const res = await fetch(`${API_URL}${path}`, {
+      cache: "no-store",
+      ...opts,
+    });
+    return res.ok ? (res.json() as Promise<T>) : null;
+  } catch {
+    return null;
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -90,15 +99,17 @@ export async function POST(req: NextRequest) {
 // コマンドルーター
 // ─────────────────────────────────────────────
 async function handleCommand(msg: TgMessage) {
-  const text    = msg.text?.trim() ?? "";
-  const chatId  = String(msg.chat.id);
-  // ── デバッグ: IDを返してから認証チェック ──
+  const text   = msg.text?.trim() ?? "";
+  const chatId = String(msg.chat.id);
+
+  // デバッグ: IDを返してから認証チェック
   if (text === "/id" || text === "/myid") {
     await sendMessage(chatId, `🆔 Your chat\\_id: \`${chatId}\`\nOPERATOR: \`${OPERATOR_ID}\`\nDRIVER: \`${DRIVER_ID}\``);
     return;
   }
-  const isOp    = chatId === OPERATOR_ID;
-  const isDrv   = chatId === DRIVER_ID || chatId === OPERATOR_ID; // 当面Tsuneが兼任
+
+  const isOp  = chatId === OPERATOR_ID;
+  const isDrv = chatId === DRIVER_ID || chatId === OPERATOR_ID; // 当面Tsuneが兼任
   if (!isOp && !isDrv) {
     await sendMessage(chatId, `🆔 chat\\_id: \`${chatId}\` — このIDをTsuneに伝えてください`);
     return;
@@ -108,7 +119,6 @@ async function handleCommand(msg: TgMessage) {
   const cmd = rawCmd.split("@")[0]; // メニュー経由で /cmd@botname になる場合に対応
 
   switch (cmd.toLowerCase()) {
-    // ── 運行管理 ──
     case "/duty_on":
       await sendDutyOnForm(chatId);
       break;
@@ -129,18 +139,15 @@ async function handleCommand(msg: TgMessage) {
       await handleDone(chatId, args[0]);
       break;
 
-    // ── レポート ──
     case "/report":
       await handleReport(chatId);
       break;
 
-    // ── ヘルプ ──
     case "/help":
     case "/start":
       await sendMessage(chatId, HELP_TEXT);
       break;
 
-    // ── メーター入力（数字のみのメッセージ）──
     default:
       if (/^\d{4,6}$/.test(text)) {
         await handleOdometer(chatId, parseInt(text, 10));
@@ -155,19 +162,27 @@ async function handleCommand(msg: TgMessage) {
 async function handleStatus(chatId: string) {
   const lines = [`📊 *現在の状況*`];
 
-  if (dutySession) {
-    lines.push(`🟢 勤務中（開始: ${dutySession.startAt}）`);
-    if (dutySession.odometerStart !== undefined) {
-      lines.push(`🚗 出庫メーター: ${dutySession.odometerStart.toLocaleString()} km`);
+  const duty = await api<{ active: boolean; start_at?: string; odometer_start?: number }>("/duty/current");
+  if (duty?.active) {
+    const jstStart = duty.start_at
+      ? new Date(duty.start_at).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })
+      : "不明";
+    lines.push(`🟢 勤務中（開始: ${jstStart}）`);
+    if (duty.odometer_start !== undefined && duty.odometer_start !== null) {
+      lines.push(`🚗 出庫メーター: ${duty.odometer_start.toLocaleString()} km`);
     }
   } else {
     lines.push(`🔴 勤務外`);
   }
 
-  if (latestGps) {
-    const mapsUrl = `https://maps.google.com/maps?q=${latestGps.lat},${latestGps.lng}`;
+  const gps = await api<{ ok: boolean; lat?: number; lng?: number; recorded_at?: string }>("/vehicle/location");
+  if (gps?.ok && gps.lat && gps.lng) {
+    const mapsUrl = `https://maps.google.com/maps?q=${gps.lat},${gps.lng}`;
+    const jstGps = gps.recorded_at
+      ? new Date(gps.recorded_at).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })
+      : "不明";
     lines.push(``, `📍 [現在地を地図で見る](${mapsUrl})`);
-    lines.push(`🕐 GPS更新: ${latestGps.updatedAt}`);
+    lines.push(`🕐 GPS更新: ${jstGps}`);
   } else {
     lines.push(``, `📍 GPS: 未取得（ライブロケーションを共有してください）`);
   }
@@ -183,9 +198,7 @@ async function handleStatus(chatId: string) {
 async function handleQueue(chatId: string) {
   const lines = [`📋 *待ち予約一覧*`];
   try {
-    const res = await fetch(`${API_URL}/bookings?status=pending`, {
-      cache: "no-store",
-    });
+    const res = await fetch(`${API_URL}/bookings?status=pending`, { cache: "no-store" });
     if (res.ok) {
       const data: Array<{ booking_id: string; flight_number?: string; pickup_location: string; destination: string; extra_bags: number }> = await res.json();
       if (data.length === 0) {
@@ -219,20 +232,12 @@ async function handleDone(chatId: string, bookingId?: string) {
     return;
   }
   const jst = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
-  try {
-    await fetch(`${API_URL}/bookings/${encodeURIComponent(bookingId)}/complete`, {
-      method: "POST",
-    }).catch(() => {});
-  } catch {}
+  await api(`/bookings/${encodeURIComponent(bookingId)}/complete`, { method: "POST" });
 
-  await sendMessage(chatId,
-    `✅ *配送完了*\nID: \`${bookingId}\`\n🕐 ${jst}`,
-  );
-  // オペレーターにも通知（ドライバーが完了した場合）
+  await sendMessage(chatId, `✅ *配送完了*\nID: \`${bookingId}\`\n🕐 ${jst}`);
   if (chatId === DRIVER_ID) {
     await sendOperator(`✅ *配送完了* — \`${bookingId}\`\n🕐 ${jst}`);
   }
-  // 次のキューを自動確認
   await handleQueue(chatId);
 }
 
@@ -243,24 +248,23 @@ async function handleReport(chatId: string) {
   const today = new Date().toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo" });
   const lines = [`📊 *運行サマリー — ${today}*`];
 
-  if (dutySession) {
-    lines.push(`🟢 勤務中（開始: ${dutySession.startAt}）`);
+  const duty = await api<{ active: boolean; start_at?: string }>("/duty/current");
+  if (duty?.active && duty.start_at) {
+    const jstStart = new Date(duty.start_at).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+    lines.push(`🟢 勤務中（開始: ${jstStart}）`);
   } else {
     lines.push(`🔴 本日の勤務データなし`);
   }
 
-  try {
-    const res = await fetch(`${API_URL}/api/stats/today`, { cache: "no-store" });
-    if (res.ok) {
-      const d: { total_bookings?: number; completed?: number; total_revenue?: number } = await res.json();
-      lines.push(
-        ``,
-        `📦 予約: ${d.total_bookings ?? 0}件`,
-        `✅ 完了: ${d.completed ?? 0}件`,
-        `💴 売上: ¥${(d.total_revenue ?? 0).toLocaleString()}`,
-      );
-    }
-  } catch {}
+  const stats = await api<{ total_bookings?: number; completed?: number; total_revenue?: number }>("/api/stats/today");
+  if (stats) {
+    lines.push(
+      ``,
+      `📦 予約: ${stats.total_bookings ?? 0}件`,
+      `✅ 完了: ${stats.completed ?? 0}件`,
+      `💴 売上: ¥${(stats.total_revenue ?? 0).toLocaleString()}`,
+    );
+  }
 
   await sendMessage(chatId, lines.join("\n"));
 }
@@ -271,23 +275,36 @@ async function handleReport(chatId: string) {
 async function handleOdometer(chatId: string, km: number) {
   const jst = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
 
-  if (dutySession && dutySession.odometerStart === undefined) {
-    // 出庫メーター
-    dutySession.odometerStart = km;
+  const result = await api<{
+    ok: boolean; odometer_start?: number; odometer_end?: number; driven_km?: number; ended?: boolean; end_at?: string;
+  }>("/duty/odometer", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ km }),
+  });
+
+  if (!result?.ok) {
+    await sendMessage(chatId, `⚠️ 勤務セッションがありません。/duty\\_on で出庫してください`);
+    return;
+  }
+
+  if (!result.ended) {
+    // 出庫メーター記録
     await sendMessage(chatId,
       `✅ 出庫メーター記録: *${km.toLocaleString()} km*\n🕐 ${jst}\n\n📍 ライブロケーションを共有して出発してください`,
     );
     await sendOperator(`🚗 *ドライバー出庫*\nメーター: ${km.toLocaleString()} km\n🕐 ${jst}`);
-  } else if (dutySession && dutySession.odometerStart !== undefined) {
-    // 帰着メーター
-    const driven = km - dutySession.odometerStart;
-    const startAt = dutySession.startAt;
-    dutySession = null;
+  } else {
+    // 帰着メーター記録（セッション終了）
+    const driven = result.driven_km ?? 0;
+    const endAt  = result.end_at
+      ? new Date(result.end_at).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })
+      : jst;
 
     await sendMessage(chatId,
       [
         `✅ *勤務終了・帰着記録*`,
-        `🕐 帰着: ${jst}`,
+        `🕐 帰着: ${endAt}`,
         `🚗 帰着メーター: ${km.toLocaleString()} km`,
         `📏 本日走行: ${driven.toLocaleString()} km`,
       ].join("\n"),
@@ -295,8 +312,7 @@ async function handleOdometer(chatId: string, km: number) {
     await sendOperator(
       [
         `🏁 *ドライバー帰着*`,
-        `🕐 出庫: ${startAt}`,
-        `🕐 帰着: ${jst}`,
+        `🕐 帰着: ${endAt}`,
         `📏 走行距離: ${driven.toLocaleString()} km`,
         `🚗 帰着メーター: ${km.toLocaleString()} km`,
       ].join("\n"),
@@ -308,32 +324,20 @@ async function handleOdometer(chatId: string, km: number) {
 // ボタンコールバック
 // ─────────────────────────────────────────────
 async function handleCallback(cq: TgCallbackQuery) {
-  const data     = cq.data ?? "";
-  const chatId   = String(cq.message?.chat.id ?? "");
-  const msgId    = cq.message?.message_id ?? 0;
-  const jst      = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+  const data   = cq.data ?? "";
+  const chatId = String(cq.message?.chat.id ?? "");
+  const msgId  = cq.message?.message_id ?? 0;
+  const jst    = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
 
   await answerCallback(cq.id);
 
   // ── 新規予約 受諾 ──
   if (data.startsWith("accept:")) {
     const bookingId = data.replace("accept:", "");
-    try {
-      await fetch(`${API_URL}/bookings/${encodeURIComponent(bookingId)}/accept`, {
-        method: "POST",
-      }).catch(() => {});
-    } catch {}
-    await editMessage(chatId, msgId,
-      `✅ *受諾済み* — \`${bookingId}\`\n🕐 ${jst}`,
-    );
+    await api(`/bookings/${encodeURIComponent(bookingId)}/accept`, { method: "POST" });
+    await editMessage(chatId, msgId, `✅ *受諾済み* — \`${bookingId}\`\n🕐 ${jst}`);
     await sendDriver(
-      [
-        `📦 *集荷指示*`,
-        `予約ID: \`${bookingId}\``,
-        `🕐 ${jst}`,
-        ``,
-        `詳細は /queue で確認してください`,
-      ].join("\n"),
+      [`📦 *集荷指示*`, `予約ID: \`${bookingId}\``, `🕐 ${jst}`, ``, `詳細は /queue で確認してください`].join("\n"),
       [[{ text: "📦 集荷完了", callback_data: `pickup:${bookingId}` }]],
     );
     return;
@@ -367,21 +371,19 @@ async function handleCallback(cq: TgCallbackQuery) {
 
   // ── 点呼完了・出庫 ──
   if (data === "duty_on_confirm") {
-    dutySession = {
-      startAt: jst,
-    };
-    await editMessage(chatId, msgId,
-      `✅ *点呼完了*\n🕐 出庫: ${jst}\n\n出庫時メーター(km)を送ってください`,
-    );
-    await sendOperator(`🚗 *ドライバー出庫* 🕐 ${jst}`);
+    const result = await api<{ ok: boolean; already_active?: boolean }>("/duty/start", { method: "POST" });
+    if (result?.ok) {
+      await editMessage(chatId, msgId,
+        `✅ *点呼完了*\n🕐 出庫: ${jst}\n\n出庫時メーター(km)を送ってください`,
+      );
+      await sendOperator(`🚗 *ドライバー出庫* 🕐 ${jst}`);
+    }
     return;
   }
 
   // ── 帰着報告完了 ──
   if (data === "duty_off_confirm") {
-    await editMessage(chatId, msgId,
-      `帰着時メーター(km)を送ってください`,
-    );
+    await editMessage(chatId, msgId, `帰着時メーター(km)を送ってください`);
     return;
   }
 
@@ -396,15 +398,9 @@ async function handleCallback(cq: TgCallbackQuery) {
 // ライブロケーション受信
 // ─────────────────────────────────────────────
 async function handleLocation(lat: number, lng: number) {
-  const jst = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
-  latestGps = { lat, lng, updatedAt: jst };
-
-  // FastAPI にGPS送信（エラーでも続行）
-  if (API_URL) {
-    fetch(`${API_URL}/vehicle/location`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lat, lng, recorded_at: new Date().toISOString() }),
-    }).catch(() => {});
-  }
+  await api("/vehicle/location", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ lat, lng }),
+  });
 }
