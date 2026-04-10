@@ -869,6 +869,7 @@ export default function BookingApp({ zone }: { zone: ZoneConfig }) {
 
   // Pickup
   const [gpsStatus, setGpsStatus] = useState<"idle" | "detecting" | "ok" | "fail">("idle");
+  const [gpsError, setGpsError] = useState<string>("");
   const [gpsCoord, setGpsCoord] = useState<GpsCoord | null>(null);
   const [terminal, setTerminal] = useState(zone.terminals[0].id);
   const [spot, setSpot] = useState<string>(zone.terminals[0].spots[0].id);
@@ -966,12 +967,45 @@ export default function BookingApp({ zone }: { zone: ZoneConfig }) {
 
   // GPS
   function handleGps() {
-    if (!navigator.geolocation) { setGpsStatus("fail"); return; }
+    if (!navigator.geolocation) {
+      setGpsError(locale === "ja" ? "このブラウザはGPSに対応していません" : "Geolocation not supported");
+      setGpsStatus("fail");
+      return;
+    }
     setGpsStatus("detecting");
+    setGpsError("");
     navigator.geolocation.getCurrentPosition(
-      (pos) => { setGpsCoord({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setGpsStatus("ok"); },
-      () => setGpsStatus("fail"),
-      { timeout: 8000 }
+      (pos) => {
+        setGpsCoord({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setGpsStatus("ok");
+      },
+      (err) => {
+        const msgs: Record<Locale, Record<number, string>> = {
+          ja: {
+            1: "位置情報の許可が必要です（ブラウザ設定で許可してください）",
+            2: "現在地を取得できませんでした",
+            3: "タイムアウトしました。再度お試しください",
+          },
+          en: {
+            1: "Location permission denied — please allow in browser settings",
+            2: "Position unavailable",
+            3: "Timed out — please try again",
+          },
+          zh: {
+            1: "请在浏览器设置中允许位置权限",
+            2: "无法获取当前位置",
+            3: "超时，请重试",
+          },
+          ko: {
+            1: "브라우저 설정에서 위치 권한을 허용해주세요",
+            2: "위치를 가져올 수 없습니다",
+            3: "시간 초과, 다시 시도해주세요",
+          },
+        };
+        setGpsError(msgs[locale][err.code] ?? String(err.message));
+        setGpsStatus("fail");
+      },
+      { timeout: 10000, enableHighAccuracy: false, maximumAge: 30000 }
     );
   }
 
@@ -1182,7 +1216,7 @@ export default function BookingApp({ zone }: { zone: ZoneConfig }) {
               <button type="button" onClick={handleGps} disabled={gpsStatus === "detecting"}
                 className={`w-full flex items-center justify-center gap-3 py-4 rounded-xl border-2 font-semibold text-sm transition-all ${
                   gpsStatus === "ok" ? "border-green-500 bg-green-950/30 text-green-300" :
-                  gpsStatus === "fail" ? "border-gray-300 bg-gray-100/50 text-gray-500" :
+                  gpsStatus === "fail" ? "border-red-400/50 bg-red-950/20 text-red-400" :
                   gpsStatus === "detecting" ? "border-[#0052ff] bg-[#0052ff]/5 text-[#0052ff] cursor-wait" :
                   "border-[#0052ff] bg-[#0052ff]/10 text-[#0052ff] hover:bg-[#eef2ff]/50"
                 }`}>
@@ -1190,6 +1224,9 @@ export default function BookingApp({ zone }: { zone: ZoneConfig }) {
                 <span>{gpsStatus === "detecting" ? tr.gps_detecting : gpsStatus === "ok" ? tr.gps_success : gpsStatus === "fail" ? tr.gps_fail : tr.gps_btn}</span>
                 {gpsStatus === "detecting" && <PulseDots />}
               </button>
+              {gpsStatus === "fail" && gpsError && (
+                <p className="text-[11px] text-red-400 text-center px-2 -mt-1">{gpsError}</p>
+              )}
 
               {/* Map: show when GPS detected */}
               {gpsStatus === "ok" && gpsCoord && (
