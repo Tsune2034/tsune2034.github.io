@@ -104,7 +104,8 @@ async function handleCommand(msg: TgMessage) {
     return;
   }
 
-  const [cmd, ...args] = text.split(/\s+/);
+  const [rawCmd, ...args] = text.split(/\s+/);
+  const cmd = rawCmd.split("@")[0]; // メニュー経由で /cmd@botname になる場合に対応
 
   switch (cmd.toLowerCase()) {
     // ── 運行管理 ──
