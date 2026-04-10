@@ -29,7 +29,7 @@ const copy: Record<Locale, {
   footer_company: string; footer_service: string;
 }> = {
   ja: {
-    badge: "Uber × ヤマト × AI — 北海道・千歳・成田",
+    badge: "Uber × 急配 × AI — 北海道・千歳・成田",
     hero: "その荷物、\n絶好のタイミングで届ける。",
     sub: "KAIROXは、リアルとデジタルを融合させた\n急行荷物配送プラットフォームです。",
     cta: "今すぐ予約する",
@@ -62,7 +62,7 @@ const copy: Record<Locale, {
     footer_service: "KAIROXはOne Hour Value Inc.が運営するサービスです。",
   },
   en: {
-    badge: "Uber × Yamato × AI — Hokkaido & Narita, Japan",
+    badge: "Uber × Express × AI — Hokkaido & Narita, Japan",
     hero: "Your luggage,\ndelivered at the perfect moment.",
     sub: "KAIROX is a real-world AI-powered\nexpress luggage delivery platform.",
     cta: "Book Now",
@@ -95,7 +95,7 @@ const copy: Record<Locale, {
     footer_service: "KAIROX is a service operated by One Hour Value Inc.",
   },
   zh: {
-    badge: "Uber × 大和 × AI — 北海道・千歲・成田",
+    badge: "Uber × 急配 × AI — 北海道・千歲・成田",
     hero: "您的行李，\n在最佳時機送達。",
     sub: "KAIROX 是融合現實與數位的\n急速行李配送平台。",
     cta: "立即預訂",
@@ -128,7 +128,7 @@ const copy: Record<Locale, {
     footer_service: "KAIROX 為 One Hour Value Inc. 旗下服務。",
   },
   ko: {
-    badge: "Uber × 야마토 × AI — 홋카이도・나리타",
+    badge: "Uber × 특급배송 × AI — 홋카이도・나리타",
     hero: "당신의 짐,\n최적의 타이밍에 배달합니다.",
     sub: "KAIROX는 현실과 디지털을 융합한\n특급 수하물 배송 플랫폼입니다.",
     cta: "지금 예약하기",
