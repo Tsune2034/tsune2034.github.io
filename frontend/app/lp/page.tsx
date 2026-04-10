@@ -172,7 +172,6 @@ const SIMULATOR = {
       { label: "浅草・上野・秋葉原",           base: 3000 },
       { label: "横浜",                         base: 4000 },
       { label: "千葉市内",                     base: 2500 },
-      { label: "鎌倉",                         base: 5000 },
     ],
   },
   chitose: {
