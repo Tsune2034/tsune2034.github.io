@@ -29,9 +29,9 @@ const NATIONALITIES = [
 const MAX_NAT = Math.max(...NATIONALITIES.map(d => d.v));
 
 const STATS = [
-  { value: "36.9M", color: "#ef4444", label: "2024年 訪日外客数", sub: "過去最高" },
-  { value: "¥8.1T", color: "#f97316", label: "総消費額",         sub: "前年比+53%" },
-  { value: "¥227K", color: "#eab308", label: "一人当消費額",      sub: "平均消費額" },
+  { value: "36.9M", color: "#ef4444", label: "2024年 訪日外客数", sub: "過去最高（確報）" },
+  { value: "+15%",  color: "#f97316", label: "2025年 前年比",     sub: "1-6月速報・拡大継続" },
+  { value: "¥227K", color: "#eab308", label: "一人当消費額",      sub: "2024年 平均消費額" },
   { value: "6",     color: "#22c55e", label: "KAIROX 目標都市",   sub: "拠点展開予定" },
 ];
 
@@ -54,7 +54,7 @@ const BASES: BaseInfo[] = [
     city: "千歳（空港）/ 札幌", flag: "🏔️", status: "フェーズ1", color: "#22c55e",
     visitors: "2.2M", nights: "10.3M泊（4.7泊/人）", station: "札幌JR 180,098/日",
     airport: "新千歳空港", airportPax: "2,200万人/年",
-    zone: "新千歳→札幌・小樽・富良野・ニセコ 全道カバー",
+    zone: "新千歳→札幌・小樽・函館・知床 全道カバー（ニセコ・富良野 展開予定）",
     why: "平均4.7泊の長期滞在。冬はスキー機材・夏はラベンダー観光の大荷物。年間通じて手ぶら需要が大きい。",
   },
   // ─── 次フェーズ ───
@@ -151,7 +151,7 @@ export default function MapPage() {
 
           {/* 国籍別 */}
           <div className="bg-slate-900 rounded-2xl p-4 border border-slate-800">
-            <h2 className="text-sm font-bold text-slate-300 mb-3">🌏 国籍別訪日外客（2024年）</h2>
+            <h2 className="text-sm font-bold text-slate-300 mb-3">🌏 国籍別訪日外客（2024年確報）</h2>
             <div className="space-y-1.5">
               {NATIONALITIES.map((n) => (
                 <div key={n.label} className="flex items-center gap-2">
@@ -163,7 +163,10 @@ export default function MapPage() {
                 </div>
               ))}
             </div>
-            <p className="text-[10px] text-slate-600 mt-2 text-right">出典: JNTO 2024年確報</p>
+            <div className="mt-2 px-2 py-1.5 rounded-lg bg-slate-800/60 text-[9px] text-slate-400 leading-relaxed">
+              📊 2025年速報（1〜6月）: 韓国・中国が引き続き上位。中国は前年比+30〜40%で急回復。国籍別年次確報はJNTO翌年3月公表。
+            </div>
+            <p className="text-[10px] text-slate-600 mt-1.5 text-right">出典: JNTO 2024年確報 / 2025年速報</p>
           </div>
         </div>
 
