@@ -92,9 +92,17 @@ export async function POST(req: NextRequest) {
 async function handleCommand(msg: TgMessage) {
   const text    = msg.text?.trim() ?? "";
   const chatId  = String(msg.chat.id);
+  // ── デバッグ: IDを返してから認証チェック ──
+  if (text === "/id" || text === "/myid") {
+    await sendMessage(chatId, `🆔 Your chat\\_id: \`${chatId}\`\nOPERATOR: \`${OPERATOR_ID}\`\nDRIVER: \`${DRIVER_ID}\``);
+    return;
+  }
   const isOp    = chatId === OPERATOR_ID;
-  const isDrv   = chatId === DRIVER_ID;
-  if (!isOp && !isDrv) return; // 関係ないチャットは無視
+  const isDrv   = chatId === DRIVER_ID || chatId === OPERATOR_ID; // 当面Tsuneが兼任
+  if (!isOp && !isDrv) {
+    await sendMessage(chatId, `🆔 chat\\_id: \`${chatId}\` — このIDをTsuneに伝えてください`);
+    return;
+  }
 
   const [cmd, ...args] = text.split(/\s+/);
 
