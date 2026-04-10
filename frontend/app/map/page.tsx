@@ -8,31 +8,39 @@ const JapanHeatMap = dynamic(
   { ssr: false, loading: () => <div className="flex items-center justify-center h-64 text-slate-400">Loading map…</div> }
 );
 
-const MONTHLY = [
-  { m: "Jan", v: 2688100 }, { m: "Feb", v: 2788800 }, { m: "Mar", v: 3081400 },
-  { m: "Apr", v: 3042900 }, { m: "May", v: 3040100 }, { m: "Jun", v: 2777200 },
-  { m: "Jul", v: 3130700 }, { m: "Aug", v: 2929400 }, { m: "Sep", v: 2870400 },
-  { m: "Oct", v: 3312200 }, { m: "Nov", v: 3193400 }, { m: "Dec", v: 2995300 },
+// 2025年速報（JNTO 2025年11月推計値）
+const MONTHLY_2024 = [
+  { m: "Jan", v: 2688478 }, { m: "Feb", v: 2788224 }, { m: "Mar", v: 3081781 },
+  { m: "Apr", v: 3043003 }, { m: "May", v: 3040294 }, { m: "Jun", v: 3140642 },
+  { m: "Jul", v: 3292602 }, { m: "Aug", v: 2933381 }, { m: "Sep", v: 2872487 },
+  { m: "Oct", v: 3312193 }, { m: "Nov", v: 3187175 }, { m: "Dec", v: 3489888 },
 ];
-const MAX_MONTHLY = Math.max(...MONTHLY.map(d => d.v));
+const MONTHLY = [
+  { m: "Jan", v: 3781629 }, { m: "Feb", v: 3258491 }, { m: "Mar", v: 3497755 },
+  { m: "Apr", v: 3909128 }, { m: "May", v: 3693587 }, { m: "Jun", v: 3377985 },
+  { m: "Jul", v: 3437118 }, { m: "Aug", v: 3428406 }, { m: "Sep", v: 3267228 },
+  { m: "Oct", v: 3896300 }, { m: "Nov", v: 3518000 }, { m: "Dec", v: 0 },
+];
+const MAX_MONTHLY = Math.max(...MONTHLY_2024.map(d => d.v), ...MONTHLY.map(d => d.v));
 
+// 2025年1-11月累計（JNTO速報）中国が韓国を抜き1位に浮上、米国が初めて300万人突破
 const NATIONALITIES = [
-  { label: "韓国",   v: 8840200, color: "#3b82f6" },
-  { label: "中国",   v: 6794400, color: "#ef4444" },
-  { label: "台湾",   v: 4990900, color: "#22c55e" },
-  { label: "米国",   v: 2310100, color: "#f59e0b" },
-  { label: "香港",   v: 2263300, color: "#8b5cf6" },
-  { label: "タイ",  v: 1360500, color: "#06b6d4" },
-  { label: "豪州",   v:  729000, color: "#f97316" },
-  { label: "その他", v: 5600400, color: "#64748b" },
+  { label: "中国",   v: 8765800, color: "#ef4444", change: "+37.5%" },
+  { label: "韓国",   v: 8485300, color: "#3b82f6", change: "+6.7%"  },
+  { label: "台湾",   v: 6175000, color: "#22c55e", change: "+11.2%" },
+  { label: "米国",   v: 3036000, color: "#f59e0b", change: "+22.1%" },
+  { label: "香港",   v: 2226200, color: "#8b5cf6", change: "-7.2%"  },
+  { label: "タイ",   v: 1059100, color: "#06b6d4", change: "+5.7%"  },
+  { label: "豪州",   v:  937100, color: "#f97316", change: "+16.0%" },
+  { label: "その他", v: 8381100, color: "#64748b", change: "+28.9%" },
 ];
 const MAX_NAT = Math.max(...NATIONALITIES.map(d => d.v));
 
 const STATS = [
-  { value: "36.9M", color: "#ef4444", label: "2024年 訪日外客数", sub: "過去最高（確報）" },
-  { value: "+15%",  color: "#f97316", label: "2025年 前年比",     sub: "1-6月速報・拡大継続" },
-  { value: "¥227K", color: "#eab308", label: "一人当消費額",      sub: "2024年 平均消費額" },
-  { value: "6",     color: "#22c55e", label: "KAIROX 目標都市",   sub: "拠点展開予定" },
+  { value: "39.1M", color: "#ef4444", label: "2025年 訪日外客数",  sub: "1-11月累計・過去最高更新" },
+  { value: "+17%",  color: "#f97316", label: "2025年 前年比",      sub: "全月で前年超え" },
+  { value: "¥227K", color: "#eab308", label: "一人当消費額",       sub: "2024年 平均消費額" },
+  { value: "6",     color: "#22c55e", label: "KAIROX 目標都市",    sub: "拠点展開予定" },
 ];
 
 interface BaseInfo {
@@ -127,46 +135,53 @@ export default function MapPage() {
 
           {/* 月別 */}
           <div className="bg-slate-900 rounded-2xl p-4 border border-slate-800">
-            <h2 className="text-sm font-bold text-slate-300 mb-3">📅 月別訪日者数（2024年）</h2>
-            <div className="flex items-end gap-1 h-28">
-              {MONTHLY.map(({ m, v }) => {
-                const h = (v / MAX_MONTHLY) * 100;
-                const peak = v === MAX_MONTHLY;
+            <h2 className="text-sm font-bold text-slate-300 mb-1">📅 月別訪日者数 2024 vs 2025</h2>
+            <div className="flex gap-3 mb-2">
+              <span className="text-[9px] flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-sm bg-slate-600" />2024年</span>
+              <span className="text-[9px] flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-sm bg-blue-500" />2025年速報</span>
+            </div>
+            <div className="flex items-end gap-0.5 h-28">
+              {MONTHLY.map(({ m, v }, i) => {
+                const v24 = MONTHLY_2024[i].v;
+                const h25 = v > 0 ? (v / MAX_MONTHLY) * 100 : 0;
+                const h24 = (v24 / MAX_MONTHLY) * 100;
                 return (
                   <div key={m} className="flex-1 flex flex-col items-center gap-0.5 group relative">
-                    <div
-                      className="w-full rounded-t-sm transition-all duration-200 group-hover:brightness-125"
-                      style={{ height: `${h}%`, background: peak ? "#ef4444" : "#3b82f6", minHeight: 3 }}
-                    />
-                    <span className="text-[8px] text-slate-600">{m}</span>
+                    <div className="w-full flex items-end justify-center gap-px" style={{ height: "100%" }}>
+                      <div className="w-[45%] rounded-t-sm bg-slate-600" style={{ height: `${h24}%`, minHeight: 2 }} />
+                      {v > 0 && <div className="w-[45%] rounded-t-sm bg-blue-500" style={{ height: `${h25}%`, minHeight: 2 }} />}
+                    </div>
+                    <span className="text-[7px] text-slate-600">{m}</span>
                     <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-700 text-white text-[9px] px-1.5 py-0.5 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none z-10">
-                      {(v / 1_000_000).toFixed(2)}M人
+                      {v > 0 ? `2025: ${(v/1_000_000).toFixed(2)}M` : "未公表"} / 2024: {(v24/1_000_000).toFixed(2)}M
                     </div>
                   </div>
                 );
               })}
             </div>
-            <p className="text-[10px] text-slate-600 mt-2 text-right">出典: JNTO 2024年確報</p>
+            <p className="text-[10px] text-slate-600 mt-2 text-right">出典: JNTO 2024年確報 / 2025年速報（11月まで）</p>
           </div>
 
           {/* 国籍別 */}
           <div className="bg-slate-900 rounded-2xl p-4 border border-slate-800">
-            <h2 className="text-sm font-bold text-slate-300 mb-3">🌏 国籍別訪日外客（2024年確報）</h2>
+            <h2 className="text-sm font-bold text-slate-300 mb-1">🌏 国籍別訪日外客（2025年速報）</h2>
+            <p className="text-[9px] text-slate-500 mb-2">1〜11月累計 ｜ 中国が韓国を抜き1位 ｜ 米国は初の300万人超</p>
             <div className="space-y-1.5">
-              {NATIONALITIES.map((n) => (
-                <div key={n.label} className="flex items-center gap-2">
-                  <div className="w-12 text-[10px] text-slate-300 text-right shrink-0">{n.label}</div>
-                  <div className="flex-1 bg-slate-800 rounded-full h-2.5 overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${(n.v / MAX_NAT) * 100}%`, background: n.color }} />
+              {NATIONALITIES.map((n) => {
+                const positive = !n.change.startsWith("-");
+                return (
+                  <div key={n.label} className="flex items-center gap-2">
+                    <div className="w-10 text-[10px] text-slate-300 text-right shrink-0">{n.label}</div>
+                    <div className="flex-1 bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${(n.v / MAX_NAT) * 100}%`, background: n.color }} />
+                    </div>
+                    <div className="text-[10px] text-slate-400 w-9 shrink-0 text-right">{(n.v / 1_000_000).toFixed(1)}M</div>
+                    <div className={`text-[9px] w-10 shrink-0 font-bold ${positive ? "text-emerald-400" : "text-red-400"}`}>{n.change}</div>
                   </div>
-                  <div className="text-[10px] text-slate-400 w-10 shrink-0 text-right">{(n.v / 1_000_000).toFixed(1)}M</div>
-                </div>
-              ))}
+                );
+              })}
             </div>
-            <div className="mt-2 px-2 py-1.5 rounded-lg bg-slate-800/60 text-[9px] text-slate-400 leading-relaxed">
-              📊 2025年速報（1〜6月）: 韓国・中国が引き続き上位。中国は前年比+30〜40%で急回復。国籍別年次確報はJNTO翌年3月公表。
-            </div>
-            <p className="text-[10px] text-slate-600 mt-1.5 text-right">出典: JNTO 2024年確報 / 2025年速報</p>
+            <p className="text-[10px] text-slate-600 mt-2 text-right">出典: JNTO 2025年11月推計値（前年比は対2024年同期）</p>
           </div>
         </div>
 
