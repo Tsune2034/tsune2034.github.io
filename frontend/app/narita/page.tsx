@@ -1265,6 +1265,16 @@ export default function NaritaApp() {
         </div>
       </header>
 
+      {/* Beta Banner */}
+      <div className="bg-amber-400 text-amber-900 text-center text-xs font-bold py-1.5 px-4">
+        {{
+          ja: "🚧 試作段階のプロトタイプです。正式リリースに向けて開発中。",
+          en: "🚧 This is a prototype. Full service coming soon.",
+          zh: "🚧 目前为试作阶段原型，正式版即将推出。",
+          ko: "🚧 현재 시작 단계의 프로토타입입니다. 정식 출시 예정.",
+        }[locale]}
+      </div>
+
       {/* Rideshare Ticker */}
       <RideShareTicker locale={locale} tr={tr} />
 
