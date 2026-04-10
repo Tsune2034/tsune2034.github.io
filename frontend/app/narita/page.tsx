@@ -1662,11 +1662,15 @@ export default function NaritaApp() {
               ))}
             </div>
 
-            {/* Book button */}
-            <button type="button" onClick={submitBooking} disabled={!name.trim() || bookingLoading /* || !isOpen (テスト中は無効化) */}
-              className="w-full py-4 rounded-xl bg-[#0052ff] text-white font-black text-sm hover:bg-[#003fcc] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-              {bookingLoading ? <><PulseDots /> {tr.matching_sub}</> : <>{tr.confirm_book} →</>}
-            </button>
+            {/* Book button — 試作段階のため受付停止中 */}
+            <div className="w-full py-4 rounded-xl bg-gray-100 border-2 border-dashed border-gray-300 text-center">
+              <p className="text-sm font-black text-gray-500">🚧 {{
+                ja: "現在、受付準備中です。正式リリースまでお待ちください。",
+                en: "Booking coming soon. Stay tuned for our official launch.",
+                zh: "预约功能即将开放，敬请期待正式上线。",
+                ko: "예약 기능 준비 중입니다. 정식 출시를 기다려 주세요.",
+              }[locale]}</p>
+            </div>
           </div>
         )}
 
