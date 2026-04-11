@@ -111,8 +111,14 @@ async def lifespan(app: FastAPI):
         id="ai_monitor",
         replace_existing=True,
     )
+    scheduler.add_job(
+        _scheduled_daily_summary,
+        CronTrigger(hour=9, minute=0, timezone="UTC"),  # 18:00 JST
+        id="daily_summary",
+        replace_existing=True,
+    )
     scheduler.start()
-    log.info("Scheduler started — daily briefings at 06:00 UTC, AI monitor every 30s")
+    log.info("Scheduler started — daily briefings at 06:00 UTC, AI monitor every 30s, daily summary at 09:00 UTC")
 
     yield
 
@@ -132,12 +138,84 @@ async def _scheduled_monitor():
     db = SessionLocal()
     try:
         alerts = await ai_monitor(db)
-        if alerts:
+        critical = [a for a in alerts if a.get("type") in ("gps_stale", "ai_summary")]
+        if critical:
             log.info(f"[Monitor] {len(alerts)} alerts: {[a['type'] for a in alerts]}")
+            await _tg_notify_alerts(critical)
     except Exception as e:
         log.error(f"[Monitor] scheduled run failed: {e}")
     finally:
         db.close()
+
+
+async def _scheduled_daily_summary():
+    """毎日18時JST（09:00 UTC）に運行サマリーをTelegramに送信"""
+    db = SessionLocal()
+    try:
+        from sqlalchemy import func, case
+        jst = timezone(timedelta(hours=9))
+        now_jst = datetime.now(jst)
+        today_str = now_jst.strftime("%Y-%m-%d")
+
+        today_start = datetime(now_jst.year, now_jst.month, now_jst.day, tzinfo=timezone.utc) - timedelta(hours=9)
+        today_end = today_start + timedelta(days=1)
+
+        rows = db.query(
+            func.count(BookingRecord.id).label("total"),
+            func.sum(case((BookingRecord.status == "delivered", 1), else_=0)).label("done"),
+            func.coalesce(func.sum(BookingRecord.total_amount), 0).label("revenue"),
+        ).filter(
+            BookingRecord.created_at >= today_start,
+            BookingRecord.created_at < today_end,
+        ).first()
+
+        km_row = db.query(func.coalesce(func.sum(DutySession.driven_km), 0)).filter(
+            DutySession.start_at >= today_start,
+            DutySession.start_at < today_end,
+            DutySession.end_at.isnot(None),
+        ).scalar()
+
+        msg = "\n".join([
+            f"📊 *KAIROX 日次サマリー — {today_str}*",
+            f"",
+            f"📦 予約: {rows.total or 0}件",
+            f"✅ 完了: {rows.done or 0}件",
+            f"💴 売上: ¥{(rows.revenue or 0):,}",
+            f"🚗 走行: {km_row or 0} km",
+        ])
+        await _tg_send(msg)
+    except Exception as e:
+        log.error(f"[DailySummary] failed: {e}")
+    finally:
+        db.close()
+
+
+async def _tg_send(text: str) -> None:
+    """Telegram にメッセージ送信（バックエンドから直接）"""
+    token   = os.getenv("TELEGRAM_BOT_TOKEN", "")
+    chat_id = os.getenv("TELEGRAM_CHAT_ID", "")
+    if not token or not chat_id:
+        log.warning("[TG] TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not set — skipping")
+        return
+    try:
+        async with httpx.AsyncClient() as client:
+            await client.post(
+                f"https://api.telegram.org/bot{token}/sendMessage",
+                json={"chat_id": chat_id, "text": text, "parse_mode": "Markdown"},
+                timeout=10,
+            )
+    except Exception as e:
+        log.error(f"[TG] send failed: {e}")
+
+
+async def _tg_notify_alerts(alerts: list[dict]) -> None:
+    lines = ["⚠️ *KAIROX 異常検知*", ""]
+    for a in alerts:
+        if a.get("type") == "gps_stale":
+            lines.append(f"📡 GPS途絶: `{a.get('booking_id')}` — {a.get('stale_min')}分更新なし")
+        elif a.get("type") == "ai_summary":
+            lines.append(a.get("msg", ""))
+    await _tg_send("\n".join(lines))
 
 
 app = FastAPI(
@@ -1142,6 +1220,25 @@ class VehicleLocationIn(BaseModel):
     lat: float
     lng: float
     recorded_at: str | None = None
+
+@app.get("/duty/mileage")
+def duty_mileage(db: Session = Depends(get_db)):
+    """今月の累計走行距離・推定ガソリン代"""
+    from sqlalchemy import func
+    jst = timezone(timedelta(hours=9))
+    now_jst = datetime.now(jst)
+    month_start = datetime(now_jst.year, now_jst.month, 1, tzinfo=timezone.utc) - timedelta(hours=9)
+    total_km = db.query(func.coalesce(func.sum(DutySession.driven_km), 0)).filter(
+        DutySession.start_at >= month_start,
+        DutySession.end_at.isnot(None),
+    ).scalar() or 0
+    fuel_cost = int(total_km * 15)  # ¥15/km 概算（軽バン燃費15km/L・¥165/L想定）
+    return {
+        "month": now_jst.strftime("%Y-%m"),
+        "total_km": total_km,
+        "fuel_cost_est": fuel_cost,
+    }
+
 
 @app.post("/vehicle/location")
 def vehicle_location_post(req: VehicleLocationIn, db: Session = Depends(get_db)):

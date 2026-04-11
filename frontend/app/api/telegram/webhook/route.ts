@@ -22,12 +22,15 @@ const DRIVER_ID   = process.env.TELEGRAM_DRIVER_CHAT_ID   ?? "6982319714";
 // ─────────────────────────────────────────────
 interface TgUser    { id: number; first_name: string }
 interface TgChat    { id: number }
+interface TgPhotoSize { file_id: string; width: number; height: number }
 interface TgMessage {
   message_id: number;
   from?: TgUser;
   chat: TgChat;
   text?: string;
+  caption?: string;
   location?: { latitude: number; longitude: number };
+  photo?: TgPhotoSize[];
 }
 interface TgCallbackQuery {
   id: string;
@@ -77,6 +80,12 @@ export async function POST(req: NextRequest) {
 
   if (locMsg?.location) {
     await handleLocation(locMsg.location.latitude, locMsg.location.longitude);
+    return NextResponse.json({ ok: true });
+  }
+
+  // 写真
+  if (update.message?.photo) {
+    await handlePhoto(update.message);
     return NextResponse.json({ ok: true });
   }
 
@@ -141,6 +150,22 @@ async function handleCommand(msg: TgMessage) {
 
     case "/report":
       await handleReport(chatId);
+      break;
+
+    case "/detail":
+      await handleDetail(chatId, args[0]);
+      break;
+
+    case "/sales":
+      await handleSales(chatId);
+      break;
+
+    case "/mileage":
+      await handleMileage(chatId);
+      break;
+
+    case "/flight":
+      await handleFlight(chatId, args[0]);
       break;
 
     case "/help":
@@ -273,6 +298,158 @@ async function handleReport(chatId: string) {
   }
 
   await sendMessage(chatId, lines.join("\n"));
+}
+
+// ─────────────────────────────────────────────
+// /detail [ID] — 予約詳細
+// ─────────────────────────────────────────────
+async function handleDetail(chatId: string, bookingId?: string) {
+  if (!bookingId) {
+    await sendMessage(chatId, `⚠️ 使い方: /detail \\[予約ID\\]\n例: /detail CTS\\-ABC123`);
+    return;
+  }
+  const b = await api<{
+    booking_id: string; customer_name?: string; customer_phone?: string;
+    flight_number?: string; pickup_location: string; destination: string;
+    hotel_name?: string; extra_bags: number; total_amount: number;
+    pickup_date?: string; status: string;
+  }>(`/bookings/${encodeURIComponent(bookingId)}`);
+  if (!b) {
+    await sendMessage(chatId, `❌ 予約が見つかりません: \`${bookingId}\``);
+    return;
+  }
+  const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(b.hotel_name ?? b.destination)}&travelmode=driving`;
+  await sendMessage(chatId, [
+    `📋 *予約詳細 — \`${b.booking_id}\`*`,
+    `👤 ${b.customer_name ?? "未入力"}　📞 ${b.customer_phone ?? "未入力"}`,
+    `✈️ ${b.flight_number ?? "便名未定"}`,
+    `📅 ${b.pickup_date ?? "日時未定"}`,
+    `📍 ${b.pickup_location}`,
+    `🏨 ${b.hotel_name ?? b.destination}`,
+    `🧳 ${(b.extra_bags ?? 0) + 1}個　💴 ¥${(b.total_amount ?? 0).toLocaleString()}`,
+    `📌 ステータス: ${b.status}`,
+    ``,
+    `[🗺 ナビ開始](${navUrl})`,
+  ].join("\n"));
+}
+
+// ─────────────────────────────────────────────
+// /sales — 今日の売上
+// ─────────────────────────────────────────────
+async function handleSales(chatId: string) {
+  const today = new Date().toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo" });
+  const stats = await api<{ total_bookings: number; completed: number; pending: number; in_transit: number; total_revenue: number }>("/stats/today");
+  if (!stats) {
+    await sendMessage(chatId, `❌ データ取得失敗`);
+    return;
+  }
+  await sendMessage(chatId, [
+    `💴 *本日の売上 — ${today}*`,
+    ``,
+    `📦 総予約: ${stats.total_bookings}件`,
+    `✅ 完了: ${stats.completed}件`,
+    `🚚 配送中: ${stats.in_transit}件`,
+    `⏳ 待機中: ${stats.pending}件`,
+    `💰 売上合計: ¥${(stats.total_revenue).toLocaleString()}`,
+  ].join("\n"));
+}
+
+// ─────────────────────────────────────────────
+// /mileage — 月間走行距離
+// ─────────────────────────────────────────────
+async function handleMileage(chatId: string) {
+  const data = await api<{ month: string; total_km: number; fuel_cost_est: number }>("/duty/mileage");
+  if (!data) {
+    await sendMessage(chatId, `❌ データ取得失敗`);
+    return;
+  }
+  await sendMessage(chatId, [
+    `🚗 *月間走行距離 — ${data.month}*`,
+    ``,
+    `📏 走行距離: ${data.total_km.toLocaleString()} km`,
+    `⛽ 推定ガソリン代: ¥${data.fuel_cost_est.toLocaleString()}`,
+    `　（¥15/km概算・軽バン想定）`,
+  ].join("\n"));
+}
+
+// ─────────────────────────────────────────────
+// /flight [便名] — フライト遅延確認
+// ─────────────────────────────────────────────
+async function handleFlight(chatId: string, flightNum?: string) {
+  if (!flightNum) {
+    await sendMessage(chatId, `⚠️ 使い方: /flight \\[便名\\]\n例: /flight NH101`);
+    return;
+  }
+  const key = process.env.AVIATIONSTACK_API_KEY ?? "";
+  if (!key) {
+    await sendMessage(chatId, `⚠️ Aviationstack APIキー未設定`);
+    return;
+  }
+  try {
+    const res = await fetch(
+      `http://api.aviationstack.com/v1/flights?access_key=${key}&flight_iata=${encodeURIComponent(flightNum.toUpperCase())}&limit=1`,
+      { cache: "no-store" },
+    );
+    const json = await res.json();
+    const f = json?.data?.[0];
+    if (!f) {
+      await sendMessage(chatId, `❌ 便名 \`${flightNum}\` が見つかりません`);
+      return;
+    }
+    const dep = f.departure;
+    const arr = f.arrival;
+    const delay = dep?.delay ? `⚠️ 出発遅延: ${dep.delay}分` : `✅ 定時`;
+    const status = f.flight_status ?? "unknown";
+    await sendMessage(chatId, [
+      `✈️ *${f.flight?.iata ?? flightNum}*  ${f.airline?.name ?? ""}`,
+      `📌 ステータス: ${status}  ${delay}`,
+      `🛫 出発: ${dep?.airport ?? "?"} ${dep?.estimated ? new Date(dep.estimated).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }) : ""}`,
+      `🛬 到着: ${arr?.airport ?? "?"} ${arr?.estimated ? new Date(arr.estimated).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }) : ""}`,
+    ].join("\n"));
+  } catch {
+    await sendMessage(chatId, `❌ フライト情報の取得に失敗しました`);
+  }
+}
+
+// ─────────────────────────────────────────────
+// 写真受信 → 証跡保存
+// ─────────────────────────────────────────────
+async function handlePhoto(msg: TgMessage) {
+  const chatId  = String(msg.chat.id);
+  const caption = msg.caption?.trim() ?? "";
+  const photo   = msg.photo?.[msg.photo.length - 1]; // 最大解像度
+  if (!photo) return;
+
+  // キャプションから予約ID抽出（例: CTS-ABC123 または ABC123）
+  const bookingId = caption.match(/[A-Z]{2,4}-[A-Z0-9]{4,8}/i)?.[0]?.toUpperCase() ?? null;
+
+  try {
+    const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN ?? "";
+    // Telegram ファイルURL取得
+    const fileRes  = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${photo.file_id}`);
+    const fileJson = await fileRes.json();
+    const filePath = fileJson?.result?.file_path;
+    if (!filePath) throw new Error("file_path not found");
+
+    // ファイルダウンロード → base64
+    const imgRes = await fetch(`https://api.telegram.org/file/bot${BOT_TOKEN}/${filePath}`);
+    const buf    = Buffer.from(await imgRes.arrayBuffer());
+    const dataUrl = `data:image/jpeg;base64,${buf.toString("base64")}`;
+
+    if (bookingId && API_URL) {
+      await fetch(`${API_URL}/bookings/${encodeURIComponent(bookingId)}/photos`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ photo_type: "evidence", data_url: dataUrl }),
+        cache: "no-store",
+      });
+      await sendMessage(chatId, `📸 写真を保存しました\n予約ID: \`${bookingId}\``);
+    } else {
+      await sendMessage(chatId, `📸 受信しました（キャプションに予約IDを書くとDBに保存できます）\n例: \`CTS-ABC123\``);
+    }
+  } catch {
+    await sendMessage(chatId, `⚠️ 写真の保存に失敗しました`);
+  }
 }
 
 // ─────────────────────────────────────────────
