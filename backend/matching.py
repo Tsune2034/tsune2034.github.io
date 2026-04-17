@@ -20,7 +20,7 @@ from .database import BookingRecord, get_unmatched_shareride
 from .models import MatchResult
 
 log = logging.getLogger(__name__)
-client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+client = anthropic.Anthropic()
 
 
 def find_and_match(db: Session, booking_id: str) -> MatchResult:

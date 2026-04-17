@@ -13,7 +13,7 @@ from .models import BriefingRequest, BriefingResponse, Industry, Language
 
 load_dotenv()
 
-client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+client = anthropic.Anthropic()
 
 INDUSTRY_CONTEXT = {
     Industry.manufacturing: "manufacturing companies (supply chain, raw materials, energy costs, factory operations)",
