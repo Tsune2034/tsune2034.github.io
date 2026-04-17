@@ -111,14 +111,8 @@ async def lifespan(app: FastAPI):
         id="ai_monitor",
         replace_existing=True,
     )
-    scheduler.add_job(
-        _scheduled_daily_summary,
-        CronTrigger(hour=9, minute=0, timezone="UTC"),  # 18:00 JST
-        id="daily_summary",
-        replace_existing=True,
-    )
     scheduler.start()
-    log.info("Scheduler started — daily briefings at 06:00 UTC, AI monitor every 30s, daily summary at 09:00 UTC")
+    log.info("Scheduler started — daily briefings at 06:00 UTC, AI monitor every 30s")
 
     yield
 
@@ -144,48 +138,6 @@ async def _scheduled_monitor():
             await _tg_notify_alerts(critical)
     except Exception as e:
         log.error(f"[Monitor] scheduled run failed: {e}")
-    finally:
-        db.close()
-
-
-async def _scheduled_daily_summary():
-    """毎日18時JST（09:00 UTC）に運行サマリーをTelegramに送信"""
-    db = SessionLocal()
-    try:
-        from sqlalchemy import func, case
-        jst = timezone(timedelta(hours=9))
-        now_jst = datetime.now(jst)
-        today_str = now_jst.strftime("%Y-%m-%d")
-
-        today_start = datetime(now_jst.year, now_jst.month, now_jst.day, tzinfo=timezone.utc) - timedelta(hours=9)
-        today_end = today_start + timedelta(days=1)
-
-        rows = db.query(
-            func.count(BookingRecord.id).label("total"),
-            func.sum(case((BookingRecord.status == "delivered", 1), else_=0)).label("done"),
-            func.coalesce(func.sum(BookingRecord.total_amount), 0).label("revenue"),
-        ).filter(
-            BookingRecord.created_at >= today_start,
-            BookingRecord.created_at < today_end,
-        ).first()
-
-        km_row = db.query(func.coalesce(func.sum(DutySession.driven_km), 0)).filter(
-            DutySession.start_at >= today_start,
-            DutySession.start_at < today_end,
-            DutySession.end_at.isnot(None),
-        ).scalar()
-
-        msg = "\n".join([
-            f"📊 *KAIROX 日次サマリー — {today_str}*",
-            f"",
-            f"📦 予約: {rows.total or 0}件",
-            f"✅ 完了: {rows.done or 0}件",
-            f"💴 売上: ¥{(rows.revenue or 0):,}",
-            f"🚗 走行: {km_row or 0} km",
-        ])
-        await _tg_send(msg)
-    except Exception as e:
-        log.error(f"[DailySummary] failed: {e}")
     finally:
         db.close()
 
