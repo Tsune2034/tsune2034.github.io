@@ -37,6 +37,7 @@ log = logging.getLogger(__name__)
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "")
 _anthropic = anthropic.Anthropic()
+_APP_URL = os.getenv("APP_URL", "https://kairox.jp")
 
 
 # ─── AI confirmation message generator ───
@@ -44,7 +45,7 @@ async def generate_ai_message(name: str, booking_id: str, pickup: str, destinati
                                total: int, locale: str) -> str:
     locale_map = {"en": "English", "ja": "Japanese", "zh": "Simplified Chinese", "ko": "Korean"}
     lang = locale_map.get(locale, "English")
-    status_url = f"https://frontend-psi-seven-15.vercel.app/narita/status/{booking_id}"
+    status_url = f"{_APP_URL}/narita/status/{booking_id}"
     try:
         resp = _anthropic.messages.create(
             model="claude-haiku-4-5-20251001",
@@ -69,7 +70,7 @@ async def notify_slack(booking_id: str, name: str, phone: str, pickup: str,
         log.info("SLACK_WEBHOOK_URL not set — skipping Slack notification")
         return
 
-    admin_url = f"https://frontend-psi-seven-15.vercel.app/admin"
+    admin_url = f"{_APP_URL}/admin"
 
     # 翌日の予約かチェック（JST基準）
     jst_now = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=9)))

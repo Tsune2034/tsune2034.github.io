@@ -25,7 +25,7 @@ ZONE_LABELS = {
     "furano":  "富良野・美瑛エリア",
 }
 
-APP_URL = "https://frontend-psi-seven-15.vercel.app"
+APP_URL = os.getenv("APP_URL", "https://kairox.jp")
 FROM_ADDRESS = os.getenv("RESEND_FROM", "KAIROX <onboarding@resend.dev>")
 
 
