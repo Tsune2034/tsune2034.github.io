@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   sendMessage, editMessage, answerCallback,
-  sendOperator, sendDriver,
+  sendOperator,
   sendDutyOnForm, sendDutyOffForm,
   notifyNewBooking, HELP_TEXT,
 } from "@/lib/telegram";
@@ -154,10 +154,6 @@ async function handleCommand(msg: TgMessage) {
 
     case "/detail":
       await handleDetail(chatId, args[0]);
-      break;
-
-    case "/sales":
-      await handleSales(chatId);
       break;
 
     case "/mileage":
@@ -520,10 +516,6 @@ async function handleCallback(cq: TgCallbackQuery) {
     const bookingId = data.replace("accept:", "");
     await api(`/bookings/${encodeURIComponent(bookingId)}/accept`, { method: "POST" });
     await editMessage(chatId, msgId, `✅ *受諾済み* — \`${bookingId}\`\n🕐 ${jst}`);
-    await sendDriver(
-      [`📦 *集荷指示*`, `予約ID: \`${bookingId}\``, `🕐 ${jst}`, ``, `詳細は /queue で確認してください`].join("\n"),
-      [[{ text: "📦 集荷完了", callback_data: `pickup:${bookingId}` }]],
-    );
     return;
   }
 
