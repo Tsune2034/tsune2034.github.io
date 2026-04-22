@@ -1,6 +1,48 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import type { Lang } from "../page";
+
+const T = {
+  ja: {
+    newRecord: "+ 新規記録", save: "保存", cancel: "キャンセル",
+    title: "FMEA 修理記録",
+    date: "日付", time: "時刻", equipment: "設備名", technician: "担当者",
+    failureMode: "故障モード（Failure Mode）*",
+    effect: "影響（Effect）",
+    ca: "CA — 暫定対応（Containment Action）*",
+    pa: "PA — 恒久対策（Permanent Action）",
+    paTbd: "PA: 未定",
+    fmeaRating: "FMEA レーティング",
+    status: "ステータス",
+    searchPlaceholder: "設備・故障モードで検索...",
+    rpnSort: "RPN順",
+    rpnAlert: "件 — 優先対応が必要です",
+    noRecords: "修理履歴がありません。「+ 新規記録」から追加してください。",
+    noMatch: "該当する記録がありません",
+    copy: "コピー", delete: "削除",
+    caPrefix: "CA: ", paPrefix: "PA: ",
+  },
+  en: {
+    newRecord: "+ New Record", save: "Save", cancel: "Cancel",
+    title: "FMEA Repair Record",
+    date: "Date", time: "Time", equipment: "Equipment", technician: "Technician",
+    failureMode: "Failure Mode *",
+    effect: "Effect",
+    ca: "CA — Containment Action *",
+    pa: "PA — Permanent Action",
+    paTbd: "PA: TBD",
+    fmeaRating: "FMEA Rating",
+    status: "Status",
+    searchPlaceholder: "Search by equipment or failure mode...",
+    rpnSort: "Sort by RPN",
+    rpnAlert: " — Priority action required",
+    noRecords: "No repair records. Click \"+ New Record\" to add.",
+    noMatch: "No matching records",
+    copy: "Copy", delete: "Delete",
+    caPrefix: "CA: ", paPrefix: "PA: ",
+  },
+};
 
 type RepairEntry = {
   id: string;
@@ -85,7 +127,8 @@ function RatingSlider({ label, sublabel, value, onChange }: {
   );
 }
 
-export default function RepairHistory() {
+export default function RepairHistory({ lang = "ja" }: { lang?: Lang }) {
+  const tr = T[lang];
   const [entries, setEntries] = useState<RepairEntry[]>([]);
   const [form, setForm] = useState<RepairEntry>(newEntry());
   const [showForm, setShowForm] = useState(false);
@@ -160,75 +203,75 @@ export default function RepairHistory() {
       {highRPN > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-2.5 text-sm text-red-700 flex items-center gap-2">
           <span>⚠️</span>
-          <span><strong>RPN 100以上 {highRPN}件</strong> — 優先対応が必要です</span>
+          <span><strong>RPN 100以上 {highRPN}件</strong>{tr.rpnAlert}</span>
         </div>
       )}
 
       {/* Toolbar */}
       <div className="flex gap-2 items-center">
         <input value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="設備・故障モードで検索..."
+          placeholder={tr.searchPlaceholder}
           className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white outline-none" />
         <button onClick={() => setSortByRPN(v => !v)}
           className={`px-3 py-2 text-sm rounded-lg border transition-colors whitespace-nowrap ${
             sortByRPN ? "bg-[#003087] text-white border-[#003087]" : "border-gray-200 text-gray-500"
-          }`}>RPN順</button>
+          }`}>{tr.rpnSort}</button>
         <button onClick={() => { setForm(newEntry()); setShowForm(true); }}
           className="px-4 py-2 bg-[#003087] text-white text-sm font-medium rounded-lg hover:bg-[#00409e] whitespace-nowrap">
-          + New Record
+          {tr.newRecord}
         </button>
       </div>
 
       {/* Form */}
       {showForm && (
         <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-          <p className="text-sm font-semibold text-gray-700">FMEA Repair Record</p>
+          <p className="text-sm font-semibold text-gray-700">{tr.title}</p>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-gray-500">Date</label>
+              <label className="text-xs text-gray-500">{tr.date}</label>
               <input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})}
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1" />
             </div>
             <div>
-              <label className="text-xs text-gray-500">Time</label>
+              <label className="text-xs text-gray-500">{tr.time}</label>
               <input type="time" value={form.time} onChange={e => setForm({...form, time: e.target.value})}
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-gray-500">Equipment</label>
+              <label className="text-xs text-gray-500">{tr.equipment}</label>
               <select value={form.equipment} onChange={e => setForm({...form, equipment: e.target.value})}
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1 bg-white">
                 {EQUIPMENT_LIST.map(eq => <option key={eq}>{eq}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-xs text-gray-500">Technician</label>
+              <label className="text-xs text-gray-500">{tr.technician}</label>
               <input value={form.technician} onChange={e => setForm({...form, technician: e.target.value})}
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1" />
             </div>
           </div>
           <div>
-            <label className="text-xs text-gray-500">Failure Mode（故障モード）</label>
+            <label className="text-xs text-gray-500">{tr.failureMode}</label>
             <input value={form.faultMode} onChange={e => setForm({...form, faultMode: e.target.value})}
               placeholder="例: Belt jam at merge point"
               className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1" />
           </div>
           <div>
-            <label className="text-xs text-gray-500">Effect（影響）</label>
+            <label className="text-xs text-gray-500">{tr.effect}</label>
             <input value={form.faultEffect} onChange={e => setForm({...form, faultEffect: e.target.value})}
               placeholder="例: BHS line stoppage, 15min delay"
               className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1" />
           </div>
           <div>
-            <label className="text-xs font-medium text-blue-700">CA — Containment Action（暫定対応）*</label>
+            <label className="text-xs font-medium text-blue-700">{tr.ca}</label>
             <textarea value={form.ca} onChange={e => setForm({...form, ca: e.target.value})}
               rows={2} placeholder="例: Removed foreign object, reset PLC, resumed operation"
               className="w-full text-sm border border-blue-200 rounded-lg px-3 py-1.5 mt-1 resize-none" />
           </div>
           <div>
-            <label className="text-xs font-medium text-orange-700">PA — Permanent Action（恒久対策）</label>
+            <label className="text-xs font-medium text-orange-700">{tr.pa}</label>
             <textarea value={form.pa} onChange={e => setForm({...form, pa: e.target.value})}
               rows={2} placeholder="例: Replace worn guide rail, update PM schedule — 未定の場合は空欄可"
               className="w-full text-sm border border-orange-200 rounded-lg px-3 py-1.5 mt-1 resize-none" />
@@ -237,7 +280,7 @@ export default function RepairHistory() {
           {/* FMEA Ratings */}
           <div className="bg-gray-50 rounded-xl p-4 space-y-4">
             <div className="flex justify-between items-center">
-              <p className="text-xs font-semibold text-gray-600">FMEA Rating</p>
+              <p className="text-xs font-semibold text-gray-600">{tr.fmeaRating}</p>
               <div className={`px-3 py-1 rounded-full border text-sm font-bold ${getRPNLevel(form.severity * form.occurrence * form.detection).color}`}>
                 RPN: {form.severity * form.occurrence * form.detection}
                 <span className="text-xs font-normal ml-1">({getRPNLevel(form.severity * form.occurrence * form.detection).label})</span>
@@ -263,9 +306,9 @@ export default function RepairHistory() {
           </div>
           <div className="flex gap-2">
             <button onClick={addEntry}
-              className="flex-1 py-2 bg-[#003087] text-white text-sm font-medium rounded-lg hover:bg-[#00409e]">Save</button>
+              className="flex-1 py-2 bg-[#003087] text-white text-sm font-medium rounded-lg hover:bg-[#00409e]">{tr.save}</button>
             <button onClick={() => setShowForm(false)}
-              className="px-4 py-2 text-sm text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
+              className="px-4 py-2 text-sm text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50">{tr.cancel}</button>
           </div>
         </div>
       )}
@@ -273,7 +316,7 @@ export default function RepairHistory() {
       {/* List */}
       {filtered.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-sm text-gray-400">
-          {search ? "No matching records" : "No repair records. Click \"+ New Record\" to add."}
+          {search ? tr.noMatch : tr.noRecords}
         </div>
       ) : (
         <div className="space-y-2">
@@ -293,8 +336,8 @@ export default function RepairHistory() {
                     <span className="text-xs text-gray-400">{entry.date} {entry.time}</span>
                   </div>
                   <div className="flex gap-2 shrink-0">
-                    <button onClick={() => copyEntry(entry)} className="text-xs text-gray-400 hover:text-gray-600">Copy</button>
-                    <button onClick={() => deleteEntry(entry.id)} className="text-xs text-red-300 hover:text-red-500">Delete</button>
+                    <button onClick={() => copyEntry(entry)} className="text-xs text-gray-400 hover:text-gray-600">{tr.copy}</button>
+                    <button onClick={() => deleteEntry(entry.id)} className="text-xs text-red-300 hover:text-red-500">{tr.delete}</button>
                   </div>
                 </div>
                 <p className="text-sm font-semibold text-gray-700 mt-2">{entry.equipment}</p>
@@ -314,7 +357,7 @@ export default function RepairHistory() {
                     <span className="text-xs font-medium text-orange-600">PA: </span>{entry.pa}
                   </p>
                 ) : (
-                  <p className="text-xs text-orange-400 mt-0.5">PA: TBD</p>
+                  <p className="text-xs text-orange-400 mt-0.5">{tr.paTbd}</p>
                 )}
                 <div className="flex items-center gap-3 mt-2">
                   <span className="text-xs text-gray-400">S{entry.severity} × O{entry.occurrence} × D{entry.detection} = <strong>{rpn}</strong></span>

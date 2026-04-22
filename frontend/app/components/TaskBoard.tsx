@@ -1,6 +1,38 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import type { Lang } from "../page";
+
+const T = {
+  ja: {
+    newTask: "+ 新規タスク", save: "保存", cancel: "キャンセル",
+    title: "タイトル *", category: "カテゴリ", equipment: "設備名",
+    priority: "優先度", assignee: "担当者", dueDate: "期限",
+    detail: "詳細 / FA解析内容", rpnRef: "RPN参照（修理履歴より）",
+    status: "ステータス", searchPlaceholder: "タスクを検索...",
+    allPriority: "全優先度", overdue: "件 期限超過", overdueAlert: "期限超過タスクがあります",
+    noTasks: "タスクなし。「+ 新規タスク」から追加してください。",
+    noMatch: "該当するタスクがありません",
+    copy: "コピー", delete: "削除",
+    categories: { fa_report: "🔍 FA レポート", client_report: "📤 客先報告", maintenance: "🔧 メンテナンス", improvement: "📈 改善", other: "📋 その他" },
+    statuses: { open: "Open", in_progress: "対応中", pending_client: "客先待ち", closed: "完了" },
+    priorities: { critical: "Critical", high: "高", medium: "中", low: "低" },
+  },
+  en: {
+    newTask: "+ New Task", save: "Save", cancel: "Cancel",
+    title: "Title *", category: "Category", equipment: "Equipment",
+    priority: "Priority", assignee: "Assignee", dueDate: "Due Date",
+    detail: "Detail / FA Analysis", rpnRef: "RPN Reference (from FMEA Log)",
+    status: "Status", searchPlaceholder: "Search tasks...",
+    allPriority: "All Priority", overdue: " overdue", overdueAlert: "Overdue tasks exist",
+    noTasks: "No tasks. Click \"+ New Task\" to add.",
+    noMatch: "No matching tasks",
+    copy: "Copy", delete: "Delete",
+    categories: { fa_report: "🔍 FA Report", client_report: "📤 Client Report", maintenance: "🔧 Maintenance", improvement: "📈 Improvement", other: "📋 Other" },
+    statuses: { open: "Open", in_progress: "In Progress", pending_client: "Pending Client", closed: "Closed" },
+    priorities: { critical: "Critical", high: "High", medium: "Medium", low: "Low" },
+  },
+};
 
 type Priority = "critical" | "high" | "medium" | "low";
 type Status = "open" | "in_progress" | "pending_client" | "closed";
@@ -34,7 +66,7 @@ const STATUS_CONFIG: Record<Status, { label: string; color: string }> = {
   closed:         { label: "Closed",          color: "bg-green-50 text-green-700" },
 };
 
-const CATEGORY_CONFIG: Record<Category, string> = {
+const CATEGORY_CONFIG_EN: Record<Category, string> = {
   fa_report:     "🔍 FA Report",
   client_report: "📤 Client Report",
   maintenance:   "🔧 Maintenance",
@@ -62,7 +94,8 @@ function isOverdue(dueDate: string, status: Status): boolean {
   return new Date(dueDate) < new Date(new Date().toISOString().slice(0, 10));
 }
 
-export default function TaskBoard() {
+export default function TaskBoard({ lang = "ja" }: { lang?: Lang }) {
+  const t = T[lang];
   const [tasks, setTasks] = useState<Task[]>([]);
   const [form, setForm] = useState<Task>(newTask());
   const [showForm, setShowForm] = useState(false);
@@ -93,16 +126,16 @@ export default function TaskBoard() {
 
   function deleteTask(id: string) { save(tasks.filter(t => t.id !== id)); }
 
-  function copyTask(t: Task) {
+  function copyTask(task: Task) {
     const text = [
-      `【Task】${t.title}`,
-      `Category: ${CATEGORY_CONFIG[t.category]}`,
-      `Equipment: ${t.equipment}`,
-      `Priority: ${t.priority.toUpperCase()}`,
-      `Status: ${STATUS_CONFIG[t.status].label}`,
-      `Due: ${t.dueDate || "-"}`,
-      `Assignee: ${t.assignee || "-"}`,
-      t.detail ? `Detail: ${t.detail}` : "",
+      `【Task】${task.title}`,
+      `Category: ${t.categories[task.category]}`,
+      `Equipment: ${task.equipment}`,
+      `Priority: ${task.priority.toUpperCase()}`,
+      `Status: ${t.statuses[task.status]}`,
+      `Due: ${task.dueDate || "-"}`,
+      `Assignee: ${task.assignee || "-"}`,
+      task.detail ? `Detail: ${task.detail}` : "",
     ].filter(Boolean).join("\n");
     navigator.clipboard.writeText(text);
   }
@@ -135,96 +168,93 @@ export default function TaskBoard() {
       {overdueCount > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-2.5 text-sm text-red-700 flex items-center gap-2">
           <span>🚨</span>
-          <span><strong>Overdue {overdueCount}件</strong> — 期限超過タスクがあります</span>
+          <span><strong>{overdueCount}{t.overdue}</strong> — {t.overdueAlert}</span>
         </div>
       )}
 
       {/* Toolbar */}
       <div className="flex gap-2 flex-wrap items-center">
         <input value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="Search tasks..."
+          placeholder={t.searchPlaceholder}
           className="flex-1 min-w-[160px] text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white outline-none" />
         <select value={filterPriority} onChange={e => setFilterPriority(e.target.value as Priority | "all")}
           className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white">
-          <option value="all">All Priority</option>
+          <option value="all">{t.allPriority}</option>
           {(Object.keys(PRIORITY_CONFIG) as Priority[]).map(p => (
-            <option key={p} value={p}>{PRIORITY_CONFIG[p].label}</option>
+            <option key={p} value={p}>{t.priorities[p]}</option>
           ))}
         </select>
         <button onClick={() => { setForm(newTask()); setShowForm(true); }}
           className="px-4 py-2 bg-[#003087] text-white text-sm font-medium rounded-lg hover:bg-[#00409e] whitespace-nowrap">
-          + New Task
+          {t.newTask}
         </button>
       </div>
 
       {/* Form */}
       {showForm && (
         <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
-          <p className="text-sm font-semibold text-gray-700">New Task</p>
+          <p className="text-sm font-semibold text-gray-700">{t.newTask}</p>
           <div>
-            <label className="text-xs text-gray-500">Title *</label>
+            <label className="text-xs text-gray-500">{t.title}</label>
             <input value={form.title} onChange={e => setForm({...form, title: e.target.value})}
-              placeholder="Task title"
               className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-gray-500">Category</label>
+              <label className="text-xs text-gray-500">{t.category}</label>
               <select value={form.category} onChange={e => setForm({...form, category: e.target.value as Category})}
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1 bg-white">
-                {(Object.entries(CATEGORY_CONFIG) as [Category, string][]).map(([k, v]) => (
-                  <option key={k} value={k}>{v}</option>
+                {(Object.keys(t.categories) as Category[]).map(k => (
+                  <option key={k} value={k}>{t.categories[k]}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="text-xs text-gray-500">Equipment</label>
+              <label className="text-xs text-gray-500">{t.equipment}</label>
               <input value={form.equipment} onChange={e => setForm({...form, equipment: e.target.value})}
-                placeholder="Belt Conveyor #1..."
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1" />
             </div>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="text-xs text-gray-500">Priority</label>
+              <label className="text-xs text-gray-500">{t.priority}</label>
               <select value={form.priority} onChange={e => setForm({...form, priority: e.target.value as Priority})}
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1 bg-white">
                 {(Object.keys(PRIORITY_CONFIG) as Priority[]).map(p => (
-                  <option key={p} value={p}>{PRIORITY_CONFIG[p].label}</option>
+                  <option key={p} value={p}>{t.priorities[p]}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="text-xs text-gray-500">Assignee</label>
+              <label className="text-xs text-gray-500">{t.assignee}</label>
               <input value={form.assignee} onChange={e => setForm({...form, assignee: e.target.value})}
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1" />
             </div>
             <div>
-              <label className="text-xs text-gray-500">Due Date</label>
+              <label className="text-xs text-gray-500">{t.dueDate}</label>
               <input type="date" value={form.dueDate} onChange={e => setForm({...form, dueDate: e.target.value})}
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1" />
             </div>
           </div>
           <div>
-            <label className="text-xs text-gray-500">Detail / FA Analysis</label>
+            <label className="text-xs text-gray-500">{t.detail}</label>
             <textarea value={form.detail} onChange={e => setForm({...form, detail: e.target.value})}
-              rows={3} placeholder="Root cause, FA findings, client notes..."
+              rows={3}
               className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1 resize-none" />
           </div>
           {form.category === "fa_report" && (
             <div>
-              <label className="text-xs text-gray-500">RPN Reference（修理履歴より）</label>
+              <label className="text-xs text-gray-500">{t.rpnRef}</label>
               <input type="number" min={1} max={1000} value={form.rpnRef ?? ""}
                 onChange={e => setForm({...form, rpnRef: Number(e.target.value)})}
-                placeholder="例: 150"
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1" />
             </div>
           )}
           <div className="flex gap-2">
             <button onClick={addTask}
-              className="flex-1 py-2 bg-[#003087] text-white text-sm font-medium rounded-lg">Save</button>
+              className="flex-1 py-2 bg-[#003087] text-white text-sm font-medium rounded-lg">{t.save}</button>
             <button onClick={() => setShowForm(false)}
-              className="px-4 py-2 text-sm text-gray-500 border border-gray-200 rounded-lg">Cancel</button>
+              className="px-4 py-2 text-sm text-gray-500 border border-gray-200 rounded-lg">{t.cancel}</button>
           </div>
         </div>
       )}
@@ -232,7 +262,7 @@ export default function TaskBoard() {
       {/* Task list */}
       {filtered.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-sm text-gray-400">
-          {search || filterStatus !== "all" || filterPriority !== "all" ? "No matching tasks" : "No tasks. Click \"+ New Task\" to add."}
+          {search || filterStatus !== "all" || filterPriority !== "all" ? t.noMatch : t.noTasks}
         </div>
       ) : (
         <div className="space-y-2">
@@ -243,17 +273,17 @@ export default function TaskBoard() {
                 <div className="flex justify-between items-start gap-2">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${PRIORITY_CONFIG[task.priority].color}`}>
-                      {PRIORITY_CONFIG[task.priority].label}
+                      {t.priorities[task.priority]}
                     </span>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_CONFIG[task.status].color}`}>
-                      {STATUS_CONFIG[task.status].label}
+                      {t.statuses[task.status]}
                     </span>
-                    <span className="text-xs text-gray-400">{CATEGORY_CONFIG[task.category]}</span>
+                    <span className="text-xs text-gray-400">{t.categories[task.category]}</span>
                     {overdue && <span className="text-xs text-red-500 font-medium">⚠ Overdue</span>}
                   </div>
                   <div className="flex gap-2 shrink-0">
-                    <button onClick={() => copyTask(task)} className="text-xs text-gray-400 hover:text-gray-600">Copy</button>
-                    <button onClick={() => deleteTask(task.id)} className="text-xs text-red-300 hover:text-red-500">Delete</button>
+                    <button onClick={() => copyTask(task)} className="text-xs text-gray-400 hover:text-gray-600">{t.copy}</button>
+                    <button onClick={() => deleteTask(task.id)} className="text-xs text-red-300 hover:text-red-500">{t.delete}</button>
                   </div>
                 </div>
                 <p className="text-sm font-semibold text-gray-800 mt-2">{task.title}</p>
@@ -272,11 +302,10 @@ export default function TaskBoard() {
                     {task.assignee && <span>👤 {task.assignee}</span>}
                     {task.dueDate && <span className={overdue ? "text-red-500 font-medium" : ""}>📅 {task.dueDate}</span>}
                   </div>
-                  {/* Quick status change */}
                   <select value={task.status} onChange={e => updateStatus(task.id, e.target.value as Status)}
                     className="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white text-gray-600">
-                    {(Object.entries(STATUS_CONFIG) as [Status, {label: string; color: string}][]).map(([k, v]) => (
-                      <option key={k} value={k}>{v.label}</option>
+                    {(Object.keys(t.statuses) as Status[]).map(k => (
+                      <option key={k} value={k}>{t.statuses[k]}</option>
                     ))}
                   </select>
                 </div>
