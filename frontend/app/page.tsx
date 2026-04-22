@@ -4,11 +4,13 @@ import { useState } from "react";
 import ShiftSchedule from "./components/ShiftSchedule";
 import RepairHistory from "./components/RepairHistory";
 import Translator from "./components/Translator";
+import TaskBoard from "./components/TaskBoard";
 
 const TABS = [
-  { id: "shift",   label: "シフト表",   icon: "📅" },
-  { id: "repair",  label: "修理履歴",   icon: "🔧" },
-  { id: "translate", label: "BHS翻訳", icon: "🌐" },
+  { id: "shift",     label: "Shift",     icon: "📅" },
+  { id: "tasks",     label: "Tasks",     icon: "📋" },
+  { id: "repair",    label: "FMEA Log",  icon: "🔧" },
+  { id: "translate", label: "Translate", icon: "🌐" },
 ] as const;
 
 type TabId = typeof TABS[number]["id"];
@@ -53,6 +55,7 @@ export default function Page() {
       {/* Content */}
       <main className="max-w-5xl mx-auto px-4 py-6">
         {activeTab === "shift"     && <ShiftSchedule />}
+        {activeTab === "tasks"     && <TaskBoard />}
         {activeTab === "repair"    && <RepairHistory />}
         {activeTab === "translate" && <Translator />}
       </main>
