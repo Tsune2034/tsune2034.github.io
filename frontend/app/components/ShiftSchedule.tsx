@@ -73,7 +73,16 @@ function getWeekDates(offset: number): Date[] {
 
 function dateKey(d: Date) { return d.toISOString().slice(0, 10); }
 
-const DOW_JA = ["月", "火", "水", "木", "金", "土", "日"];
+function getISOWeek(d: Date): number {
+  const date = new Date(d);
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + 3 - ((date.getDay() + 6) % 7));
+  const week1 = new Date(date.getFullYear(), 0, 4);
+  return 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
+}
+
+const DOW_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const MON_EN = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 const DEFAULT_MEMBERS: Member[] = [
   { id: "1", name: "常森" },
@@ -185,17 +194,20 @@ export default function ShiftSchedule() {
       {/* Week navigation */}
       <div className="bg-white rounded-xl border border-gray-200 p-3 flex items-center justify-between">
         <button onClick={() => setWeekOffset(w => w - 1)}
-          className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-800 border border-gray-200 rounded-lg">← 前週</button>
+          className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-800 border border-gray-200 rounded-lg">← Prev</button>
         <div className="text-center">
+          <p className="text-xs text-gray-400 uppercase tracking-wider">
+            {days[0].getFullYear()} WW{String(getISOWeek(days[0])).padStart(2, "0")}
+          </p>
           <p className="text-sm font-semibold text-gray-700">
-            {days[0].toLocaleDateString("ja-JP", { month: "long", day: "numeric" })} 〜 {days[6].toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}
+            {MON_EN[days[0].getMonth()]} {days[0].getDate()} – {MON_EN[days[6].getMonth()]} {days[6].getDate()}
           </p>
           {weekOffset !== 0 && (
-            <button onClick={() => setWeekOffset(0)} className="text-xs text-blue-500 hover:underline">今週に戻る</button>
+            <button onClick={() => setWeekOffset(0)} className="text-xs text-blue-500 hover:underline">This week</button>
           )}
         </div>
         <button onClick={() => setWeekOffset(w => w + 1)}
-          className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-800 border border-gray-200 rounded-lg">次週 →</button>
+          className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-800 border border-gray-200 rounded-lg">Next →</button>
       </div>
 
       {/* 法令遵守バナー */}
@@ -233,7 +245,7 @@ export default function ShiftSchedule() {
                 <th key={i} className={`px-2 py-2.5 text-center text-xs font-medium min-w-[72px] ${
                   dateKey(d) === today ? "text-[#003087]" : i >= 5 ? "text-red-400" : "text-gray-500"
                 }`}>
-                  <div>{DOW_JA[i]}</div>
+                  <div>{DOW_EN[i]}</div>
                   <div className={`text-base font-bold ${dateKey(d) === today ? "text-[#003087]" : ""}`}>
                     {d.getDate()}
                   </div>
