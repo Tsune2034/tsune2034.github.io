@@ -26,7 +26,6 @@ export default function Page() {
               <span className="text-white font-bold text-sm">K</span>
             </div>
             <div>
-              <p className="text-xs text-gray-400 leading-none">Daifuku Airport Technologies Japan</p>
               <p className="text-sm font-semibold text-gray-800 leading-tight">KAIROX ワークツール</p>
             </div>
           </div>
