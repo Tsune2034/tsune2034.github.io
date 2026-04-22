@@ -2,20 +2,22 @@
 
 import { useState, useEffect } from "react";
 
-type ShiftType = "day1" | "day2" | "night1" | "night2" | "off" | "paid" | "comp" | "training";
+type ShiftType = "early" | "mid" | "late" | "day" | "long_day" | "long_night" | "off" | "paid" | "comp" | "training";
 
-const SHIFT_CONFIG: Record<ShiftType, { label: string; time: string; color: string; startH: number | null; endH: number | null }> = {
-  day1:     { label: "日勤A",  time: "07-19",  color: "bg-blue-100 text-blue-800 border-blue-200",     startH: 7,  endH: 19 },
-  day2:     { label: "日勤B",  time: "08-20",  color: "bg-sky-100 text-sky-800 border-sky-200",        startH: 8,  endH: 20 },
-  night1:   { label: "夜勤A",  time: "19-翌07", color: "bg-indigo-100 text-indigo-800 border-indigo-200", startH: 19, endH: 31 }, // 31 = 翌7:00
-  night2:   { label: "夜勤B",  time: "20-翌08", color: "bg-violet-100 text-violet-800 border-violet-200", startH: 20, endH: 32 }, // 32 = 翌8:00
-  off:      { label: "休み",   time: "",        color: "bg-gray-50 text-gray-400 border-gray-100",      startH: null, endH: null },
-  paid:     { label: "有休",   time: "",        color: "bg-green-100 text-green-700 border-green-200",  startH: null, endH: null },
-  comp:     { label: "代休",   time: "",        color: "bg-teal-100 text-teal-700 border-teal-200",     startH: null, endH: null },
-  training: { label: "研修",   time: "08-17",   color: "bg-amber-100 text-amber-800 border-amber-200",  startH: 8,  endH: 17 },
+const SHIFT_CONFIG: Record<ShiftType, { label: string; time: string; color: string; startH: number | null; endH: number | null; hours: number | null }> = {
+  early:      { label: "Early",    time: "07-15",    color: "bg-sky-100 text-sky-800 border-sky-200",          startH: 7,    endH: 15,   hours: 7 },
+  mid:        { label: "Mid",      time: "15-23",    color: "bg-blue-100 text-blue-800 border-blue-200",        startH: 15,   endH: 23,   hours: 7 },
+  late:       { label: "Late",     time: "23-翌07",  color: "bg-indigo-100 text-indigo-800 border-indigo-200",  startH: 23,   endH: 31,   hours: 7 },
+  day:        { label: "Day",      time: "08-16",    color: "bg-cyan-100 text-cyan-800 border-cyan-200",        startH: 8,    endH: 16,   hours: 7 },
+  long_day:   { label: "L-Day",    time: "07-19",    color: "bg-orange-100 text-orange-800 border-orange-200",  startH: 7,    endH: 19,   hours: 10.5 },
+  long_night: { label: "L-Night",  time: "19-翌07",  color: "bg-violet-100 text-violet-800 border-violet-200",  startH: 19,   endH: 31,   hours: 10.5 },
+  off:        { label: "Off",      time: "",         color: "bg-gray-50 text-gray-400 border-gray-100",         startH: null, endH: null, hours: 0 },
+  paid:       { label: "有休",     time: "",         color: "bg-green-100 text-green-700 border-green-200",     startH: null, endH: null, hours: 0 },
+  comp:       { label: "代休",     time: "",         color: "bg-teal-100 text-teal-700 border-teal-200",        startH: null, endH: null, hours: 0 },
+  training:   { label: "Training", time: "08-16",    color: "bg-amber-100 text-amber-800 border-amber-200",     startH: 8,    endH: 16,   hours: 7 },
 };
 
-const SHIFT_CYCLE: ShiftType[] = ["day1", "day2", "night1", "night2", "off", "paid", "comp", "training"];
+const SHIFT_CYCLE: ShiftType[] = ["early", "mid", "late", "day", "long_day", "long_night", "off", "paid", "comp", "training"];
 const REST_TYPES: ShiftType[] = ["off", "paid", "comp"];
 const MIN_INTERVAL_H = 11; // 勤務間インターバル規制（2026年後半適用予定）
 const MAX_CONSECUTIVE_DAYS = 13; // 14日以上連続禁止（2026年後半適用予定）
@@ -131,9 +133,16 @@ export default function ShiftSchedule() {
   }
 
   function countShifts(memberId: string): Record<ShiftType, number> {
-    const counts: Record<ShiftType, number> = { day1: 0, day2: 0, night1: 0, night2: 0, off: 0, paid: 0, comp: 0, training: 0 };
+    const counts: Record<ShiftType, number> = { early: 0, mid: 0, late: 0, day: 0, long_day: 0, long_night: 0, off: 0, paid: 0, comp: 0, training: 0 };
     days.forEach(d => { counts[getShift(memberId, dateKey(d))]++; });
     return counts;
+  }
+
+  function weeklyHours(memberId: string): number {
+    return days.reduce((sum, d) => {
+      const s = getShift(memberId, dateKey(d));
+      return sum + (SHIFT_CONFIG[s].hours ?? 0);
+    }, 0);
   }
 
   // セルの違反チェック
@@ -302,9 +311,11 @@ export default function ShiftSchedule() {
                       </td>
                     );
                   })}
-                  <td className="px-3 py-2 text-xs text-gray-400 text-center whitespace-nowrap">
-                    <div>日{counts.day1 + counts.day2} 夜{counts.night1 + counts.night2}</div>
-                    <div>有{counts.paid} 代{counts.comp}</div>
+                  <td className="px-3 py-2 text-xs text-center whitespace-nowrap">
+                    <div className={`font-semibold ${weeklyHours(member.id) > 40 ? "text-orange-500" : "text-gray-600"}`}>
+                      {weeklyHours(member.id)}h
+                    </div>
+                    <div className="text-gray-400">有{counts.paid} 代{counts.comp}</div>
                   </td>
                 </tr>
               );
