@@ -52,27 +52,20 @@ type Task = {
   rpnRef?: number; // 修理履歴のRPNと紐付け（任意）
 };
 
-const PRIORITY_CONFIG: Record<Priority, { label: string; color: string }> = {
-  critical: { label: "Critical", color: "bg-red-100 text-red-800 border-red-300" },
-  high:     { label: "High",     color: "bg-orange-100 text-orange-800 border-orange-300" },
-  medium:   { label: "Medium",   color: "bg-yellow-100 text-yellow-800 border-yellow-300" },
-  low:      { label: "Low",      color: "bg-gray-100 text-gray-600 border-gray-300" },
+const PRIORITY_CONFIG: Record<Priority, { color: string }> = {
+  critical: { color: "bg-red-100 text-red-800 border-red-300" },
+  high:     { color: "bg-orange-100 text-orange-800 border-orange-300" },
+  medium:   { color: "bg-yellow-100 text-yellow-800 border-yellow-300" },
+  low:      { color: "bg-gray-100 text-gray-600 border-gray-300" },
 };
 
-const STATUS_CONFIG: Record<Status, { label: string; color: string }> = {
-  open:           { label: "Open",            color: "bg-blue-50 text-blue-700" },
-  in_progress:    { label: "In Progress",     color: "bg-indigo-50 text-indigo-700" },
-  pending_client: { label: "Pending Client",  color: "bg-amber-50 text-amber-700" },
-  closed:         { label: "Closed",          color: "bg-green-50 text-green-700" },
+const STATUS_CONFIG: Record<Status, { color: string }> = {
+  open:           { color: "bg-blue-50 text-blue-700" },
+  in_progress:    { color: "bg-indigo-50 text-indigo-700" },
+  pending_client: { color: "bg-amber-50 text-amber-700" },
+  closed:         { color: "bg-green-50 text-green-700" },
 };
 
-const CATEGORY_CONFIG_EN: Record<Category, string> = {
-  fa_report:     "🔍 FA Report",
-  client_report: "📤 Client Report",
-  maintenance:   "🔧 Maintenance",
-  improvement:   "📈 Improvement",
-  other:         "📋 Other",
-};
 
 function newTask(): Task {
   return {
