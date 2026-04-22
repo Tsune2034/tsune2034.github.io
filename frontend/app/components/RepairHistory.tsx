@@ -9,13 +9,14 @@ type RepairEntry = {
   equipment: string;
   faultMode: string;   // 故障モード
   faultEffect: string; // 故障の影響
-  action: string;
+  ca: string;          // Containment Action（暫定対応）
+  pa: string;          // Permanent Action（恒久対策）
   technician: string;
-  status: "completed" | "pending";
+  status: "completed" | "pending" | "pa_open";
   // FMEA
-  severity: number;    // S: 重篤度 1-10
-  occurrence: number;  // O: 発生頻度 1-10
-  detection: number;   // D: 検出難易度 1-10
+  severity: number;
+  occurrence: number;
+  detection: number;
 };
 
 const EQUIPMENT_LIST = [
@@ -42,6 +43,12 @@ const FMEA_GUIDE = {
   detection: ["1 自動検知・即対応", "2-3 容易に検知", "4-5 通常点検で検知", "6-7 熟練者が気づく", "8-9 発見困難", "10 検知不可"],
 };
 
+const STATUS_LABELS: Record<"completed" | "pending" | "pa_open", { label: string; color: string }> = {
+  completed: { label: "✅ Completed",  color: "bg-green-50 text-green-700 border-green-200" },
+  pending:   { label: "⏳ CA Pending", color: "bg-yellow-50 text-yellow-700 border-yellow-200" },
+  pa_open:   { label: "🔧 PA Open",    color: "bg-orange-50 text-orange-700 border-orange-200" },
+};
+
 function newEntry(): RepairEntry {
   const now = new Date();
   return {
@@ -51,9 +58,10 @@ function newEntry(): RepairEntry {
     equipment: EQUIPMENT_LIST[0],
     faultMode: "",
     faultEffect: "",
-    action: "",
+    ca: "",
+    pa: "",
     technician: "",
-    status: "completed",
+    status: "pending",
     severity: 5,
     occurrence: 3,
     detection: 3,
@@ -95,7 +103,7 @@ export default function RepairHistory() {
   }
 
   function addEntry() {
-    if (!form.faultMode.trim() || !form.action.trim()) return;
+    if (!form.faultMode.trim() || !form.ca.trim()) return;
     save([form, ...entries]);
     setForm(newEntry());
     setShowForm(false);
@@ -110,17 +118,18 @@ export default function RepairHistory() {
       `Equipment: ${e.equipment}`,
       `Failure Mode: ${e.faultMode}`,
       `Effect: ${e.faultEffect}`,
-      `Action Taken: ${e.action}`,
+      `CA (Containment Action): ${e.ca}`,
+      `PA (Permanent Action): ${e.pa || "TBD"}`,
       `Technician: ${e.technician}`,
       `RPN: ${rpn} (S${e.severity} × O${e.occurrence} × D${e.detection})`,
-      `Status: ${e.status}`,
+      `Status: ${STATUS_LABELS[e.status].label}`,
     ].join("\n");
     navigator.clipboard.writeText(text);
   }
 
   const filtered = entries
-    .filter(e => [e.equipment, e.faultMode, e.faultEffect, e.action, e.technician]
-      .some(f => f.toLowerCase().includes(search.toLowerCase())))
+    .filter(e => [e.equipment, e.faultMode, e.faultEffect, e.ca, e.pa, e.technician]
+      .some(f => (f || "").toLowerCase().includes(search.toLowerCase())))
     .sort((a, b) => sortByRPN
       ? (b.severity * b.occurrence * b.detection) - (a.severity * a.occurrence * a.detection)
       : 0);
@@ -213,9 +222,16 @@ export default function RepairHistory() {
               className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1" />
           </div>
           <div>
-            <label className="text-xs text-gray-500">Action Taken（対応内容）</label>
-            <textarea value={form.action} onChange={e => setForm({...form, action: e.target.value})}
-              rows={2} className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1 resize-none" />
+            <label className="text-xs font-medium text-blue-700">CA — Containment Action（暫定対応）*</label>
+            <textarea value={form.ca} onChange={e => setForm({...form, ca: e.target.value})}
+              rows={2} placeholder="例: Removed foreign object, reset PLC, resumed operation"
+              className="w-full text-sm border border-blue-200 rounded-lg px-3 py-1.5 mt-1 resize-none" />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-orange-700">PA — Permanent Action（恒久対策）</label>
+            <textarea value={form.pa} onChange={e => setForm({...form, pa: e.target.value})}
+              rows={2} placeholder="例: Replace worn guide rail, update PM schedule — 未定の場合は空欄可"
+              className="w-full text-sm border border-orange-200 rounded-lg px-3 py-1.5 mt-1 resize-none" />
           </div>
 
           {/* FMEA Ratings */}
@@ -234,13 +250,13 @@ export default function RepairHistory() {
 
           <div>
             <label className="text-xs text-gray-500">Status</label>
-            <div className="flex gap-2 mt-1">
-              {(["completed", "pending"] as const).map(s => (
+            <div className="flex gap-2 mt-1 flex-wrap">
+              {(Object.entries(STATUS_LABELS) as [RepairEntry["status"], {label: string; color: string}][]).map(([s, cfg]) => (
                 <button key={s} onClick={() => setForm({...form, status: s})}
                   className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
                     form.status === s ? "bg-[#003087] text-white border-[#003087]" : "border-gray-200 text-gray-600"
                   }`}>
-                  {s === "completed" ? "✅ Completed" : "⏳ Pending"}
+                  {cfg.label}
                 </button>
               ))}
             </div>
@@ -271,10 +287,8 @@ export default function RepairHistory() {
                     <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${level.color}`}>
                       RPN {rpn} — {level.label}
                     </span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${
-                      entry.status === "completed" ? "bg-green-50 text-green-700" : "bg-yellow-50 text-yellow-700"
-                    }`}>
-                      {entry.status === "completed" ? "Completed" : "Pending"}
+                    <span className={`text-xs px-2 py-0.5 rounded-full border ${STATUS_LABELS[entry.status].color}`}>
+                      {STATUS_LABELS[entry.status].label}
                     </span>
                     <span className="text-xs text-gray-400">{entry.date} {entry.time}</span>
                   </div>
@@ -293,8 +307,15 @@ export default function RepairHistory() {
                   </p>
                 )}
                 <p className="text-sm text-gray-600 mt-0.5">
-                  <span className="text-xs text-gray-400">Action: </span>{entry.action}
+                  <span className="text-xs font-medium text-blue-600">CA: </span>{entry.ca}
                 </p>
+                {entry.pa ? (
+                  <p className="text-sm text-gray-600 mt-0.5">
+                    <span className="text-xs font-medium text-orange-600">PA: </span>{entry.pa}
+                  </p>
+                ) : (
+                  <p className="text-xs text-orange-400 mt-0.5">PA: TBD</p>
+                )}
                 <div className="flex items-center gap-3 mt-2">
                   <span className="text-xs text-gray-400">S{entry.severity} × O{entry.occurrence} × D{entry.detection} = <strong>{rpn}</strong></span>
                   {entry.technician && <span className="text-xs text-gray-400">by {entry.technician}</span>}
