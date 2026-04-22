@@ -129,7 +129,8 @@ export default function ShiftSchedule() {
   }
 
   function getShift(memberId: string, date: string): ShiftType {
-    return shifts[memberId]?.[date] ?? "off";
+    const s = shifts[memberId]?.[date];
+    return (s && s in SHIFT_CONFIG) ? s as ShiftType : "off";
   }
 
   function countShifts(memberId: string): Record<ShiftType, number> {
