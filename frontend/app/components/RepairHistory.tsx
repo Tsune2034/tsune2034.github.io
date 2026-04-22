@@ -55,6 +55,7 @@ type RepairEntry = {
   pa: string;          // Permanent Action（恒久対策）
   technician: string;
   status: "completed" | "pending" | "pa_open";
+  repairMinutes: number; // 修理時間（分）- MTTR計算用
   // FMEA
   severity: number;
   occurrence: number;
@@ -77,6 +78,37 @@ const RPN_LEVELS = [
 
 function getRPNLevel(rpn: number) {
   return RPN_LEVELS.find(l => rpn >= l.min) ?? RPN_LEVELS[3];
+}
+
+// MTTR = 修理時間の平均（分）
+function calcMTTR(entries: RepairEntry[]): number | null {
+  const valid = entries.filter(e => e.repairMinutes > 0);
+  if (valid.length === 0) return null;
+  return Math.round(valid.reduce((s, e) => s + e.repairMinutes, 0) / valid.length);
+}
+
+// MTBF = 故障間隔の平均（時間）- 設備ごとに日時ソートして計算
+function calcMTBF(entries: RepairEntry[], equipment?: string): number | null {
+  const filtered = (equipment
+    ? entries.filter(e => e.equipment === equipment)
+    : entries
+  ).filter(e => e.date && e.time);
+
+  if (filtered.length < 2) return null;
+
+  const sorted = [...filtered].sort((a, b) =>
+    `${a.date}T${a.time}`.localeCompare(`${b.date}T${b.time}`)
+  );
+
+  const gaps: number[] = [];
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = new Date(`${sorted[i-1].date}T${sorted[i-1].time}`);
+    const curr = new Date(`${sorted[i].date}T${sorted[i].time}`);
+    const hours = (curr.getTime() - prev.getTime()) / (1000 * 60 * 60);
+    if (hours > 0) gaps.push(hours);
+  }
+  if (gaps.length === 0) return null;
+  return Math.round(gaps.reduce((s, g) => s + g, 0) / gaps.length);
 }
 
 const FMEA_GUIDE = {
@@ -104,6 +136,7 @@ function newEntry(): RepairEntry {
     pa: "",
     technician: "",
     status: "pending",
+    repairMinutes: 0,
     severity: 5,
     occurrence: 3,
     detection: 3,
@@ -200,6 +233,34 @@ export default function RepairHistory({ lang = "ja" }: { lang?: Lang }) {
         </div>
       )}
 
+      {/* MTTR / MTBF */}
+      {entries.length >= 1 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <p className="text-xs font-semibold text-gray-500 mb-3">Reliability Metrics</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-blue-700">
+                {calcMTTR(entries) !== null ? `${calcMTTR(entries)} min` : "—"}
+              </p>
+              <p className="text-xs font-semibold text-gray-600 mt-0.5">MTTR</p>
+              <p className="text-[10px] text-gray-400">Mean Time To Repair</p>
+              <p className="text-[10px] text-gray-400">修理時間の平均</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-indigo-700">
+                {calcMTBF(entries) !== null ? `${calcMTBF(entries)} h` : "—"}
+              </p>
+              <p className="text-xs font-semibold text-gray-600 mt-0.5">MTBF</p>
+              <p className="text-[10px] text-gray-400">Mean Time Between Failures</p>
+              <p className="text-[10px] text-gray-400">故障間隔の平均</p>
+            </div>
+          </div>
+          {entries.length < 2 && (
+            <p className="text-[10px] text-gray-400 text-center mt-2">※ MTBF算出には2件以上の記録が必要</p>
+          )}
+        </div>
+      )}
+
       {highRPN > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-2.5 text-sm text-red-700 flex items-center gap-2">
           <span>⚠️</span>
@@ -262,6 +323,13 @@ export default function RepairHistory({ lang = "ja" }: { lang?: Lang }) {
             <label className="text-xs text-gray-500">{tr.effect}</label>
             <input value={form.faultEffect} onChange={e => setForm({...form, faultEffect: e.target.value})}
               placeholder="例: BHS line stoppage, 15min delay"
+              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1" />
+          </div>
+          <div>
+            <label className="text-xs text-gray-500">修理時間（分）/ Repair Duration (min)</label>
+            <input type="number" min={0} value={form.repairMinutes || ""}
+              onChange={e => setForm({...form, repairMinutes: Number(e.target.value)})}
+              placeholder="例: 45"
               className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1" />
           </div>
           <div>
@@ -359,8 +427,11 @@ export default function RepairHistory({ lang = "ja" }: { lang?: Lang }) {
                 ) : (
                   <p className="text-xs text-orange-400 mt-0.5">{tr.paTbd}</p>
                 )}
-                <div className="flex items-center gap-3 mt-2">
+                <div className="flex items-center gap-3 mt-2 flex-wrap">
                   <span className="text-xs text-gray-400">S{entry.severity} × O{entry.occurrence} × D{entry.detection} = <strong>{rpn}</strong></span>
+                  {entry.repairMinutes > 0 && (
+                    <span className="text-xs text-blue-500">⏱ {entry.repairMinutes} min</span>
+                  )}
                   {entry.technician && <span className="text-xs text-gray-400">by {entry.technician}</span>}
                 </div>
               </div>
