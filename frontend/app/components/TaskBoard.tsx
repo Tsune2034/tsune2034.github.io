@@ -95,7 +95,7 @@ function isOverdue(dueDate: string, status: Status): boolean {
 }
 
 export default function TaskBoard({ lang = "ja" }: { lang?: Lang }) {
-  const t = T[lang];
+  const tr = T[lang];
   const [tasks, setTasks] = useState<Task[]>([]);
   const [form, setForm] = useState<Task>(newTask());
   const [showForm, setShowForm] = useState(false);
@@ -129,10 +129,10 @@ export default function TaskBoard({ lang = "ja" }: { lang?: Lang }) {
   function copyTask(task: Task) {
     const text = [
       `【Task】${task.title}`,
-      `Category: ${t.categories[task.category]}`,
+      `Category: ${tr.categories[task.category]}`,
       `Equipment: ${task.equipment}`,
       `Priority: ${task.priority.toUpperCase()}`,
-      `Status: ${t.statuses[task.status]}`,
+      `Status: ${tr.statuses[task.status]}`,
       `Due: ${task.dueDate || "-"}`,
       `Assignee: ${task.assignee || "-"}`,
       task.detail ? `Detail: ${task.detail}` : "",
@@ -160,7 +160,7 @@ export default function TaskBoard({ lang = "ja" }: { lang?: Lang }) {
               filterStatus === s ? "ring-2 ring-[#003087]" : ""
             } ${STATUS_CONFIG[s].color} border-current/20`}>
             <p className="text-xl font-bold">{tasks.filter(t => t.status === s).length}</p>
-            <p className="text-xs font-medium">{STATUS_CONFIG[s].label}</p>
+            <p className="text-xs font-medium">{tr.statuses[s]}</p>
           </button>
         ))}
       </div>
@@ -168,83 +168,83 @@ export default function TaskBoard({ lang = "ja" }: { lang?: Lang }) {
       {overdueCount > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-2.5 text-sm text-red-700 flex items-center gap-2">
           <span>🚨</span>
-          <span><strong>{overdueCount}{t.overdue}</strong> — {t.overdueAlert}</span>
+          <span><strong>{overdueCount}{tr.overdue}</strong> — {tr.overdueAlert}</span>
         </div>
       )}
 
       {/* Toolbar */}
       <div className="flex gap-2 flex-wrap items-center">
         <input value={search} onChange={e => setSearch(e.target.value)}
-          placeholder={t.searchPlaceholder}
+          placeholder={tr.searchPlaceholder}
           className="flex-1 min-w-[160px] text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white outline-none" />
         <select value={filterPriority} onChange={e => setFilterPriority(e.target.value as Priority | "all")}
           className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white">
-          <option value="all">{t.allPriority}</option>
+          <option value="all">{tr.allPriority}</option>
           {(Object.keys(PRIORITY_CONFIG) as Priority[]).map(p => (
-            <option key={p} value={p}>{t.priorities[p]}</option>
+            <option key={p} value={p}>{tr.priorities[p]}</option>
           ))}
         </select>
         <button onClick={() => { setForm(newTask()); setShowForm(true); }}
           className="px-4 py-2 bg-[#003087] text-white text-sm font-medium rounded-lg hover:bg-[#00409e] whitespace-nowrap">
-          {t.newTask}
+          {tr.newTask}
         </button>
       </div>
 
       {/* Form */}
       {showForm && (
         <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
-          <p className="text-sm font-semibold text-gray-700">{t.newTask}</p>
+          <p className="text-sm font-semibold text-gray-700">{tr.newTask}</p>
           <div>
-            <label className="text-xs text-gray-500">{t.title}</label>
+            <label className="text-xs text-gray-500">{tr.title}</label>
             <input value={form.title} onChange={e => setForm({...form, title: e.target.value})}
               className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-gray-500">{t.category}</label>
+              <label className="text-xs text-gray-500">{tr.category}</label>
               <select value={form.category} onChange={e => setForm({...form, category: e.target.value as Category})}
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1 bg-white">
-                {(Object.keys(t.categories) as Category[]).map(k => (
-                  <option key={k} value={k}>{t.categories[k]}</option>
+                {(Object.keys(tr.categories) as Category[]).map(k => (
+                  <option key={k} value={k}>{tr.categories[k]}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="text-xs text-gray-500">{t.equipment}</label>
+              <label className="text-xs text-gray-500">{tr.equipment}</label>
               <input value={form.equipment} onChange={e => setForm({...form, equipment: e.target.value})}
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1" />
             </div>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="text-xs text-gray-500">{t.priority}</label>
+              <label className="text-xs text-gray-500">{tr.priority}</label>
               <select value={form.priority} onChange={e => setForm({...form, priority: e.target.value as Priority})}
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1 bg-white">
                 {(Object.keys(PRIORITY_CONFIG) as Priority[]).map(p => (
-                  <option key={p} value={p}>{t.priorities[p]}</option>
+                  <option key={p} value={p}>{tr.priorities[p]}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="text-xs text-gray-500">{t.assignee}</label>
+              <label className="text-xs text-gray-500">{tr.assignee}</label>
               <input value={form.assignee} onChange={e => setForm({...form, assignee: e.target.value})}
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1" />
             </div>
             <div>
-              <label className="text-xs text-gray-500">{t.dueDate}</label>
+              <label className="text-xs text-gray-500">{tr.dueDate}</label>
               <input type="date" value={form.dueDate} onChange={e => setForm({...form, dueDate: e.target.value})}
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1" />
             </div>
           </div>
           <div>
-            <label className="text-xs text-gray-500">{t.detail}</label>
+            <label className="text-xs text-gray-500">{tr.detail}</label>
             <textarea value={form.detail} onChange={e => setForm({...form, detail: e.target.value})}
               rows={3}
               className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1 resize-none" />
           </div>
           {form.category === "fa_report" && (
             <div>
-              <label className="text-xs text-gray-500">{t.rpnRef}</label>
+              <label className="text-xs text-gray-500">{tr.rpnRef}</label>
               <input type="number" min={1} max={1000} value={form.rpnRef ?? ""}
                 onChange={e => setForm({...form, rpnRef: Number(e.target.value)})}
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 mt-1" />
@@ -252,9 +252,9 @@ export default function TaskBoard({ lang = "ja" }: { lang?: Lang }) {
           )}
           <div className="flex gap-2">
             <button onClick={addTask}
-              className="flex-1 py-2 bg-[#003087] text-white text-sm font-medium rounded-lg">{t.save}</button>
+              className="flex-1 py-2 bg-[#003087] text-white text-sm font-medium rounded-lg">{tr.save}</button>
             <button onClick={() => setShowForm(false)}
-              className="px-4 py-2 text-sm text-gray-500 border border-gray-200 rounded-lg">{t.cancel}</button>
+              className="px-4 py-2 text-sm text-gray-500 border border-gray-200 rounded-lg">{tr.cancel}</button>
           </div>
         </div>
       )}
@@ -262,7 +262,7 @@ export default function TaskBoard({ lang = "ja" }: { lang?: Lang }) {
       {/* Task list */}
       {filtered.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-sm text-gray-400">
-          {search || filterStatus !== "all" || filterPriority !== "all" ? t.noMatch : t.noTasks}
+          {search || filterStatus !== "all" || filterPriority !== "all" ? tr.noMatch : tr.noTasks}
         </div>
       ) : (
         <div className="space-y-2">
@@ -273,17 +273,17 @@ export default function TaskBoard({ lang = "ja" }: { lang?: Lang }) {
                 <div className="flex justify-between items-start gap-2">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${PRIORITY_CONFIG[task.priority].color}`}>
-                      {t.priorities[task.priority]}
+                      {tr.priorities[task.priority]}
                     </span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_CONFIG[task.status].color}`}>
-                      {t.statuses[task.status]}
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_CONFIG[task.status]?.color ?? ""}`}>
+                      {tr.statuses[task.status]}
                     </span>
-                    <span className="text-xs text-gray-400">{t.categories[task.category]}</span>
+                    <span className="text-xs text-gray-400">{tr.categories[task.category]}</span>
                     {overdue && <span className="text-xs text-red-500 font-medium">⚠ Overdue</span>}
                   </div>
                   <div className="flex gap-2 shrink-0">
-                    <button onClick={() => copyTask(task)} className="text-xs text-gray-400 hover:text-gray-600">{t.copy}</button>
-                    <button onClick={() => deleteTask(task.id)} className="text-xs text-red-300 hover:text-red-500">{t.delete}</button>
+                    <button onClick={() => copyTask(task)} className="text-xs text-gray-400 hover:text-gray-600">{tr.copy}</button>
+                    <button onClick={() => deleteTask(task.id)} className="text-xs text-red-300 hover:text-red-500">{tr.delete}</button>
                   </div>
                 </div>
                 <p className="text-sm font-semibold text-gray-800 mt-2">{task.title}</p>
@@ -304,8 +304,8 @@ export default function TaskBoard({ lang = "ja" }: { lang?: Lang }) {
                   </div>
                   <select value={task.status} onChange={e => updateStatus(task.id, e.target.value as Status)}
                     className="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white text-gray-600">
-                    {(Object.keys(t.statuses) as Status[]).map(k => (
-                      <option key={k} value={k}>{t.statuses[k]}</option>
+                    {(Object.keys(tr.statuses) as Status[]).map(k => (
+                      <option key={k} value={k}>{tr.statuses[k]}</option>
                     ))}
                   </select>
                 </div>
