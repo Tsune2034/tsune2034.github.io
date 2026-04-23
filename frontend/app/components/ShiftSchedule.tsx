@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 type ShiftType = "early" | "mid" | "late" | "day" | "long_day" | "long_night" | "off" | "paid" | "comp" | "training";
 
@@ -102,6 +102,8 @@ export default function ShiftSchedule() {
   const [shifts, setShifts] = useState<ShiftData>({});
   const [editingMember, setEditingMember] = useState<string | null>(null);
   const [newMemberName, setNewMemberName] = useState("");
+  const [selectedShift, setSelectedShift] = useState<ShiftType | null>(null);
+  const prevHoursRef = useRef<Record<string, number>>({});
 
   const days = getWeekDates(weekOffset);
 
@@ -126,6 +128,14 @@ export default function ShiftSchedule() {
     const current: ShiftType = shifts[memberId]?.[date] ?? "off";
     const nextIdx = (SHIFT_CYCLE.indexOf(current) + 1) % SHIFT_CYCLE.length;
     saveShifts({ ...shifts, [memberId]: { ...(shifts[memberId] ?? {}), [date]: SHIFT_CYCLE[nextIdx] } });
+  }
+
+  function handleCellClick(memberId: string, date: string) {
+    if (selectedShift !== null) {
+      saveShifts({ ...shifts, [memberId]: { ...(shifts[memberId] ?? {}), [date]: selectedShift } });
+    } else {
+      cycleShift(memberId, date);
+    }
   }
 
   function getShift(memberId: string, date: string): ShiftType {
@@ -201,6 +211,12 @@ export default function ShiftSchedule() {
 
   return (
     <div className="space-y-4">
+      <style>{`
+        @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-4px)} 40%{transform:translateX(4px)} 60%{transform:translateX(-3px)} 80%{transform:translateX(3px)} }
+        .shake { animation: shake 0.45s ease; }
+        @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.18)} 100%{transform:scale(1)} }
+        .pop { animation: pop 0.3s ease; }
+      `}</style>
       {/* Week navigation */}
       <div className="bg-white rounded-xl border border-gray-200 p-3 flex items-center justify-between">
         <button onClick={() => setWeekOffset(w => w - 1)}
@@ -235,14 +251,28 @@ export default function ShiftSchedule() {
         </div>
       </div>
 
-      {/* Shift legend */}
-      <div className="flex flex-wrap gap-2">
-        {(Object.entries(SHIFT_CONFIG) as [ShiftType, typeof SHIFT_CONFIG[ShiftType]][]).map(([key, cfg]) => (
-          <span key={key} className={`text-xs px-2.5 py-1 rounded-full border ${cfg.color}`}>
-            {cfg.label}{cfg.time ? ` ${cfg.time}` : ""}
-          </span>
-        ))}
-        <span className="text-xs text-gray-400 self-center ml-1">← クリックで切り替え</span>
+      {/* Shift legend / selector */}
+      <div className="space-y-1.5">
+        <p className="text-xs text-gray-400">
+          {selectedShift
+            ? <><span className="font-semibold text-gray-600">選択中：</span>セルをクリックして割り当て　<button onClick={() => setSelectedShift(null)} className="text-blue-400 hover:underline">解除</button></>
+            : "シフトを選んでから → セルに割り当て（選択なし = 順送り）"}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {(Object.entries(SHIFT_CONFIG) as [ShiftType, typeof SHIFT_CONFIG[ShiftType]][]).map(([key, cfg]) => (
+            <button
+              key={key}
+              onClick={() => setSelectedShift(selectedShift === key ? null : key as ShiftType)}
+              className={`text-xs px-2.5 py-1 rounded-full border transition-all duration-150 ${cfg.color} ${
+                selectedShift === key
+                  ? "ring-2 ring-offset-1 ring-gray-500 scale-110 shadow-md font-bold"
+                  : "hover:scale-105 hover:shadow-sm"
+              }`}
+            >
+              {cfg.label}{cfg.time ? ` ${cfg.time}` : ""}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Schedule grid */}
@@ -292,7 +322,7 @@ export default function ShiftSchedule() {
                     const hasViolation = violations.length > 0;
                     return (
                       <td key={i} className="px-1 py-1.5 text-center relative">
-                        <button onClick={() => cycleShift(member.id, key)}
+                        <button onClick={() => handleCellClick(member.id, key)}
                           className={`w-[68px] text-xs py-1.5 rounded-lg border font-medium transition-colors relative ${
                             hasViolation ? "ring-2 ring-red-400 ring-offset-1" : ""
                           } ${cfg.color}`}
@@ -312,11 +342,35 @@ export default function ShiftSchedule() {
                       </td>
                     );
                   })}
-                  <td className="px-3 py-2 text-xs text-center whitespace-nowrap">
-                    <div className={`font-semibold ${weeklyHours(member.id) > 40 ? "text-orange-500" : "text-gray-600"}`}>
-                      {weeklyHours(member.id)}h
-                    </div>
-                    <div className="text-gray-400">有{counts.paid} 代{counts.comp}</div>
+                  <td className="px-3 py-2 text-center">
+                    {(() => {
+                      const hrs = weeklyHours(member.id);
+                      const pct = Math.min((hrs / 40) * 100, 100);
+                      const over = hrs > 40;
+                      const warn = hrs > 32 && hrs <= 40;
+                      const barColor = over ? "bg-red-500" : warn ? "bg-amber-400" : "bg-blue-400";
+                      const textColor = over ? "text-red-500" : warn ? "text-amber-500" : "text-gray-600";
+                      const prevHrs = prevHoursRef.current[member.id] ?? 0;
+                      const justChanged = prevHrs !== hrs;
+                      prevHoursRef.current[member.id] = hrs;
+                      return (
+                        <div className="w-20 mx-auto space-y-1">
+                          <div className="flex justify-between items-center">
+                            <span key={hrs} className={`text-xs font-bold ${textColor} ${justChanged ? (over ? "shake" : "pop") : ""}`}>
+                              {hrs}h {over && "⚠️"}
+                            </span>
+                            <span className="text-[10px] text-gray-300">40h</span>
+                          </div>
+                          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${barColor} ${over ? "animate-pulse" : ""}`}
+                              style={{ width: `${pct}%`, transition: "width 0.5s cubic-bezier(0.34,1.56,0.64,1)" }}
+                            />
+                          </div>
+                          <div className="text-[10px] text-gray-400">有{counts.paid} 代{counts.comp}</div>
+                        </div>
+                      );
+                    })()}
                   </td>
                 </tr>
               );
