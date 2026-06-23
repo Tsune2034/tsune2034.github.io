@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daisuke Tsunemori — Resume / 職務経歴書</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  /* ── 印刷設定 ── */
+  @page { size: A4; margin: 0; }
+  @media print {
+    body { background: #fff; }
+    .page { width: 210mm; margin: 0; }
+    .lang-toggle { display: none; }
+    .company-block { break-inside: avoid; }
+    .achievement { break-inside: avoid; }
+    .sidebar-section { break-inside: avoid; }
+    .section-title { break-after: avoid; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+
+  body {
+    font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Arial', sans-serif;
+    font-size: 10pt;
+    color: #222;
+    background: #e8ecf5;
+    line-height: 1.65;
+  }
+
+  /* ── 言語トグル ── */
+  .lang-toggle {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 100;
+    display: flex;
+    gap: 4px;
+  }
+  .lang-btn {
+    padding: 6px 14px;
+    border: none;
+    border-radius: 20px;
+    font-size: 9pt;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #fff;
+    color: #666;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .lang-btn.active {
+    background: #1a3a6b;
+    color: #fff;
+  }
+
+  /* ── 全体レイアウト ── */
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 20px auto;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+  }
+
+  /* ── ヘッダー ── */
+  .header {
+    background: linear-gradient(135deg, #1a3a6b 0%, #2d6abf 100%);
+    color: white;
+    padding: 20px 28px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .header-left h1 { font-size: 20pt; font-weight: 700; letter-spacing: 3px; margin-bottom: 4px; }
+  .header-left .subtitle { font-size: 9pt; opacity: 0.85; letter-spacing: 1px; }
+  .header-right { text-align: right; font-size: 9pt; opacity: 0.9; line-height: 1.8; }
+  .header-right .name { font-size: 15pt; font-weight: 700; letter-spacing: 2px; display: block; margin-top: 4px; }
+
+  /* ── ボディ ── */
+  .body { display: flex; flex: 1; background: #fff; }
+
+  /* ── サイドバー ── */
+  .sidebar {
+    width: 55mm;
+    background: #f0f4fb;
+    padding: 16px 13px;
+    border-right: 2px solid #d0ddf0;
+    flex-shrink: 0;
+  }
+  .sidebar-section { margin-bottom: 16px; }
+  .sidebar-title {
+    font-size: 8pt;
+    font-weight: 700;
+    color: #1a3a6b;
+    background: #d0ddf0;
+    padding: 3px 8px;
+    border-radius: 2px;
+    margin-bottom: 7px;
+    letter-spacing: 1px;
+  }
+  .sidebar-item {
+    font-size: 8pt;
+    color: #333;
+    padding: 2px 0 2px 8px;
+    border-left: 2px solid #2d6abf;
+    margin-bottom: 4px;
+    line-height: 1.5;
+  }
+
+  /* ── メイン ── */
+  .main { flex: 1; padding: 14px 18px 14px 16px; }
+
+  /* ── セクション見出し ── */
+  .section-title {
+    display: flex; align-items: center;
+    margin: 12px 0 7px; gap: 8px;
+  }
+  .section-title::before {
+    content: ''; width: 4px; height: 16px;
+    background: linear-gradient(180deg, #1a3a6b, #2d6abf);
+    border-radius: 2px; flex-shrink: 0;
+  }
+  .section-title span { font-size: 10.5pt; font-weight: 700; color: #1a3a6b; letter-spacing: 1px; }
+  .section-title::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, #2d6abf33, transparent);
+  }
+
+  /* ── 職務要約 ── */
+  .summary-box {
+    background: #f5f8ff;
+    border-left: 3px solid #2d6abf;
+    padding: 9px 13px;
+    font-size: 9pt;
+    line-height: 1.75;
+    color: #333;
+    border-radius: 0 4px 4px 0;
+  }
+
+  /* ── 実績カード ── */
+  .achievement {
+    background: #fff;
+    border: 1px solid #dde7f7;
+    border-radius: 6px;
+    padding: 9px 13px;
+    margin-bottom: 7px;
+    position: relative;
+    overflow: hidden;
+  }
+  .achievement::before {
+    content: ''; position: absolute;
+    left: 0; top: 0; bottom: 0; width: 4px;
+    background: linear-gradient(180deg, #1a3a6b, #2d6abf);
+  }
+  .achievement-title { font-size: 9pt; font-weight: 700; color: #1a3a6b; margin-bottom: 4px; }
+  .achievement-body { font-size: 8.5pt; color: #444; line-height: 1.6; }
+  .achievement-body li { list-style: none; padding-left: 1em; position: relative; }
+  .achievement-body li::before { content: '▸'; position: absolute; left: 0; color: #2d6abf; }
+
+  /* ── 会社ブロック ── */
+  .company-block {
+    margin-bottom: 11px;
+    padding-left: 13px;
+    border-left: 3px solid #2d6abf;
+  }
+  .company-period { font-size: 8pt; color: #777; }
+  .company-name { font-size: 10pt; font-weight: 700; color: #1a3a6b; }
+  .company-meta { font-size: 8pt; color: #666; margin-bottom: 3px; }
+  .company-work { font-size: 8.5pt; color: #333; line-height: 1.6; }
+  .company-work li { list-style: none; padding-left: 1em; position: relative; margin-bottom: 1px; }
+  .company-work li::before { content: '・'; position: absolute; left: 0; }
+
+  /* ── スキルテーブル ── */
+  .skill-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+  .skill-table td { padding: 4px 9px; vertical-align: top; border-bottom: 1px solid #e8eef8; }
+  .skill-table tr:last-child td { border-bottom: none; }
+  .skill-table .label { width: 22%; font-weight: 700; color: #1a3a6b; background: #eef3fb; white-space: nowrap; }
+
+  /* ── 言語切り替え ── */
+  .ja, .en { display: none; }
+  body.lang-ja .ja { display: block; }
+  body.lang-ja li.ja { display: list-item; }
+  body.lang-ja span.ja { display: inline; }
+  body.lang-ja td.ja { display: table-cell; }
+  body.lang-en .en { display: block; }
+  body.lang-en li.en { display: list-item; }
+  body.lang-en span.en { display: inline; }
+  body.lang-en td.en { display: table-cell; }
+</style>
+</head>
+<body class="lang-ja">
+
+<!-- 言語トグルボタン -->
+<div class="lang-toggle">
+  <button class="lang-btn active" id="btn-ja" onclick="setLang('ja')">🇯🇵 日本語</button>
+  <button class="lang-btn" id="btn-en" onclick="setLang('en')">🇺🇸 English</button>
+</div>
+
+<div class="page">
+
+  <!-- ヘッダー -->
+  <div class="header">
+    <div class="header-left">
+      <h1 class="ja">職 務 経 歴 書</h1>
+      <h1 class="en">Curriculum Vitae</h1>
+      <div class="subtitle ja">作成日：2026年5月28日</div>
+      <div class="subtitle en">Date: May 28, 2026</div>
+    </div>
+    <div class="header-right">
+      <span class="name ja">常森　大輔</span>
+      <span class="name en">Daisuke Tsunemori</span>
+      <span class="ja">Daisuke Tsunemori</span>
+      <span class="en">常森　大輔</span>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <!-- サイドバー -->
+    <div class="sidebar">
+
+      <div class="sidebar-section">
+        <div class="sidebar-title ja">キャリアサマリー</div>
+        <div class="sidebar-title en">Career Summary</div>
+        <div class="sidebar-item ja">半導体FSE 約10年</div>
+        <div class="sidebar-item en">Semiconductor FSE ~10 yrs</div>
+        <div class="sidebar-item ja">CVD / ALD 装置</div>
+        <div class="sidebar-item en">CVD / ALD Equipment</div>
+        <div class="sidebar-item ja">テクニカルサポート</div>
+        <div class="sidebar-item en">Technical Support</div>
+        <div class="sidebar-item ja">チームリード</div>
+        <div class="sidebar-item en">Team Lead</div>
+        <div class="sidebar-item ja">NPI / プロセス参画</div>
+        <div class="sidebar-item en">NPI / Process Involvement</div>
+        <div class="sidebar-item ja">社内アワード 2024</div>
+        <div class="sidebar-item en">Internal Award 2024</div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title ja">資格・免許</div>
+        <div class="sidebar-title en">Certifications</div>
+        <div class="sidebar-item">Medium-size Vehicle License</div>
+        <div class="sidebar-item">Crane / Sling Work</div>
+        <div class="sidebar-item">Forklift Operator</div>
+        <div class="sidebar-item">Elevated Work Platform</div>
+        <div class="sidebar-item ja">特定化学物質主任者</div>
+        <div class="sidebar-item en">Hazardous Chem. Supervisor</div>
+        <div class="sidebar-item ja">低圧電気取扱</div>
+        <div class="sidebar-item en">Low Voltage Electrical Work</div>
+        <div class="sidebar-item ja">ガス溶接 / アーク溶接</div>
+        <div class="sidebar-item en">Gas / Arc Welding</div>
+        <div class="sidebar-item ja">職長・安全衛生責任者</div>
+        <div class="sidebar-item en">Safety Supervisor</div>
+        <div class="sidebar-item ja">産業用ロボット 他</div>
+        <div class="sidebar-item en">Industrial Robot, etc.</div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title ja">語学</div>
+        <div class="sidebar-title en">Languages</div>
+        <div class="sidebar-item ja">英語：技術読解・業務メール<br>（海外顧客・本社折衝経験）</div>
+        <div class="sidebar-item en">Japanese: Native<br>English: Technical docs &amp; business email (overseas customer &amp; HQ exp.)</div>
+      </div>
+
+    </div>
+
+    <!-- メイン -->
+    <div class="main">
+
+      <!-- 職務要約 -->
+      <div class="section-title"><span class="ja">職務要約</span><span class="en">Career Summary</span></div>
+      <div class="summary-box ja">
+        半導体製造装置（CVD/ALD）のテクニカルエンジニア（フィールドサービス兼技術サポート）として約10年のキャリア。顧客（M社）フロント窓口・装置担当者として、国内外資系メモリーメーカー（M社）へのオンサイトサポートを主軸に、装置の管理・立上げ・改造を担当。チームリーダーとして業務振り分け・改造スケジュール管理・予防保全計画の立案なども担った。独自治具の考案による装置復旧時間の大幅削減や顧客の発注障壁をゼロにするチケット制の設計・導入など、技術と仕組みの両面から売上貢献を実現。<strong>2024年度社内アワード受賞 / 直近：DOI付き論文9件公開（Zenodo）・arXiv cs.AI エンドースメント取得中・Japan IP filed。</strong>
+      </div>
+      <div class="summary-box en">
+        Field Service Engineer / Technical Support specialist with approximately 10 years in semiconductor manufacturing equipment (CVD/ALD). Serving as the front-line equipment contact for Company M, provided on-site support as the primary customer-facing engineer, overseeing equipment management, installation, and retrofit. Also served as team leader for task allocation, retrofit scheduling, and PM planning. Drove sales contribution through technical innovation (proprietary He leak fixture, 67% recovery time reduction) and process improvement (ticket-based support system eliminating customer ordering barriers). <strong>Internal Award 2024 / Most recent: 9 papers published with DOI (Zenodo) · arXiv cs.AI endorsement in progress · Japan IP filed.</strong>
+      </div>
+
+      <!-- 主な実績 -->
+      <div class="section-title"><span class="ja">主な実績</span><span class="en">Key Achievements</span></div>
+
+      <div class="achievement">
+        <div class="achievement-title ja">【実績1】装置復旧効率化ツールの開発・展開（2024年 社内アワード受賞）</div>
+        <div class="achievement-title en">[Achievement 1] He Leak Check Fixture Development &amp; Deployment (2024 Internal Award)</div>
+        <div class="achievement-body ja">
+          チャンバー開放なしにリーク検査を可能にする専用配管治具を自ら企画・設計し、担当全装置（30台以上）へ展開。
+          <ul>
+            <li>装置復旧時間を約 <strong>67% 削減</strong></li>
+            <li>治具・工事含め<strong>数千万円規模の売上創出</strong>に貢献</li>
+            <li>営業・マネージャーを巻き込み社内横展開を推進</li>
+          </ul>
+        </div>
+        <div class="achievement-body en">
+          Designed and deployed a custom He leak check fixture enabling in-situ leak testing without chamber opening, rolled out across all managed tools (30+).
+          <ul>
+            <li>Reduced equipment recovery time by approx. <strong>67%</strong></li>
+            <li>Contributed to <strong>multi-million yen revenue</strong> through fixture and installation sales</li>
+            <li>Led internal rollout in collaboration with sales and management</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="achievement">
+        <div class="achievement-title ja">【実績2】保守チケット制スキームの設計・導入</div>
+        <div class="achievement-title en">[Achievement 2] Service Ticket System Design &amp; Implementation</div>
+        <div class="achievement-body ja">
+          顧客が稟議なし・依頼メール1本でオンサイトサポートを発注できるチケット制を4名チームで設計・導入。
+          <ul>
+            <li><strong>数千万円規模のチケット販売</strong>による安定的な収益基盤を構築</li>
+            <li>営業・管理職と連携し顧客折衝・運用ルールを策定</li>
+          </ul>
+        </div>
+        <div class="achievement-body en">
+          Designed a ticket-based support system (4-person team) enabling customers to order on-site service with a single email — no internal approval required.
+          <ul>
+            <li>Built a stable revenue base through <strong>multi-million yen ticket sales</strong></li>
+            <li>Coordinated with sales and management on customer negotiation and operating procedures</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="achievement">
+        <div class="achievement-title ja">【実績3】HW起因プロセス問題へのテクニカルサポート</div>
+        <div class="achievement-title en">[Achievement 3] Technical Support for HW-Related Process Issues</div>
+        <div class="achievement-body ja">
+          顧客プロセス会議（CIP）に装置メーカー代表として出席。装置HW起因のσ悪化に対し、プロセス側と連携しながら技術サポートを提供。
+          <ul>
+            <li>SiO成膜・カーボントリミング（O2プラズマ）のCD管理において、HW起因のσ変動を特定・対策</li>
+            <li>ウェハ面内 Thickness Uniformity（1σ管理・49点測定）の装置側要因を解析・改善提案</li>
+            <li>NPI/APD（新製品導入）の装置メーカー側窓口として顧客・開発部門を橋渡し</li>
+            <li>国内最先端ロジックデバイスメーカー向け成膜装置の<strong>初号機立上げをリード</strong>（2025年）</li>
+          </ul>
+        </div>
+        <div class="achievement-body en">
+          Attended CIP (Continuous Improvement Process) meetings as equipment manufacturer representative. Provided HW-side technical support for σ issues in collaboration with process engineers.
+          <ul>
+            <li>Identified and addressed HW-related σ variation in SiO deposition and carbon trimming (O2 plasma) CD control</li>
+            <li>Analyzed equipment-side factors in wafer in-plane Thickness Uniformity (1σ control, 49-point measurement)</li>
+            <li>Served as equipment manufacturer liaison for NPI/APD (New Product Introduction)</li>
+            <li><strong>Led first-unit installation</strong> of deposition tool for leading-edge domestic logic device manufacturer (2025)</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 職務経歴 -->
+      <div class="section-title"><span class="ja">職務経歴</span><span class="en">Work Experience</span></div>
+
+      <div class="company-block">
+        <div class="company-period ja">2018年4月 〜 2025年6月</div>
+        <div class="company-period en">April 2018 – June 2025</div>
+        <div class="company-name ja">日本エー・エス・エム株式会社（ASM Japan）</div>
+        <div class="company-name en">ASM Japan K.K. (ASM International N.V.)</div>
+        <div class="company-meta ja">半導体製造装置（CVD/ALD等）の開発・製造・販売・保守　／　東京都多摩市　／　日本法人285名 / グループ連結約4,600名</div>
+        <div class="company-meta en">Semiconductor Equipment (CVD/ALD) Development, Manufacturing &amp; Service &nbsp;/&nbsp; Tama, Tokyo &nbsp;/&nbsp; Japan: 285 employees, Group: ~4,600</div>
+        <div class="company-meta ja" style="font-size:8pt; color:#555; margin-top:1px;">所属部署：グローバルマイクロンアカウント → GSS・カスタマーサービス部門（Rapidus立上げのため異動）</div>
+        <div class="company-meta en" style="font-size:8pt; color:#555; margin-top:1px;">Dept: Global Micron Account → GSS / Customer Service (transferred for Rapidus launch)</div>
+        <ul class="company-work">
+          <li class="ja"><strong>▍フェーズ</strong></li>
+          <li class="en"><strong>▍Phases</strong></li>
+          <li class="ja" style="margin-left:12px;">【R&amp;D期(NPI)】本社（多摩）↔広島サイト往来、新装置（TiO/SiOクアッドパターニング）の評価・トラブル対応。対象拠点：国内外資系メモリーメーカー（M社）広島（開発拠点）・米国Boise F4（最先端プロセス開発拠点）</li>
+          <li class="en" style="margin-left:12px;">[R&amp;D Phase (NPI)] Traveled between HQ (Tama) and Hiroshima site; evaluated new tools (TiO/SiO quad patterning). Sites: Company M Hiroshima (development) &amp; Boise F4, USA (leading-edge process R&amp;D)</li>
+          <li class="ja" style="margin-left:12px;">競合他社（L社・A社）との競合評価を経て同メーカー全域のPOR（Process of Record）獲得に貢献。オンサイト装置習熟を評価されPOR担当に就任</li>
+          <li class="en" style="margin-left:12px;">Competed against L Co. (Lam Research) &amp; A Co. (Applied Materials); contributed to winning global POR (Process of Record) for Company M. Appointed as POR responsible engineer based on on-site equipment expertise</li>
+          <li class="ja" style="margin-left:12px;">【量産期(POR)】グローバルアカウント所属・ローカルサービスステーション拠点（M社 広島SC）CVD/ALD装置担当（30台以上）／ 担当膜種：カーボン・SiO ／ 対象製品：DRAM / HBM</li>
+          <li class="en" style="margin-left:12px;">[Mass Production Phase (POR)] Global Account — Local Service Station, M Co. Hiroshima SC (30+ CVD/ALD tools) &nbsp;/&nbsp; Films: Carbon, SiO &nbsp;/&nbsp; Products: DRAM / HBM</li>
+
+          <li class="ja" style="margin-top:5px;"><strong>▍日常業務</strong></li>
+          <li class="en" style="margin-top:5px;"><strong>▍Daily Operations</strong></li>
+          <li class="ja" style="margin-left:12px;">FSEとしてインストール（I）からプロセス立上げ（P）まで一貫対応（フルスコープ担当）</li>
+          <li class="en" style="margin-left:12px;">Full-scope FSE: Installation (I) through Process Qualification (P)</li>
+          <li class="ja" style="margin-left:12px;">装置改造（Retrofit）・IQ・サイクルタイム管理・プロセス条件出し</li>
+          <li class="en" style="margin-left:12px;">Tool Retrofit, IQ, cycle time management, process condition development</li>
+          <li class="ja" style="margin-left:12px;">チームリーダー：業務振り分け・進捗管理・改造スケジュール管理</li>
+          <li class="en" style="margin-left:12px;">Team Leader: task allocation, progress tracking, retrofit scheduling</li>
+          <li class="ja" style="margin-left:12px;">経年劣化データに基づくPM計画策定・顧客提案</li>
+          <li class="en" style="margin-left:12px;">PM planning based on aging data; customer proposals</li>
+          <li class="ja" style="margin-left:12px;">装置トラブル技術解析・本社エンジニアリング折衝・顧客技術回答</li>
+          <li class="en" style="margin-left:12px;">Technical failure analysis, HQ engineering coordination, customer technical responses</li>
+
+          <li class="ja" style="margin-top:5px;"><strong>▍テクニカルサポート（HW起因）</strong></li>
+          <li class="en" style="margin-top:5px;"><strong>▍Technical Support (HW-related)</strong></li>
+          <li class="ja" style="margin-left:12px;">パーティクル切り分け・汚染解析・搬送エラー対応・オシロスコープを用いた信号解析</li>
+          <li class="en" style="margin-left:12px;">Particle source identification, contamination analysis, transfer error handling, oscilloscope signal analysis</li>
+          <li class="ja" style="margin-left:12px;">LP（ロードポート）マッピングセンシングのカスタム調整（ウェハ前垂れ0.8mm検知仕様）</li>
+          <li class="en" style="margin-left:12px;">Custom LP (loadport) mapping sensitivity adjustment (wafer bow 0.8mm detection spec)</li>
+          <li class="ja" style="margin-left:12px;">Vdcリバース起因E3エラー対応：ライン停止しないトレース運用設計・フル分解によるHW正常性確認・製品正常性をQC/PQCで確認し顧客ライン継続稼働を実現</li>
+          <li class="en" style="margin-left:12px;">Vdc reverse-induced E3 Issue: designed trace-mode operation to avoid repeated line stops; confirmed HW integrity via full disassembly; verified no product impact via QC/PQC — sustained customer line operation</li>
+          <li class="ja" style="margin-left:12px;">パーティクル削減PM提案・プラットフォーム横断対策・SOP整備</li>
+          <li class="en" style="margin-left:12px;">Particle reduction PM proposal, platform-wide countermeasures, SOP development</li>
+          <li class="ja" style="margin-left:12px;">ワランティ：不具合解析・原因調査報告書（RCA）作成・顧客報告</li>
+          <li class="en" style="margin-left:12px;">Warranty: failure analysis, RCA (Root Cause Analysis) report, customer reporting</li>
+
+          <li class="ja" style="margin-top:5px;"><strong>▍顧客連携</strong></li>
+          <li class="en" style="margin-top:5px;"><strong>▍Customer Collaboration</strong></li>
+          <li class="ja" style="margin-left:12px;">CIP（Continuous Improvement Process）会議への出席・プロセス改善提案 ／ NPI/APD開発の装置メーカー側窓口担当</li>
+          <li class="en" style="margin-left:12px;">CIP (Continuous Improvement Process) meeting attendance &amp; process improvement proposals &nbsp;/&nbsp; NPI/APD development liaison (equipment manufacturer side)</li>
+          <li class="ja" style="margin-left:12px;">潜在ニーズの顕在化→定期保全契約提案・預託品（スペアパーツ）回転計画策定</li>
+          <li class="en" style="margin-left:12px;">Identified latent customer needs → proposed preventive maintenance contracts → coordinated consignment (spare parts) rotation plan with repair team</li>
+        </ul>
+      </div>
+
+      <div class="company-block">
+        <div class="company-period ja">2015年11月 〜 2018年3月</div>
+        <div class="company-period en">November 2015 – March 2018</div>
+        <div class="company-name ja">カオスグローバル株式会社</div>
+        <div class="company-name en">Chaos Global Co., Ltd.</div>
+        <div class="company-meta ja">半導体装置フィールドエンジニアリング　／　三重県四日市市　／　従業員約36名</div>
+        <div class="company-meta en">Semiconductor Equipment Field Engineering &nbsp;/&nbsp; Yokkaichi, Mie &nbsp;/&nbsp; ~36 employees</div>
+        <ul class="company-work">
+          <li class="ja">台湾・韓国を中心とした海外顧客向け半導体製造装置の立上げ・保守（年間100台以上）</li>
+          <li class="en">Installation and maintenance of semiconductor equipment for overseas customers (primarily Taiwan &amp; Korea), 100+ units/year</li>
+          <li class="ja">取り扱い装置：CVD・ALD・バッチ式拡散炉（T社・H社製）／ 担当膜種・工程：SiO・SiN・アルミナ（Pyrogenic熱酸化含む、常圧・真空両対応、バッチ処理）</li>
+          <li class="en">Equipment: CVD, ALD, Batch Diffusion Furnace (Mfr. T &amp; H) &nbsp;/&nbsp; Films: SiO, SiN, Alumina (incl. Pyrogenic oxidation, atmospheric/vacuum, batch processing)</li>
+          <li class="ja">韓国S社向け：Golden Toolを基準としたCIPリスト（プロセスパラメータ・温度プロファイル等）を作成し、HW調整による300台以上の装置合わせ込み（ツールマッチング）を海外現地で実施</li>
+          <li class="en">Samsung (S Co.): Created CIP list (process parameters, temperature profiles) based on Golden Tool; performed HW-based tool matching for 300+ units at overseas sites</li>
+          <li class="ja">H社 FE部門に常駐し、T社・S社向け装置のインストール（I）・プロセス立上げ（P）・MCPC（マシンパーティクルチェック）後のFEP業務をオンサイトで担当</li>
+          <li class="en">H Co. FE division: On-site I (Installation) / P (Process Qualification) / FEP (post-MCPC) for T Co. and S Co. tools</li>
+          <li class="ja">K社（H社子会社）経由で国内外資系メモリーメーカー（M社）向け装置の定期点検・保守に従事</li>
+          <li class="en">Via K Co. (H Co. subsidiary): periodic inspection and maintenance of Company M tools</li>
+        </ul>
+      </div>
+
+      <div class="company-block">
+        <div class="company-period ja">2013年12月 〜 2015年7月</div>
+        <div class="company-period en">December 2013 – July 2015</div>
+        <div class="company-name ja">株式会社サンヨーフーズ</div>
+        <div class="company-name en">Sanyo Foods Co., Ltd.</div>
+        <div class="company-meta ja">米飯製造・販売　／　広島県廿日市市　／　役職：設備管理課 主任　／　従業員1,448名・売上高133億円</div>
+        <div class="company-meta en">Rice Food Manufacturing &nbsp;/&nbsp; Hatsukaichi, Hiroshima &nbsp;/&nbsp; Section Chief, Equipment Management &nbsp;/&nbsp; 1,448 employees</div>
+        <ul class="company-work">
+          <li class="ja">食品工場の生産ライン設備のトラブル対応・復旧・定期保守計画の立案と実行</li>
+          <li class="en">Production line equipment troubleshooting, recovery, and preventive maintenance planning &amp; execution</li>
+          <li class="ja">外部業者との調整・見積り・工事手配</li>
+          <li class="en">External contractor coordination, cost estimation, and construction management</li>
+        </ul>
+      </div>
+
+      <div class="company-block">
+        <div class="company-period ja">2001年4月 〜 2012年11月</div>
+        <div class="company-period en">April 2001 – November 2012</div>
+        <div class="company-name ja">ケイシン有限会社</div>
+        <div class="company-name en">Keishin Co., Ltd.</div>
+        <div class="company-meta ja">機械器具設置・補修工事（建設業）　／　広島県福山市　／　役職：取締役　／　従業員23名　／　売上高：約2億7千万円</div>
+        <div class="company-meta en">Mechanical Equipment Installation &amp; Repair (Construction) &nbsp;/&nbsp; Fukuyama, Hiroshima &nbsp;/&nbsp; Director &nbsp;/&nbsp; 23 employees &nbsp;/&nbsp; Revenue: approx. ¥270M</div>
+        <ul class="company-work">
+          <li class="ja">機械設備の設置・改修工事の施工管理・顧客折衝・見積り・安全管理</li>
+          <li class="en">Construction management for mechanical equipment installation and retrofit; customer negotiation, cost estimation, safety management</li>
+          <li class="ja">採用・労務管理・会社経営全般</li>
+          <li class="en">Recruitment, labor management, and general business operations</li>
+        </ul>
+      </div>
+
+      <div class="company-block" style="border-left-color:#aaa;">
+        <div class="company-period ja">2025年7月 〜 現在</div>
+        <div class="company-period en">July 2025 – Present</div>
+        <div class="company-name ja" style="color:#555;">自己研鑽期間</div>
+        <div class="company-name en" style="color:#555;">Self-Development Period</div>
+        <ul class="company-work">
+          <li class="ja">2025年7月〜12月：海外渡航・自己研鑽 / AIエージェント開発を自主研究・構築</li>
+          <li class="en">Jul–Dec 2025: Overseas travel &amp; self-development / Independent research and development of AI agent systems</li>
+          <li class="ja">2025年12月〜2026年6月：IT職業訓練校（6ヶ月課程）：VBA/GAS・HTML/CSS・DB・Java/PHP・AI活用・プロジェクトマネジメント</li>
+          <li class="en">Dec 2025–Jun 2026: IT Vocational Training (6-month program): VBA/GAS, HTML/CSS, DB, Java/PHP, AI utilization, Project Management</li>
+          <li class="ja" style="margin-left:12px;">AIエージェントシステムの自主研究・設計・構築に並行して取り組む</li>
+          <li class="ja" style="margin-left:12px;">ノーコードAIツールから着手したが思い通りに動かず、「自分で組んだ方が早い」と判断し自作へ転換。CLIベースのAIエージェントシステム（MA System）を設計・構築し本番稼働中。ロードマップ上はOSレベルのエージェントシステムへ発展予定</li>
+          <li class="ja" style="margin-left:12px;">実装と並行して論文化を進め、Zenodo（DOI付き）にて9本を公開（2026年5〜6月）。arXiv cs.AI 投稿に向けてエンドースメント取得中。</li>
+          <li class="en" style="margin-left:12px;">Concurrently engaged in independent research, design, and development of AI agent systems</li>
+          <li class="en" style="margin-left:12px;">Started with no-code AI tools but found them too limiting — decided it was faster to build from scratch. Designed and deployed MA System (CLI-based AI agent framework, now in production). Roadmap: evolving toward an OS-level autonomous agent system</li>
+          <li class="en" style="margin-left:12px;">Conducted research in parallel with implementation; published 9 papers on Zenodo with DOI (May–Jun 2026). arXiv cs.AI endorsement in progress.</li>
+        </ul>
+      </div>
+
+      <!-- スキル -->
+      <div class="section-title"><span class="ja">スキル・ツール</span><span class="en">Skills &amp; Tools</span></div>
+      <table class="skill-table">
+        <tr>
+          <td class="label ja">IT・業務ツール</td>
+          <td class="label en">IT / Tools</td>
+          <td class="ja">Excel（データ分析・VLOOKUP・ピボット）/ VBA / GAS / Office / HTML/CSS・DB（基礎）/ CLI / AI活用・構築（ChatGPT・Gemini・Claude・ローカルLLM・MCP）/ 論文執筆・Zenodo公開（DOI付き9本 / arXivエンドースメント取得中）</td>
+          <td class="en">Excel (data analysis, VLOOKUP, pivot) / VBA / GAS / Office / HTML/CSS, DB (basic) / CLI / AI development (ChatGPT, Gemini, Claude, Local LLM, MCP) / Research paper writing &amp; Zenodo publication (9 papers with DOI / arXiv endorsement in progress)</td>
+        </tr>
+        <tr>
+          <td class="label ja">成果物リンク</td>
+          <td class="label en">Portfolio</td>
+          <td class="ja">MAシステム概要ページ: <a href="https://tsune2034.github.io/ma-system.html" target="_blank">tsune2034.github.io/ma-system.html</a><br>論文①MA Runtime: <a href="https://doi.org/10.5281/zenodo.20415646" target="_blank">doi.org/10.5281/zenodo.20415646</a><br>論文②MAKI: <a href="https://doi.org/10.5281/zenodo.20416702" target="_blank">doi.org/10.5281/zenodo.20416702</a><br>論文③CIIE: <a href="https://doi.org/10.5281/zenodo.20415722" target="_blank">doi.org/10.5281/zenodo.20415722</a><br>論文④Layered Architecture: <a href="https://doi.org/10.5281/zenodo.20471516" target="_blank">doi.org/10.5281/zenodo.20471516</a><br>論文⑤Testable Kernels: <a href="https://doi.org/10.5281/zenodo.20474403" target="_blank">doi.org/10.5281/zenodo.20474403</a><br>論文⑥Human-Gated: <a href="https://doi.org/10.5281/zenodo.20532182" target="_blank">doi.org/10.5281/zenodo.20532182</a><br>論文⑦Experiment Dataset: <a href="https://doi.org/10.5281/zenodo.20534871" target="_blank">doi.org/10.5281/zenodo.20534871</a><br>論文⑧Execution Control CLI Dataset (Batch v0.2): <a href="https://doi.org/10.5281/zenodo.20566837" target="_blank">doi.org/10.5281/zenodo.20566837</a><br>論文⑨Roution (Route + Motion): <a href="https://doi.org/10.5281/zenodo.20806005" target="_blank">doi.org/10.5281/zenodo.20806005</a></td>
+          <td class="en">MA System Portal: <a href="https://tsune2034.github.io/ma-system.html" target="_blank">tsune2034.github.io/ma-system.html</a><br>Paper①MA Runtime: <a href="https://doi.org/10.5281/zenodo.20415646" target="_blank">doi.org/10.5281/zenodo.20415646</a><br>Paper②MAKI: <a href="https://doi.org/10.5281/zenodo.20416702" target="_blank">doi.org/10.5281/zenodo.20416702</a><br>Paper③CIIE: <a href="https://doi.org/10.5281/zenodo.20415722" target="_blank">doi.org/10.5281/zenodo.20415722</a><br>Paper④Layered Architecture: <a href="https://doi.org/10.5281/zenodo.20471516" target="_blank">doi.org/10.5281/zenodo.20471516</a><br>Paper⑤Testable Kernels: <a href="https://doi.org/10.5281/zenodo.20474403" target="_blank">doi.org/10.5281/zenodo.20474403</a><br>Paper⑥Human-Gated: <a href="https://doi.org/10.5281/zenodo.20532182" target="_blank">doi.org/10.5281/zenodo.20532182</a><br>Paper⑦Experiment Dataset: <a href="https://doi.org/10.5281/zenodo.20534871" target="_blank">doi.org/10.5281/zenodo.20534871</a><br>Paper⑧Execution Control CLI Dataset (Batch v0.2): <a href="https://doi.org/10.5281/zenodo.20566837" target="_blank">doi.org/10.5281/zenodo.20566837</a><br>Paper⑨Roution (Route + Motion): <a href="https://doi.org/10.5281/zenodo.20806005" target="_blank">doi.org/10.5281/zenodo.20806005</a></td>
+        </tr>
+        <tr>
+          <td class="label ja">コラボツール</td>
+          <td class="label en">Collaboration</td>
+          <td class="ja">Slack / Telegram / Teams</td>
+          <td class="en">Slack / Telegram / Teams</td>
+        </tr>
+        <tr>
+          <td class="label ja">計測機器</td>
+          <td class="label en">Instruments</td>
+          <td class="ja">ノギス・マイクロメータ・真空計・テスター・風量計・AGS・Data Logger・Heリークディテクタ 等</td>
+          <td class="en">Calipers, micrometers, vacuum gauges, multimeters, anemometers, AGS, data loggers, He leak detectors, etc.</td>
+        </tr>
+      </table>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function setLang(lang) {
+  document.body.className = 'lang-' + lang;
+  document.getElementById('btn-ja').classList.toggle('active', lang === 'ja');
+  document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+  document.documentElement.lang = lang === 'ja' ? 'ja' : 'en';
+}
+</script>
+</body>
+</html>
