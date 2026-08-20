@@ -17,7 +17,7 @@
   --rule:rgba(0,0,0,0.08);
   --rule2:rgba(0,0,0,0.12);
   --text:#0A1628;
-  --muted:#64748B;
+  --muted:#475569;
   --faint:#CBD5E1;
   --accent:#318BF7;
   --green:#10B981;
@@ -207,14 +207,14 @@ main{max-width:1080px;margin:0 auto;padding:0 48px;position:relative;z-index:1;}
 .layer.arara{border-color:rgba(139,92,246,.3);background:var(--arara-glow);}
 .layer.arara.in{transform:translateX(8px);}
 .layer.arara.in{transform:translateX(0);}
-/* Claude Code CLI レイヤー（ARARA+ARISを内包） */
+/* Claude Code CLI レイヤー */
 .layer.claude{border-color:rgba(49,139,247,.35);background:linear-gradient(135deg,rgba(49,139,247,.05),rgba(139,92,246,.05));}
 .claude .layer-badge{color:var(--accent);border:1px solid rgba(49,139,247,.35);}
 /* 副系CLI レイヤー */
 .layer.gemini-cli{border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.04);}
 .gemini-cli .layer-badge{color:#10B981;border:1px solid rgba(16,185,129,.35);}
 .gemini-cli .layer-file{border-left-color:rgba(16,185,129,.4);}
-/* 二重バッジ（ARARA+ARIS） */
+/* バッジ */
 .layer-badge-row{display:flex;gap:6px;margin-bottom:10px;}
 .layer-badge-sub{
   font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
@@ -607,12 +607,12 @@ footer{
   padding:48px 0 56px;
   display:flex;justify-content:space-between;align-items:center;
 }
-.footer-l{font-size:10px;color:var(--faint);letter-spacing:.5px;}
+.footer-l{font-size:10px;color:var(--muted);letter-spacing:.5px;}
 .footer-r{display:flex;gap:24px;}
-.footer-r a{font-size:10px;color:var(--faint);text-decoration:none;letter-spacing:.5px;transition:color .2s;}
+.footer-r a{font-size:10px;color:var(--muted);text-decoration:none;letter-spacing:.5px;transition:color .2s;}
 .footer-r a:hover{color:var(--muted);}
 
-/* ── ARARA SKILL PIPELINE ── */
+/* ── スキルパイプライン ── */
 .pipeline-wrap{margin-top:48px;}
 .pipeline-update{
   display:flex;align-items:flex-start;gap:16px;
@@ -661,7 +661,7 @@ footer{
 }
 .skill-pct.p75{color:var(--green);}
 .skill-pct.p25{color:var(--gold);}
-.skill-pct.p0{color:var(--faint);}
+.skill-pct.p0{color:var(--muted);}
 .skill-bar-wrap{
   height:4px;background:var(--bg3);border-radius:2px;margin-bottom:10px;overflow:hidden;
 }
@@ -687,7 +687,7 @@ footer{
   padding-top:8px;
   font-family:'JetBrains Mono',monospace;
 }
-.skill-next::before{content:"▶ ";color:var(--faint);}
+.skill-next::before{content:"▶ ";color:var(--muted);}
 
 /* ── SKILL PHASE 4 (実装済み 100%) ── */
 .skill-card.phase4{border-top:3px solid var(--accent);}
@@ -882,12 +882,12 @@ footer{
 
 <!-- NAV -->
 <nav>
-  <div class="nav-id">MA System — ARARA × ARIS</div>
+  <div class="nav-id">MA System — AIエージェント実行制御</div>
   <div class="nav-r">
     <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--accent);border:1px solid rgba(49,139,247,.3);padding:2px 9px;letter-spacing:.5px;">v2.0.00</span>
     <div class="pulse">
       <div class="pdot"></div>
-      <span class="ptext">ARIS Active</span>
+      <span class="ptext">稼働中</span>
     </div>
   </div>
 </nav>
@@ -896,39 +896,54 @@ footer{
 
 <!-- HERO -->
 <div class="hero" id="hero">
-  <div class="hero-chip">Chylox Project — MA System</div>
+  <div class="hero-chip">MA System</div>
   <div class="hero-title">MA<br><span>System</span></div>
 
   <div class="hero-tagline">
-    <em>MA</em> — the space between humans and AI.
-  </div>
-  <div class="hero-tagline-2">
-    MA System is the execution layer that lives there.
-  </div>
+      実行してよいかを、実行の手前で判定する。
+    </div>
 
-  <div class="hero-sub">
-    <strong>間（ま）</strong>— 人とAIのあいだを意味する日本語の概念。<br>
-    MA Systemはその「あいだ」に実行制御層を置く：記憶・権限・ランプ制御・安全境界。<br>
-    AIエージェントの振る舞いを制御可能・検証可能・監査可能にする。<br>
-    現在は、AIの振る舞いを外側から観測する研究へも展開中。
-    <span style="display:block;margin-top:12px;font-size:11px;color:var(--faint);">
-      MA (間) — 人とAIのあいだ。半導体FSE約10年のフィールド設計から生まれたシステム。<br>
-      Memory · Permission · Runtime Control · Safety Boundary · External Observation
-    </span>
-  </div>
+    <!-- 銘板：図面の表題欄と同じ流儀 -->
+    <div style="margin:26px 0 30px;border:1px solid var(--rule2);border-radius:4px;overflow:hidden;background:var(--bg2);max-width:720px;">
+      <div style="display:grid;grid-template-columns:84px 1fr;font-family:'JetBrains Mono',monospace;font-size:12px;">
 
-  <div class="hero-stats">
+        <div style="padding:10px 14px;background:var(--bg3);color:var(--muted);border-bottom:1px solid var(--rule);letter-spacing:2px;">形　式</div>
+        <div style="padding:10px 14px;color:var(--text);border-bottom:1px solid var(--rule);border-left:1px solid var(--rule);">MAKI OS ／ AIエージェント実行制御カーネル</div>
+
+        <div style="padding:10px 14px;background:var(--bg3);color:var(--muted);border-bottom:1px solid var(--rule);letter-spacing:2px;">構　成</div>
+        <div style="padding:10px 14px;color:var(--text);border-bottom:1px solid var(--rule);border-left:1px solid var(--rule);">
+          <span style="color:var(--arara);">カーネル</span> ／
+          <span style="color:var(--accent);">制御層</span> ／
+          <span style="color:var(--accent);">記憶層</span> ／
+          <span style="color:var(--green);">感覚器</span> ／
+          <span style="color:var(--text);">CLI</span> ／
+          <span style="color:var(--text);">MCP</span>
+        </div>
+
+        <div style="padding:10px 14px;background:var(--bg3);color:var(--muted);border-bottom:1px solid var(--rule);letter-spacing:2px;">版　数</div>
+        <div style="padding:10px 14px;color:var(--text);border-bottom:1px solid var(--rule);border-left:1px solid var(--rule);">v2.0.00</div>
+
+        <div style="padding:10px 14px;background:var(--bg3);color:var(--muted);letter-spacing:2px;">状　態</div>
+        <div style="padding:10px 14px;border-left:1px solid var(--rule);">
+          <span style="color:var(--green);">● 稼働中</span>
+          <span style="color:var(--muted);"> ／ 常駐3本 ／ 検証 462件</span>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="hero-stats">
     <div>
-      <div class="hero-stat-n" id="cnt-agents">9</div>
-      <div class="hero-stat-l">Papers Published</div>
+      <div class="hero-stat-n" id="cnt-agents">7</div>
+      <div class="hero-stat-l">公開している論文</div>
     </div>
     <div>
-      <div class="hero-stat-n" id="cnt-layers">5</div>
-      <div class="hero-stat-l">Kernel Layers</div>
+      <div class="hero-stat-n" id="cnt-layers">3</div>
+      <div class="hero-stat-l">CLI 系統</div>
     </div>
     <div>
-      <div class="hero-stat-n" id="cnt-mcp">14</div>
-      <div class="hero-stat-l">MCP Connections</div>
+      <div class="hero-stat-n" id="cnt-mcp">16</div>
+      <div class="hero-stat-l">MCP 接続</div>
     </div>
   </div>
 
@@ -937,456 +952,304 @@ footer{
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
       GitHub — ma-runtime
     </a>
-    <a href="https://doi.org/10.5281/zenodo.20415646" target="_blank" rel="noopener" class="hero-link paper"
+    <a href="#sec-changelog" class="hero-link paper"
        style="border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.07);color:#d97706;"
        onmouseover="this.style.background='rgba(245,158,11,.15)'" onmouseout="this.style.background='rgba(245,158,11,.07)'">
-      📄 論文① MA Runtime
-    </a>
-    <a href="https://doi.org/10.5281/zenodo.20416702" target="_blank" rel="noopener" class="hero-link paper">
-      📄 論文② MAKI
-    </a>
-    <a href="https://doi.org/10.5281/zenodo.20471516" target="_blank" rel="noopener" class="hero-link paper">
-      📄 論文③ Layered Architecture
-    </a>
-    <a href="https://doi.org/10.5281/zenodo.20474403" target="_blank" rel="noopener" class="hero-link paper">
-      📄 論文④ Testable Kernels
-    </a>
-    <a href="https://doi.org/10.5281/zenodo.20532182" target="_blank" rel="noopener" class="hero-link paper">
-      📄 論文⑤ Human-Gated
-    </a>
-    <a href="https://doi.org/10.5281/zenodo.20534871" target="_blank" rel="noopener" class="hero-link paper">
-      📄 論文⑥ Experiment Dataset
-    </a>
-    <a href="https://doi.org/10.5281/zenodo.21590679" target="_blank" rel="noopener" class="hero-link paper">
-      📄 実装エビデンス⑦ MAKI OS V0.2
-    </a>
-    <a href="https://doi.org/10.5281/zenodo.20994120" target="_blank" rel="noopener" class="hero-link paper">
-      📄 別研究 — Roution (Route + Motion)
+      📄 公開している論文 — 7件
     </a>
   </div>
 </div>
 
-<!-- CHYLOX PROJECT -->
-<div class="sec" id="sec-chylox">
-  <div class="sec-chip">00 — Chylox Project</div>
-  <div class="sec-title">What is Chylox Project?</div>
-  <div class="sec-sub">
-    The research and development initiative behind MA System, MAKI OS, ARARA, and the papers.
-    Everything here is part of it.
-  </div>
-
-  <div class="def-box">
-    <p>
-      Chylox Project is a human-AI systems research project exploring how humans and AI agents
-      can be connected through <strong>memory, permission, runtime control, and safety boundaries</strong>.
-    </p>
-    <p>
-      The central question is not "how do we make AI smarter?" but
-      "how do we design the space between human judgment and AI execution to be
-      structured, controllable, and auditable?"
-    </p>
-    <div class="ja">
-      Chylox Projectは、人間とAIエージェントの「あいだ」を設計する研究・開発プロジェクトです。<br>
-      MA SystemはそのなかでAIの実行・記憶・権限・安全を担う中核システムとして位置づけられています。
-    </div>
-  </div>
-
-  <div class="comp-tree">
-    <div class="tree-root">Chylox Project</div>
-    <div>└── <span class="tree-ma">MA System</span><span class="tree-note">— core execution framework</span></div>
-    <div>&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="tree-comp">MA Runtime</span><span class="tree-note">— agent task execution engine</span></div>
-    <div>&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="tree-comp">MAKI OS</span><span class="tree-note">— <span style="color:#10B981;font-weight:700;">✅ 製品化フェーズ移行中・長期運用テスト中</span> <span style="color:#6B7280;font-size:10px;">特許出願中</span></span></div>
-    <div>&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="tree-comp">Kernel</span><span class="tree-note">— permission · ramp · EMO</span></div>
-    <div>&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── <span class="tree-comp" style="color:#8B5CF6;">ARARA MEM</span><span class="tree-note">— 記憶管理（SQLite永続保存 · セッション横断 · 数百〜数千文字/件）</span></div>
-    <div>&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="tree-comp" style="color:#8B5CF6;">ARARA Synapse Pilot</span><span class="tree-note">— <strong>RAG papers</strong> · experiments · tools · memory <span style="color:#8B5CF6;font-size:10px;">🔬 研究中</span></span></div>
-    <div>&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="tree-comp">ARARA</span><span class="tree-note">— primary AI agent</span></div>
-    <div>&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="tree-comp">ARIS</span><span class="tree-note">— review agent / quality assurance</span></div>
-    <div>&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="tree-comp">MCP Bus</span><span class="tree-note">— external tool connection layer (14+ services)</span></div>
-  </div>
-
-  <div class="papers-label">Research Outputs</div>
-  <div class="paper-grid">
-    <div class="paper-item preprint" style="grid-column:1/-1;">
-      <div class="paper-num" style="color:var(--gold);">Core System Preprint · Zenodo · DOI: 10.5281/zenodo.20415646</div>
-      <div class="paper-name">MA Runtime: Applying Hardware Safety Topology to Autonomous AI Agent Execution</div>
-      <div class="paper-doi"><a href="https://doi.org/10.5281/zenodo.20415646" target="_blank" rel="noopener">doi.org/10.5281/zenodo.20415646 →</a></div>
-    </div>
-    <div class="paper-item">
-      <div class="paper-num">Paper 1 · Zenodo · DOI: 10.5281/zenodo.20416702</div>
-      <div class="paper-name">MAKI: A PLC-Inspired Agent Kernel for Autonomous AI Systems</div>
-      <div class="paper-doi"><a href="https://doi.org/10.5281/zenodo.20416702" target="_blank" rel="noopener">doi.org/10.5281/zenodo.20416702 →</a></div>
-    </div>
-    <div class="paper-item">
-      <div class="paper-num">Paper 3 · Zenodo · DOI: 10.5281/zenodo.20471516</div>
-      <div class="paper-name">Toward a Layered AI Agent Architecture: Extracting Kernel Responsibilities from MA Runtime v3</div>
-      <div class="paper-doi"><a href="https://doi.org/10.5281/zenodo.20471516" target="_blank" rel="noopener">doi.org/10.5281/zenodo.20471516 →</a></div>
-    </div>
-    <div class="paper-item">
-      <div class="paper-num">Paper 4 · Zenodo · DOI: 10.5281/zenodo.20474403</div>
-      <div class="paper-name">Toward Testable AI Agent Kernels: Responsibility Layer Separation in MAKI OS Kernel v0.2</div>
-      <div class="paper-doi"><a href="https://doi.org/10.5281/zenodo.20474403" target="_blank" rel="noopener">doi.org/10.5281/zenodo.20474403 →</a></div>
-    </div>
-    <div class="paper-item">
-      <div class="paper-num">Paper 5 · Zenodo · DOI: 10.5281/zenodo.20532182</div>
-      <div class="paper-name">Human-Gated AI Agent Kernels: Observable Permission Boundaries for Safe AI-Assisted Execution</div>
-      <div class="paper-doi"><a href="https://doi.org/10.5281/zenodo.20532182" target="_blank" rel="noopener">doi.org/10.5281/zenodo.20532182 →</a></div>
-    </div>
-    <div class="paper-item">
-      <div class="paper-num">Paper 6 · Zenodo · DOI: 10.5281/zenodo.20534871</div>
-      <div class="paper-name">MAKI OS v0.1 — Execution Control CLI Experiment Dataset (Batch v0.1)</div>
-      <div class="paper-doi"><a href="https://doi.org/10.5281/zenodo.20534871" target="_blank" rel="noopener">doi.org/10.5281/zenodo.20534871 →</a></div>
-    </div>
-    <div class="paper-item">
-      <div class="paper-num">実装エビデンス⑦ · Zenodo · DOI: 10.5281/zenodo.21590679</div>
-      <div class="paper-name">MAKI OS V0.2 — Public Implementation Evidence Package</div>
-      <div class="paper-doi"><a href="https://doi.org/10.5281/zenodo.21590679" target="_blank" rel="noopener">doi.org/10.5281/zenodo.21590679 →</a></div>
-    </div>
-    <div class="paper-item">
-      <div class="paper-num">別研究 · Zenodo · DOI: 10.5281/zenodo.20994120</div>
-      <div class="paper-name">Roution (Route + Motion): Subject Attribution and Functional Definitions Shift LLM Response Distributions Across Languages</div>
-      <div class="paper-doi"><a href="https://doi.org/10.5281/zenodo.20994120" target="_blank" rel="noopener">doi.org/10.5281/zenodo.20994120 →</a></div>
-    </div>
-  </div>
-</div>
-
-<!-- MA SYSTEM -->
+<!-- MA SYSTEM とは -->
 <div class="sec" id="sec-ma">
-  <div class="sec-chip">01 — MA System</div>
-  <div class="sec-title">What is MA System?</div>
-  <div class="sec-sub">
-    The core execution framework of Chylox Project.
-    Named after a concept that has no direct translation in English.
-  </div>
+  <div class="sec-chip">01 — システム構成</div>
+  <div class="sec-title">MAKI OS — 構成図</div>
 
-  <div class="etymology-grid">
-    <div class="kanji-box">
-      <span class="kanji-char">間</span>
-      <div class="kanji-roman">MA</div>
-      <div class="kanji-meanings">
-        space · pause<br>
-        relationship · interval<br>
-        the connection between<br>two things
-      </div>
+  <!-- 図面枠：電気図面の表題欄に相当 -->
+  <div style="border:1px solid var(--rule2);border-radius:4px;overflow:hidden;margin-top:24px;background:var(--bg2);">
+
+    <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:0;border-bottom:1px solid var(--rule2);background:var(--bg3);font-family:'JetBrains Mono',monospace;font-size:10px;">
+      <div style="padding:10px 16px;color:var(--text);font-weight:700;letter-spacing:.5px;">MAKI OS ／ SYSTEM STRUCTURE</div>
+      <div style="padding:10px 16px;border-left:1px solid var(--rule2);color:var(--muted);">図番 <span style="color:var(--text);">MOS-STR-01</span></div>
+      <div style="padding:10px 16px;border-left:1px solid var(--rule2);color:var(--muted);">版 <span style="color:var(--text);">v2.0</span></div>
+      <div style="padding:10px 16px;border-left:1px solid var(--rule2);color:var(--gold);">完成予想</div>
     </div>
-    <div class="etymology-text">
-      <h3>The name has no exact translation.</h3>
-      <p>
-        間 (ma) is a Japanese concept describing the space, pause, or relationship
-        between two things. It appears in 人間 (ningen — "human being"):
-        the space within what it means to be human. Not the individual, but the
-        in-between.
-      </p>
-      <p>
-        MA System is designed to occupy that space — the <em>ma</em>
-        between human judgment and AI execution. A layer where
-        decisions are held, permissions are checked, memory is kept, and
-        failures are caught before they propagate.
-      </p>
-      <div class="quote-block">
-        "Not just making AI smarter. Designing the space between humans and AI
-        to be structured, controllable, and safe."
-        <span class="ja">
-          AIをただ賢くするのではなく、人とAIのあいだを設計する。<br>
-          記憶・権限・実行制御・安全境界を「間（ま）」に置くことで、AIエージェントを検証可能・運用可能にする。
-        </span>
-      </div>
+
+    <!-- 系統図：機械図面の組立ツリー -->
+    <div style="padding:20px 24px 8px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">▎ 系統図 — 組立ツリー</div>
+      <pre style="margin:0;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.95;color:var(--text);overflow-x:auto;white-space:pre;">
+<span style="color:var(--text);font-weight:700;">MAKI_OS/</span>                          <span style="color:var(--muted);">製品本体</span>
+│
+├─ <span style="color:var(--arara);font-weight:700;">AIエージェントカーネル/</span>          <span style="color:var(--muted);">[A] 実行の可否を決める中核</span>
+│   └─ agent_kernel/
+│       ├─ <span style="color:var(--arara);">実行制御</span>              <span style="color:var(--muted);">判定・記録・停止  </span><span style="color:var(--gold);">◇非公開</span>
+│       ├─ <span style="color:var(--accent);font-weight:700;">記憶層/</span>               <span style="color:var(--muted);">[A1] DB 1本。ファイルに散らさない</span>
+│       │   ├─ <span style="color:var(--accent);">固定ルール</span>        <span style="color:var(--muted);">毎回そのまま読み込む</span>
+│       │   ├─ <span style="color:var(--accent);">セッション記録</span>    <span style="color:var(--muted);">要約・判断・次アクション</span>
+│       │   ├─ <span style="color:var(--accent);">コード変更履歴</span>    <span style="color:var(--muted);">対象・何を・なぜ・どう検証したか</span>
+│       │   ├─ <span style="color:var(--accent);">日報</span>              <span style="color:var(--muted);">1日1件</span>
+│       │   ├─ <span style="color:var(--accent);">作業ログ</span>          <span style="color:var(--muted);">実行した命令と差分。要約しない</span>
+│       │   ├─ <span style="color:var(--gold);">読み込み制御</span>      <span style="color:var(--muted);">前回からの間隔で量を変える  </span><span style="color:var(--gold);">◇非公開</span>
+│       │   └─ <span style="color:var(--green);">外部窓口</span>          <span style="color:var(--muted);">読み取りのみ。書けるのは本体だけ</span>
+│       │
+│       └─ <span style="color:var(--green);">感覚器/</span>               <span style="color:var(--muted);">口・耳・目・手</span>
+│
+├─ <span style="color:var(--accent);font-weight:700;">OS起動・制御層/</span>                <span style="color:var(--muted);">[B] 起動・監視・回復</span>
+│   └─ os_control/
+│
+├─ <span style="color:var(--green);font-weight:700;">Recipes/</span>                      <span style="color:var(--muted);">[C] 手順。カーネル経由で走る</span>
+│
+└─ <span style="color:#F43F5E;font-weight:700;">tests/</span>                        <span style="color:var(--muted);">[D] 全層の検証</span>
+
+<span style="color:var(--muted);">──────────────── 外部接続 ────────────────</span>
+
+<span style="color:var(--text);font-weight:700;">CLI 層</span>   <span style="color:var(--muted);">人が触る面。載せ替え可能</span>          <span style="color:var(--muted);">[E]</span>
+<span style="color:var(--text);font-weight:700;">MCP バス</span> <span style="color:var(--muted);">外部の道具へつなぐ経路</span>            <span style="color:var(--muted);">[F]</span>
+<span style="color:var(--text);font-weight:700;">常駐</span>     <span style="color:var(--muted);">止めない・切らないための3本</span>        <span style="color:var(--muted);">[G]</span>
+</pre>
     </div>
-  </div>
 
-  <div class="pillars-label">What MA System places in that space</div>
-  <div class="pillars">
-    <div class="pillar">Memory<span>session / long-term / decay</span></div>
-    <div class="pillar">Permission<span>4 roles × 5 actions</span></div>
-    <div class="pillar">Runtime Control<span>ramp · retry · fault isolation</span></div>
-    <div class="pillar">Safety Boundary<span>EMO · fail-safe · cascade</span></div>
-    <div class="pillar">Human Approval<span>final decision · human-in-the-loop</span></div>
-  </div>
+    <!-- 部品表：電気図面のBOM -->
+    <div style="padding:8px 24px 22px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:14px 0 10px;">▎ 部品表 — BOM</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <tr style="border-bottom:1px solid var(--rule2);">
+          <th style="text-align:left;padding:9px 8px;color:var(--muted);font-weight:600;font-size:11px;width:44px;">符号</th>
+          <th style="text-align:left;padding:9px 8px;color:var(--muted);font-weight:600;font-size:11px;width:190px;">名称</th>
+          <th style="text-align:left;padding:9px 8px;color:var(--muted);font-weight:600;font-size:11px;width:76px;">員数</th>
+          <th style="text-align:left;padding:9px 8px;color:var(--muted);font-weight:600;font-size:11px;">機能</th>
+        </tr>
 
-  <table class="comp-table">
-    <thead>
-      <tr>
-        <th style="width:180px;">Component</th>
-        <th>Role</th>
-        <th>Design note</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="td-name">MA Runtime</td>
-        <td class="td-role">Agent task execution engine</td>
-        <td class="td-note">fail-safe topology / multi-language / N=151 sessions</td>
-      </tr>
-      <tr>
-        <td class="td-name">MAKI OS Kernel</td>
-        <td class="td-role">Control layer — memory, permission, ramp, EMO</td>
-        <td class="td-note">Light DDD 4-file structure / PLC scan cycle pattern</td>
-      </tr>
-      <tr>
-        <td class="td-name">ARARA</td>
-        <td class="td-role">Primary AI agent — sensing × future orientation</td>
-        <td class="td-note">Operates within MA System as the main interface</td>
-      </tr>
-      <tr>
-        <td class="td-name">ARIS</td>
-        <td class="td-role">Review agent — independent quality assurance</td>
-        <td class="td-note">GPT-4o via OpenRouter / critic role / cross-checks ARARA</td>
-      </tr>
-      <tr>
-        <td class="td-name">MCP Bus</td>
-        <td class="td-role">External tool connection layer</td>
-        <td class="td-note">14+ MCP integrations / unified tool interface</td>
-      </tr>
-    </tbody>
-  </table>
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--arara);">A</td>
+          <td style="padding:11px 8px;color:var(--text);font-weight:600;">AIエージェントカーネル</td>
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;color:var(--muted);">1</td>
+          <td style="padding:11px 8px;color:var(--text);">実行してよいかを実行の手前で決める。通らなければ止め、人が解除するまで保持する。<span style="color:var(--gold);">構造の詳細は出願中のため記載しない。</span></td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule);background:rgba(49,139,247,.03);">
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent);">A1</td>
+          <td style="padding:11px 8px;color:var(--text);font-weight:600;">記憶層</td>
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;color:var(--muted);">1</td>
+          <td style="padding:11px 8px;color:var(--text);">記憶をDB 1本に集約する。引き継ぎファイルや日記ファイルを作らず、消えない場所に1つだけ持つ。</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;color:var(--accent);">A1-a</td>
+          <td style="padding:11px 8px;color:var(--text);">固定ルール</td>
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;color:var(--muted);">n</td>
+          <td style="padding:11px 8px;color:var(--text);">守らせたい約束。起動のたびにそのまま読み込ませる。消さない。</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;color:var(--accent);">A1-b</td>
+          <td style="padding:11px 8px;color:var(--text);">セッション記録 ／ 日報</td>
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;color:var(--muted);">n</td>
+          <td style="padding:11px 8px;color:var(--text);">何をして、どう判断し、次に何をするか。日単位でも残す。</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;color:var(--accent);">A1-c</td>
+          <td style="padding:11px 8px;color:var(--text);">コード変更履歴</td>
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;color:var(--muted);">n</td>
+          <td style="padding:11px 8px;color:var(--text);">対象・何を・なぜ・どう検証したか。直した理由が後から辿れる形で残す。</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;color:var(--accent);">A1-d</td>
+          <td style="padding:11px 8px;color:var(--text);">作業ログ</td>
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;color:var(--muted);">n</td>
+          <td style="padding:11px 8px;color:var(--text);">実行した命令と、変更前後の差分をそのまま保持する。<strong>要約しない。</strong>要約するとコードが消え、後から追えなくなる。</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;color:var(--gold);">A1-e</td>
+          <td style="padding:11px 8px;color:var(--text);">読み込み制御</td>
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;color:var(--muted);">1</td>
+          <td style="padding:11px 8px;color:var(--text);">前回からどれだけ間が空いたかで、読み込む量を変える。<span style="color:var(--gold);">方式の詳細は記載しない。</span></td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;color:var(--green);">A1-f</td>
+          <td style="padding:11px 8px;color:var(--text);">外部窓口</td>
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;color:var(--muted);">1</td>
+          <td style="padding:11px 8px;color:var(--text);">外部のAIからも同じ記憶を読める。ただし読み取りのみ。書き込む口は外に出さない。</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--green);">A2</td>
+          <td style="padding:11px 8px;color:var(--text);">感覚器</td>
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;color:var(--muted);">4</td>
+          <td style="padding:11px 8px;color:var(--text);">口（音声出力）・耳（音声入力）・目（映像）・手（物理ボタン）。器官ごとに分ける。</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent);">B</td>
+          <td style="padding:11px 8px;color:var(--text);font-weight:600;">OS起動・制御層</td>
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;color:var(--muted);">1</td>
+          <td style="padding:11px 8px;color:var(--text);">起動・周期スキャン・生存監視・停止からの回復。カーネルの外側で面倒を見る。</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--green);">C</td>
+          <td style="padding:11px 8px;color:var(--text);font-weight:600;">Recipes</td>
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;color:var(--muted);">n</td>
+          <td style="padding:11px 8px;color:var(--text);">業務手順。スキルと違い、記録・ゲート・停止をカーネルに接続したまま走る。</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;font-weight:700;color:#F43F5E;">D</td>
+          <td style="padding:11px 8px;color:var(--text);font-weight:600;">tests</td>
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;color:var(--muted);">n</td>
+          <td style="padding:11px 8px;color:var(--text);">判断部分を入出力から切り離し、環境に依存せず検証する。</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--text);">E</td>
+          <td style="padding:11px 8px;color:var(--text);font-weight:600;">CLI 層</td>
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;color:var(--muted);">3</td>
+          <td style="padding:11px 8px;color:var(--text);">人が触る面。載せ替えても下の判定・記録・停止は変わらない。</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--text);">F</td>
+          <td style="padding:11px 8px;color:var(--text);font-weight:600;">MCP バス</td>
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;color:var(--muted);">16</td>
+          <td style="padding:11px 8px;color:var(--text);">外部サービスへの経路。ここを通る操作もすべてゲートの下に置く。</td>
+        </tr>
+        <tr>
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--text);">G</td>
+          <td style="padding:11px 8px;color:var(--text);font-weight:600;">常駐</td>
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;color:var(--muted);">3</td>
+          <td style="padding:11px 8px;color:var(--text);">スリープ抑止・外部接続・生存監視。落ちても起動時に自動で復帰する。</td>
+        </tr>
+      </table>
 
-  <!-- CHYLOX PROJECT HIERARCHY -->
-  <div style="margin:28px 0 0;">
-    <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Project Structure</div>
-    <div style="display:flex;align-items:center;gap:0;overflow-x:auto;min-width:500px;">
-
-      <div style="flex:1;min-width:130px;padding:14px 16px;border:1px solid var(--rule2);border-radius:8px;background:rgba(49,139,247,.04);">
-        <div style="font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.3px;margin-bottom:6px;">Chylox Project</div>
-        <div style="font-size:10px;color:var(--muted);line-height:1.6;">Human-AI Systems Research</div>
+      <div style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);display:flex;gap:20px;flex-wrap:wrap;">
+        <span><span style="color:var(--gold);">◇</span> 出願中につき詳細非公開</span>
+        <span><span style="color:var(--arara);">■</span> カーネル</span>
+        <span><span style="color:var(--accent);">■</span> 制御・記憶</span>
+        <span><span style="color:var(--green);">■</span> 入出力・手順</span>
+        <span><span style="color:#F43F5E;">■</span> 検証</span>
       </div>
-
-      <div style="padding:0 10px;color:var(--muted);font-size:14px;flex-shrink:0;">→</div>
-
-      <div style="flex:2;min-width:200px;padding:14px 16px;border:2px solid rgba(139,92,246,.3);border-radius:8px;background:var(--arara-glow);">
-        <div style="font-size:11px;font-weight:700;color:var(--arara);letter-spacing:.3px;margin-bottom:8px;">MA System</div>
-        <div style="display:flex;flex-wrap:wrap;gap:4px;">
-          <span style="font-size:9px;padding:2px 7px;background:rgba(139,92,246,.12);color:var(--arara);border-radius:4px;font-weight:600;">ARARA</span>
-          <span style="font-size:9px;padding:2px 7px;background:rgba(49,139,247,.12);color:var(--aris);border-radius:4px;font-weight:600;">ARIS</span>
-          <span style="font-size:9px;padding:2px 7px;background:rgba(0,0,0,.06);color:var(--muted);border-radius:4px;font-weight:600;">MCP Bus</span>
-          <span style="font-size:9px;padding:2px 7px;background:rgba(0,0,0,.06);color:var(--muted);border-radius:4px;font-weight:600;">MAKI OS Kernel</span>
-        </div>
-      </div>
-
-      <div style="padding:0 10px;color:var(--muted);font-size:14px;flex-shrink:0;">→</div>
-
-      <div style="flex:1;min-width:130px;padding:14px 16px;border:1px solid var(--rule2);border-radius:8px;background:rgba(49,139,247,.04);">
-        <div style="font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.3px;margin-bottom:6px;">Research Output</div>
-        <div style="font-size:10px;color:var(--muted);line-height:1.6;">Core Preprint + Papers 1–8 · Zenodo · GitHub</div>
-      </div>
-
-    </div>
-  </div>
-
-  <div class="origin-note">
-    <p>
-      MA System was built by <strong>Daisuke Tsunemori (Tsune2034)</strong>.
-    </p>
-    <p>
-      For nearly a decade, he worked in a <strong>technical FSE role in the semiconductor field</strong>,
-      standing at the front line between equipment, process behavior, and customer-side operation.
-      The work included on-site technical sessions, NPI support, process map analysis,
-      POR-based troubleshooting, uniformity trend analysis, and sigma-based variation control.
-      The role sat closer to local technical support than routine field maintenance —
-      identifying where hardware adjustment could correct process trends,
-      and separating equipment-side from process-side root causes in the field.
-    </p>
-    <p>
-      This background shaped the design of MA System. In semiconductor field work,
-      problems must be separated across <strong>hardware, process, operation, and
-      human decision boundaries</strong>. MA System applies the same boundary-oriented
-      thinking to AI agents: separating memory, permission, runtime control, and
-      integration-dependent components so that human-AI execution becomes
-      controllable and auditable.
-    </p>
-    <p>
-      No prior CLI or code experience before February 2026.
-      The design comes not from software engineering tradition but from
-      the discipline of making complex systems safe, observable, and recoverable
-      in the field.
-    </p>
-    <div class="ja">
-      直近約10年は、半導体分野でテクニカル寄りのFSEとして、現地技術支援・技術セッション・NPI・量産機/開発機のPOR理解・プロセスマップ解析・均一性/Sigma管理に関わってきました。<br>
-      ハードウェア、プロセス、運用、人間判断の境界を切り分ける考え方が、MA Systemの「責務分離」「境界設計」「安全な実行制御」「人間承認ポイント」の発想につながっています。<br>
-      「コード職人」ではなく、「現場課題をAIシステム設計に変換する」立ち位置からのアーキテクチャ。
     </div>
   </div>
 </div>
 
-<!-- ORIGIN STORY -->
-<div class="origin-block">
-  <div class="sec-chip">02 — Origin</div>
-  <div class="sec-title">3 months. Zero CLI. Zero prior code.</div>
-  <div class="sec-sub">
-    Tsune2034 — 25 years as a field/equipment engineer, including 10 years semiconductor FSE (ALD pioneer manufacturer · CVD/ALD). No CLI or coding experience before Feb 2026. Now building autonomous agent systems under <strong>Project KAIROX</strong>.<br>
-    <span style="color:var(--muted);font-size:12px;">Tsune2034 — フィールド/設備エンジニアとして25年（うち半導体FSE10年：ALDパイオニアメーカー · CVD/ALD装置）。2026年2月までCLI・コード経験なし。Project KAIROXとして自律型エージェントシステムを開発中。</span>
-  </div>
-  <div class="origin-timeline">
-    <div class="origin-step active">
-      <div class="origin-step-date">～ 2025</div>
-      <div class="origin-step-title">Field / Equipment Engineer · 25 years</div>
-      <div class="origin-step-desc">On-site support for CVD/ALD process equipment at a global ALD pioneer manufacturer. End-to-end ownership from installation to process qualification. DDR4 / DDR5 / HBM mass production lines.</div>
-    </div>
-    <div class="origin-step active">
-      <div class="origin-step-date">Feb 2026</div>
-      <div class="origin-step-title">First CLI. Full pivot to AI.</div>
-      <div class="origin-step-desc">First time ever using a terminal. Switched from chat-only AI to Claude Code CLI. Applied 25 years of hardware design principles — fail-safe topology, cascade control, fault isolation — to build an AI agent framework from scratch.</div>
-    </div>
-    <div class="origin-step now">
-      <div class="origin-step-date">May 2026 — present</div>
-      <div class="origin-step-title highlight">Live · 14 MCP integrations · 9 papers published on Zenodo</div>
-      <div class="origin-step-desc">9 research papers published on Zenodo (Core System Preprint + Papers 1–8). arXiv endorsement in progress. Autonomous AI operating framework running in production under Project KAIROX.</div>
-    </div>
-  </div>
-</div>
-
-<!-- ARCHITECTURE -->
 <div class="sec" id="sec-arch">
-  <div class="sec-chip">04 — System Architecture</div>
-  <div class="sec-title">MA System Connectivity Architecture</div>
-  <div class="sec-sub">MAKI OS は、AIエージェントの実行を制御するカーネル層です。上に載る実行系が変わっても、権限の判定・記録・停止は同じ仕組みを通ります。<br>
-    <span style="color:var(--muted);font-size:12px;">CLI 3系統（Claude Code ／ Codex ／ Antigravity）＋ 直API ＋ ローカルLLM。どれで実行しても、必ず実行ゲートを通過して監査記録に残ります。</span><br>
-    <span style="color:var(--muted);font-size:11px;">実測: 2026年7月23日〜8月10日の18日間で 5,014件を記録。権限判定 4,437件のうち 761件（17.2%）を停止。</span></div>
+  <div class="sec-chip">02 — 接続構造</div>
+  <div class="sec-title">実行系とサービスの接続</div>
+  
 
   <!-- ─── 接続構造図: 実行系 × MCP接続バス × サービス ─── -->
     <div class="cli-wiring">
       <div class="cli-wiring-label">▎ MA System 接続構造 — 実行系 × MCP接続バス × サービス</div>
-      <svg viewBox="0 0 900 470" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;min-width:560px;" aria-label="MA System 接続構造図" font-family="'JetBrains Mono',monospace">
+      <svg viewBox="0 0 900 496" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;min-width:560px;" aria-label="MA System 接続構造図" font-family="'JetBrains Mono',monospace">
         <defs>
-          <marker id="uni-arr" markerWidth="7" markerHeight="5" refX="5.5" refY="2.5" orient="auto">
-            <polygon points="0 0, 7 2.5, 0 5" fill="#CBD5E1"/>
-          </marker>
-          <marker id="uni-arr-g" markerWidth="7" markerHeight="5" refX="5.5" refY="2.5" orient="auto">
-            <polygon points="0 0, 7 2.5, 0 5" fill="#10B981"/>
-          </marker>
-          <marker id="uni-arr-r" markerWidth="7" markerHeight="5" refX="5.5" refY="2.5" orient="auto">
-            <polygon points="0 0, 7 2.5, 0 5" fill="#F43F5E"/>
-          </marker>
-          <marker id="uni-arr-a" markerWidth="7" markerHeight="5" refX="5.5" refY="2.5" orient="auto">
-            <polygon points="0 0, 7 2.5, 0 5" fill="#F59E0B"/>
-          </marker>
+          <marker id="uni-arr" markerWidth="7" markerHeight="5" refX="5.5" refY="2.5" orient="auto"><polygon points="0 0, 7 2.5, 0 5" fill="#CBD5E1"/></marker>
+          <marker id="uni-arr-g" markerWidth="7" markerHeight="5" refX="5.5" refY="2.5" orient="auto"><polygon points="0 0, 7 2.5, 0 5" fill="#10B981"/></marker>
+          <marker id="uni-arr-r" markerWidth="7" markerHeight="5" refX="5.5" refY="2.5" orient="auto"><polygon points="0 0, 7 2.5, 0 5" fill="#F43F5E"/></marker>
+          <marker id="uni-arr-a" markerWidth="7" markerHeight="5" refX="5.5" refY="2.5" orient="auto"><polygon points="0 0, 7 2.5, 0 5" fill="#F59E0B"/></marker>
         </defs>
 
-        <rect x="2" y="2" width="896" height="466" rx="6" fill="none" stroke="rgba(0,0,0,.05)" stroke-width="1" stroke-dasharray="6 4"/>
+        <rect x="2" y="2" width="896" height="492" rx="6" fill="none" stroke="rgba(0,0,0,.05)" stroke-width="1" stroke-dasharray="6 4"/>
         <text x="14" y="16" fill="#CBD5E1" font-size="8" font-weight="700" letter-spacing="2">MA SYSTEM — 間（あいだ）</text>
 
-        <!-- ══ 人間 ══ -->
-        <rect x="220" y="22" width="460" height="38" rx="3" fill="rgba(10,22,40,.03)" stroke="#CBD5E1" stroke-width="1"/>
-        <text x="450" y="38" text-anchor="middle" fill="#0A1628" font-size="10.5" font-weight="700">人間 — 入力・承認・最終判断</text>
-        <text x="450" y="52" text-anchor="middle" fill="#64748B" font-size="7.5">止めるのも、解除するのも人が決める</text>
+        <!-- 人間 -->
+        <rect x="250" y="24" width="400" height="38" rx="3" fill="rgba(10,22,40,.03)" stroke="#CBD5E1" stroke-width="1"/>
+        <text x="450" y="41" text-anchor="middle" fill="#0A1628" font-size="10" font-weight="700">人間 — 入力・承認・最終判断</text>
+        <text x="450" y="55" text-anchor="middle" fill="#64748B" font-size="7.5">止めるのも、解除するのも人が決める</text>
 
-        <line x1="360" y1="60" x2="150" y2="84" stroke="#CBD5E1" stroke-width="1" marker-end="url(#uni-arr)"/>
-        <line x1="450" y1="60" x2="450" y2="84" stroke="#CBD5E1" stroke-width="1" marker-end="url(#uni-arr)"/>
-        <line x1="540" y1="60" x2="750" y2="84" stroke="#CBD5E1" stroke-width="1" marker-end="url(#uni-arr)"/>
+        <line x1="450" y1="62" x2="240" y2="86" stroke="#CBD5E1" stroke-width="1" marker-end="url(#uni-arr)"/>
 
-        <!-- ══ 実行系 3系統 ══ -->
-        <rect x="10" y="84" width="286" height="76" rx="4" fill="rgba(49,139,247,.05)" stroke="#318BF7" stroke-width="1.5"/>
-        <text x="20" y="101" fill="#318BF7" font-size="10" font-weight="700">Claude Code CLI</text>
-        <text x="288" y="101" text-anchor="end" fill="#94A3B8" font-size="7">主系 / Opus 5</text>
-        <text x="20" y="116" fill="#64748B" font-size="7.5">Read · Edit · Write · Bash ← ネイティブ</text>
-        <text x="20" y="130" fill="#94A3B8" font-size="7">コンテキスト 1M · スキル 79件 · MCPクライアント</text>
-        <text x="20" y="144" fill="#94A3B8" font-size="7">停止ラッチ · 承認ゲート · カスケード制御</text>
-        <text x="20" y="156" fill="#94A3B8" font-size="7">プラグイン: claude-security（多エージェント脆弱性検査）</text>
+        <!-- CLI層: 主系はひとつ -->
+        <rect x="14" y="76" width="872" height="94" rx="4" fill="rgba(49,139,247,.03)" stroke="rgba(49,139,247,.35)" stroke-width="1"/>
+        <text x="26" y="92" fill="#318BF7" font-size="9" font-weight="700">入口は Claude Code CLI ひとつ</text>
+        <text x="874" y="92" text-anchor="end" fill="#94A3B8" font-size="7">現状の構成</text>
 
-        <rect x="304" y="84" width="150" height="76" rx="4" fill="rgba(139,92,246,.05)" stroke="#8B5CF6" stroke-width="1.5"/>
-        <text x="314" y="101" fill="#8B5CF6" font-size="10" font-weight="700">Codex CLI</text>
-        <text x="446" y="101" text-anchor="end" fill="#94A3B8" font-size="7">cli_one_shot</text>
-        <text x="314" y="118" fill="#64748B" font-size="7.5">コード編集 · pytest</text>
-        <text x="314" y="132" fill="#94A3B8" font-size="7">MCP登録済（codex）</text>
-        <text x="314" y="148" fill="#94A3B8" font-size="7">ラッチ発火: file_write / shell / git_commit</text>
+        <rect x="26" y="100" width="520" height="60" rx="3" fill="rgba(49,139,247,.06)" stroke="#318BF7" stroke-width="1.5"/>
+        <text x="38" y="117" fill="#318BF7" font-size="9.5" font-weight="700">Claude Code CLI</text>
+        <text x="534" y="117" text-anchor="end" fill="#94A3B8" font-size="6.5">主系 / Opus 5 / コンテキスト 1M</text>
+        <text x="38" y="131" fill="#64748B" font-size="7">Read · Edit · Write · Bash ← ネイティブ</text>
+        <text x="38" y="143" fill="#94A3B8" font-size="6.5">スキル 79件 · MCPクライアント · プラグイン claude-security</text>
+        <text x="38" y="154" fill="#94A3B8" font-size="6.5">人が触るのはここだけ。他は呼び出される側</text>
 
-        <rect x="462" y="84" width="150" height="76" rx="4" fill="rgba(16,185,129,.05)" stroke="#10B981" stroke-width="1.5"/>
-        <text x="472" y="101" fill="#10B981" font-size="10" font-weight="700">Antigravity CLI</text>
-        <text x="604" y="101" text-anchor="end" fill="#94A3B8" font-size="7">cli_session</text>
-        <text x="472" y="118" fill="#64748B" font-size="7.5">GAS · 外部サービス連携</text>
-        <text x="472" y="132" fill="#94A3B8" font-size="7">MCP登録済（antigravity-cli）</text>
-        <text x="472" y="148" fill="#94A3B8" font-size="7">ラッチ発火: 外部変更 / 権限拡大</text>
+        <!-- 一方向の委譲 -->
+        <line x1="546" y1="122" x2="580" y2="122" stroke="#F59E0B" stroke-width="1.8" marker-end="url(#uni-arr-a)"/>
+        <text x="563" y="115" text-anchor="middle" fill="#F59E0B" font-size="6" font-weight="700">委譲</text>
+        <text x="563" y="136" text-anchor="middle" fill="#F59E0B" font-size="5.5">一方向</text>
 
-        <rect x="620" y="84" width="272" height="76" rx="4" fill="rgba(245,158,11,.04)" stroke="rgba(245,158,11,.5)" stroke-width="1" stroke-dasharray="5 3"/>
-        <text x="630" y="101" fill="#F59E0B" font-size="10" font-weight="700">直API ／ ローカル</text>
-        <text x="630" y="117" fill="#64748B" font-size="7.5">Claude Sonnet API — 逆ラッチ必須（高コスト帯）</text>
-        <text x="630" y="131" fill="#64748B" font-size="7.5">OpenAI · Gemini Flash — 標準／最安判定</text>
-        <text x="630" y="145" fill="#8B5CF6" font-size="7.5">Ollama ローカル 11モデル（外部通信なし）</text>
-        <text x="630" y="157" fill="#94A3B8" font-size="7">qwen3.5:9b · qwen3:14b · gpt-oss:20b · llama3.1:70b ほか</text>
+        <rect x="582" y="100" width="292" height="60" rx="3" fill="rgba(16,185,129,.06)" stroke="#10B981" stroke-width="1.2" stroke-dasharray="4 2"/>
+        <text x="594" y="117" fill="#10B981" font-size="9" font-weight="700">Antigravity CLI</text>
+        <text x="862" y="117" text-anchor="end" fill="#94A3B8" font-size="6.5">antigravity-cli</text>
+        <text x="594" y="131" fill="#64748B" font-size="7">GAS · Google 連携 · 外部サービスの操作</text>
+        <text x="594" y="143" fill="#94A3B8" font-size="6.5">呼ばれて実行し、結果を返す。人はここを直接触らない</text>
+        <text x="594" y="154" fill="#94A3B8" font-size="6.5">Claude 用のプロキシとして常駐（antigravity-claude-proxy）</text>
 
-        <!-- ══ 実行ゲート ══ -->
-        <line x1="150" y1="160" x2="150" y2="176" stroke="#318BF7" stroke-width="2"/>
-        <line x1="379" y1="160" x2="379" y2="176" stroke="#8B5CF6" stroke-width="2"/>
-        <line x1="537" y1="160" x2="537" y2="176" stroke="#10B981" stroke-width="2"/>
-        <line x1="756" y1="160" x2="756" y2="176" stroke="#F59E0B" stroke-width="2"/>
+        <line x1="240" y1="170" x2="240" y2="188" stroke="#318BF7" stroke-width="1.5" marker-end="url(#uni-arr-r)"/>
 
-        <rect x="10" y="176" width="882" height="30" rx="3" fill="rgba(244,63,94,.05)" stroke="#F43F5E" stroke-width="1.5"/>
-        <text x="451" y="190" text-anchor="middle" fill="#F43F5E" font-size="9.5" font-weight="700" letter-spacing=".5">実行ゲート（GED）— どの実行系から来た操作も必ずここを通る</text>
-        <text x="451" y="202" text-anchor="middle" fill="#64748B" font-size="7">仕事の種類 → プロファイル8種 → 候補の実行系 → ラッチ要否 → 監査記録</text>
+        <!-- 実行ゲート -->
+        <rect x="14" y="190" width="872" height="34" rx="3" fill="rgba(244,63,94,.05)" stroke="#F43F5E" stroke-width="1.8"/>
+        <text x="450" y="206" text-anchor="middle" fill="#F43F5E" font-size="9.5" font-weight="700" letter-spacing=".5">実行ゲート — 委譲先からの操作も含めて、必ずここを通る</text>
+        <text x="450" y="218" text-anchor="middle" fill="#64748B" font-size="7">権限を照合 → 可否を決める → 通らなければ承認待ち → 監査記録へ</text>
 
-        <line x1="200" y1="206" x2="200" y2="224" stroke="#318BF7" stroke-width="2"/>
-        <circle cx="200" cy="224" r="3.5" fill="#318BF7"/>
+        <line x1="240" y1="224" x2="240" y2="242" stroke="#F43F5E" stroke-width="1.5" marker-end="url(#uni-arr-r)"/>
+        <line x1="660" y1="224" x2="660" y2="242" stroke="#F43F5E" stroke-width="1.5" marker-end="url(#uni-arr-r)"/>
 
-        <!-- ══ MCPバス ══ -->
-        <rect x="10" y="224" width="882" height="22" rx="2" fill="rgba(49,139,247,.04)" stroke="#318BF7" stroke-width="1"/>
-        <text x="451" y="239" text-anchor="middle" fill="#318BF7" font-size="8.5" font-weight="700" letter-spacing=".5">MCP 接続バス — 16サービス</text>
+        <!-- ゲートの下：実行先 -->
+        <rect x="14" y="244" width="440" height="66" rx="3" fill="rgba(245,158,11,.04)" stroke="rgba(245,158,11,.5)" stroke-width="1"/>
+        <text x="26" y="260" fill="#F59E0B" font-size="9" font-weight="700">実行先 — カーネルが振り分ける</text>
+        <text x="26" y="275" fill="#64748B" font-size="7">Claude Sonnet API — 逆ラッチ必須（高コスト帯）</text>
+        <text x="26" y="288" fill="#64748B" font-size="7">OpenAI · Gemini Flash — 標準／最安の判定に使う</text>
+        <text x="26" y="301" fill="#8B5CF6" font-size="7">Ollama ローカル 11モデル — 外部通信なし</text>
 
-        <!-- ══ サービス群 ══ -->
-        <line x1="120" y1="246" x2="120" y2="264" stroke="#318BF7" stroke-width="1"/><circle cx="120" cy="246" r="2" fill="#318BF7"/>
-        <line x1="341" y1="246" x2="341" y2="264" stroke="#318BF7" stroke-width="1"/><circle cx="341" cy="246" r="2" fill="#318BF7"/>
-        <line x1="562" y1="246" x2="562" y2="264" stroke="#318BF7" stroke-width="1"/><circle cx="562" cy="246" r="2" fill="#318BF7"/>
-        <line x1="783" y1="246" x2="783" y2="264" stroke="#318BF7" stroke-width="1"/><circle cx="783" cy="246" r="2" fill="#318BF7"/>
+        <!-- ゲートの下：MCPバス -->
+        <rect x="466" y="244" width="420" height="66" rx="3" fill="rgba(49,139,247,.04)" stroke="#318BF7" stroke-width="1"/>
+        <text x="478" y="260" fill="#318BF7" font-size="9" font-weight="700">MCP 接続バス — 16サービス</text>
+        <text x="478" y="275" fill="#64748B" font-size="7">外部の道具へつなぐ経路</text>
+        <text x="478" y="288" fill="#94A3B8" font-size="6.5">stdio / OAuth</text>
+        <text x="478" y="301" fill="#94A3B8" font-size="6.5">ここも実行ゲートの下にある</text>
 
-        <rect x="10" y="264" width="220" height="146" rx="3" fill="rgba(0,0,0,.015)" stroke="rgba(0,0,0,.09)" stroke-width=".5"/>
-        <text x="120" y="280" text-anchor="middle" fill="#0A1628" font-size="8.5" font-weight="700">リサーチ</text>
-        <line x1="10" y1="285" x2="230" y2="285" stroke="rgba(0,0,0,.04)" stroke-width=".5"/>
-        <text x="22" y="303" fill="#318BF7" font-size="8.5" font-weight="600">tavily</text>
-        <text x="220" y="303" text-anchor="end" fill="#94A3B8" font-size="7">リアルタイム検索</text>
-        <text x="22" y="324" fill="#318BF7" font-size="8.5" font-weight="600">brave-search</text>
-        <text x="220" y="324" text-anchor="end" fill="#94A3B8" font-size="7">独立エンジン</text>
-        <text x="22" y="345" fill="#318BF7" font-size="8.5" font-weight="600">context7</text>
-        <text x="220" y="345" text-anchor="end" fill="#94A3B8" font-size="7">公式ドキュメント</text>
-        <text x="22" y="366" fill="#318BF7" font-size="8.5" font-weight="600">playwright</text>
-        <text x="220" y="366" text-anchor="end" fill="#94A3B8" font-size="7">ブラウザ自動化</text>
-        <text x="22" y="392" fill="#94A3B8" font-size="7">一次情報まで最短で降りるための4系統</text>
+        <line x1="120" y1="310" x2="120" y2="326" stroke="#318BF7" stroke-width="1"/><circle cx="120" cy="310" r="2" fill="#318BF7"/>
+        <line x1="341" y1="310" x2="341" y2="326" stroke="#318BF7" stroke-width="1"/><circle cx="341" cy="310" r="2" fill="#318BF7"/>
+        <line x1="562" y1="310" x2="562" y2="326" stroke="#318BF7" stroke-width="1"/><circle cx="562" cy="310" r="2" fill="#318BF7"/>
+        <line x1="783" y1="310" x2="783" y2="326" stroke="#318BF7" stroke-width="1"/><circle cx="783" cy="310" r="2" fill="#318BF7"/>
 
-        <rect x="238" y="264" width="220" height="146" rx="3" fill="rgba(139,92,246,.03)" stroke="rgba(139,92,246,.2)" stroke-width=".5"/>
-        <text x="348" y="280" text-anchor="middle" fill="#0A1628" font-size="8.5" font-weight="700">AI実行系・開発</text>
-        <line x1="238" y1="285" x2="458" y2="285" stroke="rgba(139,92,246,.08)" stroke-width=".5"/>
-        <text x="250" y="303" fill="#8B5CF6" font-size="8.5" font-weight="600">codex</text>
-        <text x="448" y="303" text-anchor="end" fill="#94A3B8" font-size="7">Codex CLI</text>
-        <text x="250" y="324" fill="#10B981" font-size="8.5" font-weight="600">antigravity-cli</text>
-        <text x="448" y="324" text-anchor="end" fill="#94A3B8" font-size="7">Antigravity CLI</text>
-        <text x="250" y="345" fill="#318BF7" font-size="8.5" font-weight="600">github</text>
-        <text x="448" y="345" text-anchor="end" fill="#94A3B8" font-size="7">PR · Issue</text>
-        <text x="250" y="366" fill="#318BF7" font-size="8.5" font-weight="600">palmier-pro</text>
-        <text x="448" y="366" text-anchor="end" fill="#94A3B8" font-size="7">開発支援</text>
-        <text x="250" y="392" fill="#94A3B8" font-size="7">実行系を載せ替えても上位の手順は変わらない</text>
+        <!-- サービス群 -->
+        <rect x="14" y="326" width="212" height="126" rx="3" fill="rgba(0,0,0,.015)" stroke="rgba(0,0,0,.09)" stroke-width=".5"/>
+        <text x="120" y="342" text-anchor="middle" fill="#0A1628" font-size="8.5" font-weight="700">リサーチ</text>
+        <line x1="14" y1="347" x2="226" y2="347" stroke="rgba(0,0,0,.04)" stroke-width=".5"/>
+        <text x="26" y="364" fill="#318BF7" font-size="8" font-weight="600">tavily</text><text x="216" y="364" text-anchor="end" fill="#94A3B8" font-size="6.5">リアルタイム検索</text>
+        <text x="26" y="383" fill="#318BF7" font-size="8" font-weight="600">brave-search</text><text x="216" y="383" text-anchor="end" fill="#94A3B8" font-size="6.5">独立エンジン</text>
+        <text x="26" y="402" fill="#318BF7" font-size="8" font-weight="600">context7</text><text x="216" y="402" text-anchor="end" fill="#94A3B8" font-size="6.5">公式ドキュメント</text>
+        <text x="26" y="421" fill="#318BF7" font-size="8" font-weight="600">playwright</text><text x="216" y="421" text-anchor="end" fill="#94A3B8" font-size="6.5">ブラウザ自動化</text>
+        <text x="26" y="442" fill="#94A3B8" font-size="6.5">一次情報まで最短で降りる</text>
 
-        <rect x="466" y="264" width="220" height="146" rx="3" fill="rgba(0,0,0,.015)" stroke="rgba(0,0,0,.09)" stroke-width=".5"/>
-        <text x="576" y="280" text-anchor="middle" fill="#0A1628" font-size="8.5" font-weight="700">制作・データ</text>
-        <line x1="466" y1="285" x2="686" y2="285" stroke="rgba(0,0,0,.04)" stroke-width=".5"/>
-        <text x="478" y="303" fill="#318BF7" font-size="8.5" font-weight="600">canva</text>
-        <text x="676" y="303" text-anchor="end" fill="#94A3B8" font-size="7">資料・図版</text>
-        <text x="478" y="324" fill="#318BF7" font-size="8.5" font-weight="600">figma</text>
-        <text x="676" y="324" text-anchor="end" fill="#94A3B8" font-size="7">UI設計</text>
-        <text x="478" y="345" fill="#318BF7" font-size="8.5" font-weight="600">postgres</text>
-        <text x="676" y="345" text-anchor="end" fill="#94A3B8" font-size="7">データベース</text>
-        <text x="478" y="366" fill="#10B981" font-size="8.5" font-weight="600">gdrive</text>
-        <text x="676" y="366" text-anchor="end" fill="#94A3B8" font-size="7">OAuth</text>
-        <text x="478" y="392" fill="#94A3B8" font-size="7">作って、出して、保管するまでを同じ層で</text>
+        <rect x="235" y="326" width="212" height="126" rx="3" fill="rgba(139,92,246,.03)" stroke="rgba(139,92,246,.2)" stroke-width=".5"/>
+        <text x="341" y="342" text-anchor="middle" fill="#0A1628" font-size="8.5" font-weight="700">AI実行系・開発</text>
+        <line x1="235" y1="347" x2="447" y2="347" stroke="rgba(139,92,246,.08)" stroke-width=".5"/>
+        <text x="247" y="364" fill="#10B981" font-size="8" font-weight="600">antigravity-cli</text><text x="437" y="364" text-anchor="end" fill="#94A3B8" font-size="6.5">GAS · 外部連携</text>
+        <text x="247" y="383" fill="#318BF7" font-size="8" font-weight="600">codex</text><text x="437" y="383" text-anchor="end" fill="#94A3B8" font-size="6.5">MCP 登録済</text>
+        <text x="247" y="402" fill="#318BF7" font-size="8" font-weight="600">github</text><text x="437" y="402" text-anchor="end" fill="#94A3B8" font-size="6.5">PR · Issue</text>
+        <text x="247" y="421" fill="#318BF7" font-size="8" font-weight="600">palmier-pro</text><text x="437" y="421" text-anchor="end" fill="#94A3B8" font-size="6.5">開発支援</text>
+        <text x="247" y="442" fill="#94A3B8" font-size="6.5">載せ替えても上位の手順は変わらない</text>
 
-        <rect x="694" y="264" width="198" height="146" rx="3" fill="rgba(0,0,0,.015)" stroke="rgba(0,0,0,.09)" stroke-width=".5"/>
-        <text x="793" y="280" text-anchor="middle" fill="#0A1628" font-size="8.5" font-weight="700">記憶・分析</text>
-        <line x1="694" y1="285" x2="892" y2="285" stroke="rgba(0,0,0,.04)" stroke-width=".5"/>
-        <text x="706" y="303" fill="#8B5CF6" font-size="8.5" font-weight="600">arara-mem</text>
-        <text x="882" y="303" text-anchor="end" fill="#F59E0B" font-size="7">カーネル記憶</text>
-        <text x="706" y="324" fill="#318BF7" font-size="8.5" font-weight="600">notebooklm-mcp</text>
-        <text x="882" y="324" text-anchor="end" fill="#94A3B8" font-size="7">長期記憶</text>
-        <text x="706" y="345" fill="#318BF7" font-size="8.5" font-weight="600">analytics-mcp</text>
-        <text x="882" y="345" text-anchor="end" fill="#94A3B8" font-size="7">GA4</text>
-        <text x="706" y="366" fill="#318BF7" font-size="8.5" font-weight="600">mlit-geospatial</text>
-        <text x="882" y="366" text-anchor="end" fill="#94A3B8" font-size="7">国土地理データ</text>
-        <text x="706" y="392" fill="#94A3B8" font-size="7">溜まるほど、どこで詰まるかが数字で見える</text>
+        <rect x="456" y="326" width="212" height="126" rx="3" fill="rgba(0,0,0,.015)" stroke="rgba(0,0,0,.09)" stroke-width=".5"/>
+        <text x="562" y="342" text-anchor="middle" fill="#0A1628" font-size="8.5" font-weight="700">制作・データ</text>
+        <line x1="456" y1="347" x2="668" y2="347" stroke="rgba(0,0,0,.04)" stroke-width=".5"/>
+        <text x="468" y="364" fill="#318BF7" font-size="8" font-weight="600">canva</text><text x="658" y="364" text-anchor="end" fill="#94A3B8" font-size="6.5">資料・図版</text>
+        <text x="468" y="383" fill="#318BF7" font-size="8" font-weight="600">figma</text><text x="658" y="383" text-anchor="end" fill="#94A3B8" font-size="6.5">UI設計</text>
+        <text x="468" y="402" fill="#318BF7" font-size="8" font-weight="600">postgres</text><text x="658" y="402" text-anchor="end" fill="#94A3B8" font-size="6.5">データベース</text>
+        <text x="468" y="421" fill="#10B981" font-size="8" font-weight="600">gdrive</text><text x="658" y="421" text-anchor="end" fill="#94A3B8" font-size="6.5">OAuth</text>
+        <text x="468" y="442" fill="#94A3B8" font-size="6.5">作って、出して、保管するまで</text>
 
-        <!-- ══ 凡例 ══ -->
-        <line x1="10" y1="428" x2="890" y2="428" stroke="rgba(0,0,0,.06)" stroke-width=".5"/>
-        <circle cx="20" cy="444" r="3" fill="#318BF7"/>
-        <text x="30" y="448" fill="#64748B" font-size="7.5">MCP 接続（stdio / OAuth）</text>
-        <circle cx="196" cy="444" r="3" fill="#F43F5E"/>
-        <text x="206" y="448" fill="#64748B" font-size="7.5">実行ゲート — ここを通らない実行は無い</text>
-        <circle cx="452" cy="444" r="3" fill="#8B5CF6"/>
-        <text x="462" y="448" fill="#64748B" font-size="7.5">ローカル実行（外部通信なし）</text>
-        <circle cx="672" cy="444" r="3" fill="#F59E0B"/>
-        <text x="682" y="448" fill="#64748B" font-size="7.5">停止ラッチが要求される操作</text>
+        <rect x="677" y="326" width="209" height="126" rx="3" fill="rgba(0,0,0,.015)" stroke="rgba(0,0,0,.09)" stroke-width=".5"/>
+        <text x="781" y="342" text-anchor="middle" fill="#0A1628" font-size="8.5" font-weight="700">記憶・分析</text>
+        <line x1="677" y1="347" x2="886" y2="347" stroke="rgba(0,0,0,.04)" stroke-width=".5"/>
+        <text x="689" y="364" fill="#8B5CF6" font-size="8" font-weight="600">arara-mem</text><text x="876" y="364" text-anchor="end" fill="#F59E0B" font-size="6.5">カーネル記憶</text>
+        <text x="689" y="383" fill="#318BF7" font-size="8" font-weight="600">notebooklm-mcp</text><text x="876" y="383" text-anchor="end" fill="#94A3B8" font-size="6.5">長期記憶</text>
+        <text x="689" y="402" fill="#318BF7" font-size="8" font-weight="600">analytics-mcp</text><text x="876" y="402" text-anchor="end" fill="#94A3B8" font-size="6.5">GA4</text>
+        <text x="689" y="421" fill="#318BF7" font-size="8" font-weight="600">mlit-geospatial</text><text x="876" y="421" text-anchor="end" fill="#94A3B8" font-size="6.5">国土地理データ</text>
+        <text x="689" y="442" fill="#94A3B8" font-size="6.5">溜まるほど数字で見える</text>
+
+        <!-- 凡例 -->
+        <line x1="14" y1="464" x2="886" y2="464" stroke="rgba(0,0,0,.06)" stroke-width=".5"/>
+        <circle cx="24" cy="480" r="3" fill="#F43F5E"/>
+        <text x="34" y="484" fill="#64748B" font-size="7">実行ゲート — ここを通らない実行は無い</text>
+        <circle cx="290" cy="480" r="3" fill="#318BF7"/>
+        <text x="300" y="484" fill="#64748B" font-size="7">MCP 接続（stdio / OAuth）</text>
+        <circle cx="500" cy="480" r="3" fill="#8B5CF6"/>
+        <text x="510" y="484" fill="#64748B" font-size="7">ローカル実行（外部通信なし）</text>
+        <line x1="706" y1="479" x2="726" y2="479" stroke="#F59E0B" stroke-width="1.8" marker-end="url(#uni-arr-a)"/>
+        <text x="736" y="484" fill="#64748B" font-size="7">一方向の委譲（呼んで、返る）</text>
 
       </svg>
     </div>
@@ -1394,225 +1257,161 @@ footer{
 
 <!-- OS KERNEL -->
 <div class="sec" id="sec-kernel">
-  <div class="sec-chip">05 — OS KERNEL</div>
-  <div class="sec-title">MAKI OS Kernel — Execution Flow</div>
-  <div class="sec-sub">MA System OS の処理パイプライン。<br>
-    <span style="color:var(--accent);font-weight:600;">Event Bus → Stage Router → Agent Council → Evaluation → Judge → Memory</span><br>
-    <span style="color:var(--arara);font-weight:600;font-size:12px;">v3追加: Observer（監査ログ）→ Policy-Engine（FAIL診断）→ Retry-Engine（自動再試行）→ Memory Decay（信頼度減衰）</span><br>
-    <span style="color:#F59E0B;font-weight:600;font-size:12px;">MAKI OS v0.1（2026-05-31）: 緊急停止制御 / 状態遷移管理 / メモリ / スケジューラ / 権限管理 の5層構造</span><br>
-    <span style="color:var(--muted);font-size:12px;">出典: MasRouter (ACL 2025) · AIOS (COLM 2025) · AgentOS (2026) · RouteLLM (ICLR 2025) · FINCH-ZK (EMNLP 2025)</span>
-  </div>
+  <div class="sec-chip">03 — 稼働記録</div>
+  <div class="sec-title">動いた分だけ、数えられる</div>
 
-  <div style="margin:24px 0;overflow-x:auto;">
-  <svg viewBox="0 0 900 540" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:900px;display:block;font-family:'JetBrains Mono',monospace;">
-    <defs>
-      <marker id="arr-k" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
-        <path d="M0,0 L7,3.5 L0,7 Z" fill="#475569"/>
-      </marker>
-      <marker id="arr-blue" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
-        <path d="M0,0 L7,3.5 L0,7 Z" fill="#318BF7"/>
-      </marker>
-      <marker id="arr-amber" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
-        <path d="M0,0 L7,3.5 L0,7 Z" fill="#F59E0B"/>
-      </marker>
-      <marker id="arr-red" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
-        <path d="M0,0 L7,3.5 L0,7 Z" fill="#F43F5E"/>
-      </marker>
-    </defs>
+  <div style="border:1px solid var(--rule2);border-radius:4px;overflow:hidden;margin-top:24px;background:var(--bg2);">
 
-    <!-- ① EVENT BUS -->
-    <rect x="10" y="10" width="880" height="52" rx="4" fill="rgba(139,92,246,.06)" stroke="#8B5CF6" stroke-width="1.5" stroke-dasharray="5 3"/>
-    <text x="22" y="28" fill="#8B5CF6" font-size="9" font-weight="700" letter-spacing="1">EVENT BUS — asyncio.Queue / Redis Pub-Sub</text>
-    <text x="22" y="44" fill="#64748B" font-size="8">mail.in · trade.sig · kpi.alert · deploy.ok · deploy.fail · market.shock · judge.fail · fal.ai.reply</text>
-    <text x="700" y="44" fill="#8B5CF6" font-size="8" font-style="italic">importance ≥ 0.7 → LLM召喚</text>
-
-    <!-- ↓ arrow Bus→Router -->
-    <line x1="450" y1="62" x2="450" y2="92" stroke="#475569" stroke-width="1.5" marker-end="url(#arr-k)"/>
-
-    <!-- ② STAGE ROUTER -->
-    <rect x="200" y="92" width="500" height="48" rx="4" fill="rgba(251,191,36,.06)" stroke="#F59E0B" stroke-width="1.5"/>
-    <text x="216" y="112" fill="#F59E0B" font-size="9" font-weight="700" letter-spacing="1">STAGE ROUTER — Rule-based（LLMを呼ばない）</text>
-    <text x="216" y="128" fill="#94A3B8" font-size="8">secretary→Haiku · researcher→Gemini-2.5-Pro · critic→GPT-4o · engineer→Sonnet · strategy→Opus</text>
-
-    <!-- ↓ arrow Router→MAKI -->
-    <line x1="450" y1="140" x2="450" y2="162" stroke="#F59E0B" stroke-width="1.5" marker-end="url(#arr-amber)"/>
-
-    <!-- ★ MAKI SCAN KERNEL (NEW) -->
-    <rect x="10" y="162" width="880" height="96" rx="4" fill="rgba(245,158,11,.07)" stroke="#F59E0B" stroke-width="2" stroke-dasharray="6 3"/>
-    <text x="22" y="180" fill="#F59E0B" font-size="9" font-weight="700" letter-spacing="1">★ MAKI SCAN KERNEL — MA Agent Kernel Intelligence（PLCスキャン型）</text>
-    <text x="22" y="194" fill="#94A3B8" font-size="7.5">優先度付き実行制御階層　｜　スキャンサイクル型　｜　段階的停止設計</text>
-
-    <!-- researcher card -->
-    <rect x="22" y="202" width="140" height="48" rx="3" fill="rgba(16,185,129,.08)" stroke="#10B981" stroke-width="1"/>
-    <text x="32" y="218" fill="#10B981" font-size="8" font-weight="700">researcher</text>
-    <text x="32" y="230" fill="#64748B" font-size="7">Persona: researcher（ma_runtime管理）</text>
-    <text x="32" y="242" fill="#94A3B8" font-size="7">A:gemini-2.5-pro / B:claude-sonnet</text>
-
-    <!-- EtherCAT frame arrow -->
-    <line x1="162" y1="226" x2="186" y2="226" stroke="#F59E0B" stroke-width="1.5" marker-end="url(#arr-amber)"/>
-    <text x="168" y="222" fill="#F59E0B" font-size="6.5">frame</text>
-
-    <!-- critic card -->
-    <rect x="186" y="202" width="140" height="48" rx="3" fill="rgba(239,68,68,.08)" stroke="#EF4444" stroke-width="1"/>
-    <text x="196" y="218" fill="#EF4444" font-size="8" font-weight="700">critic</text>
-    <text x="196" y="230" fill="#64748B" font-size="7">Persona: critic（ma_runtime管理）</text>
-    <text x="196" y="242" fill="#94A3B8" font-size="7">A接点:Opus 5 / B接点:Codex · Antigravity</text>
-
-    <!-- frame return arrow -->
-    <line x1="326" y1="226" x2="350" y2="226" stroke="#F59E0B" stroke-width="1.5" marker-end="url(#arr-amber)"/>
-    <text x="328" y="222" fill="#F59E0B" font-size="6.5">回収</text>
-
-    <!-- EMO Bus -->
-    <rect x="360" y="202" width="140" height="48" rx="3" fill="rgba(244,63,94,.08)" stroke="#F43F5E" stroke-width="1.5"/>
-    <text x="370" y="218" fill="#F43F5E" font-size="8" font-weight="700">🔴 EMO BUS</text>
-    <text x="370" y="230" fill="#64748B" font-size="7">全停止シングルトン</text>
-    <text x="370" y="242" fill="#94A3B8" font-size="7">解除: Tsune2034のみ</text>
-
-    <!-- Priority Ladder -->
-    <rect x="514" y="202" width="190" height="48" rx="3" fill="rgba(139,92,246,.06)" stroke="#8B5CF6" stroke-width="1"/>
-    <text x="524" y="218" fill="#8B5CF6" font-size="8" font-weight="700">Priority Ladder</text>
-    <text x="524" y="230" fill="#64748B" font-size="7">EMO(0) &gt; Legal(1) &gt; Running(2)</text>
-    <text x="524" y="242" fill="#94A3B8" font-size="7">&gt; Ready(3) &gt; Sleeping(4)</text>
-
-    <!-- C-contact -->
-    <rect x="718" y="202" width="162" height="48" rx="3" fill="rgba(49,139,247,.06)" stroke="#318BF7" stroke-width="1"/>
-    <text x="728" y="218" fill="#318BF7" font-size="8" font-weight="700">C接点切替</text>
-    <text x="728" y="230" fill="#64748B" font-size="7">A失敗→B自動 MTTR≒0</text>
-    <text x="728" y="242" fill="#94A3B8" font-size="7">ペルソナ・記憶を保持</text>
-
-    <!-- ↓ arrow MAKI→Council -->
-    <line x1="450" y1="258" x2="450" y2="282" stroke="#475569" stroke-width="1.5" marker-end="url(#arr-k)"/>
-
-    <!-- ③ AGENT COUNCIL (Persona-driven) -->
-    <rect x="10" y="282" width="880" height="80" rx="4" fill="rgba(49,139,247,.04)" stroke="#318BF7" stroke-width="1.5"/>
-    <text x="22" y="300" fill="#318BF7" font-size="9" font-weight="700" letter-spacing="1">AGENT COUNCIL — Persona-driven (agents/personas/*.yaml)</text>
-    <rect x="22" y="308" width="95" height="44" rx="3" fill="rgba(49,139,247,.1)" stroke="#318BF7" stroke-width="1"/>
-    <text x="30" y="324" fill="#318BF7" font-size="8" font-weight="700">ARARA（陽）</text>
-    <text x="30" y="336" fill="#64748B" font-size="7">claude-sonnet</text>
-    <text x="30" y="346" fill="#94A3B8" font-size="7">設計・記憶</text>
-    <rect x="126" y="308" width="95" height="44" rx="3" fill="rgba(239,68,68,.08)" stroke="#EF4444" stroke-width="1"/>
-    <text x="134" y="324" fill="#EF4444" font-size="8" font-weight="700">critic（陰）</text>
-    <text x="134" y="336" fill="#64748B" font-size="7">gpt-4o</text>
-    <text x="134" y="346" fill="#94A3B8" font-size="7">批判・リスク</text>
-    <rect x="230" y="308" width="95" height="44" rx="3" fill="rgba(16,185,129,.08)" stroke="#10B981" stroke-width="1"/>
-    <text x="238" y="324" fill="#10B981" font-size="8" font-weight="700">researcher</text>
-    <text x="238" y="336" fill="#64748B" font-size="7">gemini-2.5-pro</text>
-    <text x="238" y="346" fill="#94A3B8" font-size="7">調査・論文</text>
-    <rect x="334" y="308" width="95" height="44" rx="3" fill="rgba(139,92,246,.08)" stroke="#8B5CF6" stroke-width="1"/>
-    <text x="342" y="324" fill="#8B5CF6" font-size="8" font-weight="700">engineer</text>
-    <text x="342" y="336" fill="#64748B" font-size="7">claude-sonnet</text>
-    <text x="342" y="346" fill="#94A3B8" font-size="7">実装・デバッグ</text>
-    <rect x="438" y="308" width="95" height="44" rx="3" fill="rgba(245,158,11,.08)" stroke="#F59E0B" stroke-width="1"/>
-    <text x="446" y="324" fill="#F59E0B" font-size="8" font-weight="700">finance</text>
-    <text x="446" y="336" fill="#64748B" font-size="7">claude-sonnet</text>
-    <text x="446" y="346" fill="#94A3B8" font-size="7">損益・マクロ</text>
-    <rect x="542" y="308" width="95" height="44" rx="3" fill="rgba(6,182,212,.08)" stroke="#06B6D4" stroke-width="1"/>
-    <text x="550" y="324" fill="#06B6D4" font-size="8" font-weight="700">strategy</text>
-    <text x="550" y="336" fill="#64748B" font-size="7">claude-opus</text>
-    <text x="550" y="346" fill="#94A3B8" font-size="7">MTG総括</text>
-    <rect x="646" y="308" width="95" height="44" rx="3" fill="rgba(236,72,153,.08)" stroke="#EC4899" stroke-width="1"/>
-    <text x="654" y="324" fill="#EC4899" font-size="8" font-weight="700">secretary</text>
-    <text x="654" y="336" fill="#64748B" font-size="7">claude-haiku</text>
-    <text x="654" y="346" fill="#94A3B8" font-size="7">タスク化</text>
-    <rect x="750" y="308" width="130" height="44" rx="3" fill="rgba(100,116,139,.08)" stroke="#64748B" stroke-width="1"/>
-    <text x="758" y="324" fill="#64748B" font-size="8" font-weight="700">+ lawyer / sales / writer</text>
-    <text x="758" y="336" fill="#94A3B8" font-size="7">data_analyst / qa</text>
-    <text x="758" y="346" fill="#94A3B8" font-size="7">各 personas/*.yaml</text>
-
-    <!-- ↓ arrow Council→Eval -->
-    <line x1="450" y1="362" x2="450" y2="388" stroke="#475569" stroke-width="1.5" marker-end="url(#arr-k)"/>
-
-    <!-- ④ EVALUATION LAYER -->
-    <rect x="10" y="388" width="560" height="52" rx="4" fill="rgba(244,63,94,.04)" stroke="#F43F5E" stroke-width="1.2"/>
-    <text x="22" y="406" fill="#F43F5E" font-size="9" font-weight="700" letter-spacing="1">EVALUATION — per-span scoring（6 failure modes）</text>
-    <text x="22" y="422" fill="#94A3B8" font-size="7.5">fabrication · misattribution · unfaithfulness · self_contradiction · off_topic_drift · context_refusal</text>
-    <text x="22" y="434" fill="#64748B" font-size="7">→ Agent指標: tool_selection_quality · action_advancement · agent_flow · action_completion</text>
-
-    <!-- ↓ arrow Eval→Judge -->
-    <line x1="285" y1="440" x2="285" y2="464" stroke="#475569" stroke-width="1.5" marker-end="url(#arr-k)"/>
-
-    <!-- ⑤ JUDGE -->
-    <rect x="10" y="464" width="360" height="52" rx="4" fill="rgba(251,191,36,.06)" stroke="#F59E0B" stroke-width="1.5"/>
-    <text x="22" y="482" fill="#F59E0B" font-size="9" font-weight="700" letter-spacing="1">JUDGE — claude-haiku-4-5（Solverと必ず別モデル）</text>
-    <text x="22" y="496" fill="#64748B" font-size="8">confidence ≥ 0.90 → PASS　｜　0.75–0.90 → council（ARARA提案・Tsune承認）　｜　＜ 0.75 → Tsune直接判断</text>
-    <text x="22" y="510" fill="#94A3B8" font-size="7">FINCH-ZK (EMNLP2025) · position bias対策: 提示順ランダム化 · LLM判定前に構造チェック先行</text>
-
-    <!-- MEMORY box (right side) -->
-    <rect x="580" y="388" width="310" height="128" rx="4" fill="rgba(16,185,129,.04)" stroke="#10B981" stroke-width="1.2"/>
-    <text x="594" y="408" fill="#10B981" font-size="9" font-weight="700" letter-spacing="1">MEMORY + FEEDBACK LOOP</text>
-    <text x="594" y="424" fill="#64748B" font-size="8">short-term: memory/now.md</text>
-    <text x="594" y="438" fill="#64748B" font-size="8">long-term:  ~/.claude/projects/.../memory/</text>
-    <text x="594" y="452" fill="#64748B" font-size="8">diary:      memory/diary/YYYY-MM-DD.md</text>
-    <text x="594" y="466" fill="#94A3B8" font-size="7.5">NotebookLM: c553979f-eb87-402d-979e-bf0e31bf5015</text>
-    <line x1="594" y1="476" x2="880" y2="476" stroke="rgba(16,185,129,.3)" stroke-width="0.8"/>
-    <text x="594" y="490" fill="#10B981" font-size="8" font-weight="600">Negative signals（Tsuneの訂正 → agents/feedback/）</text>
-    <text x="594" y="504" fill="#94A3B8" font-size="7.5">AgentOS(2026): user corrections → skill embedding update</text>
-
-    <!-- feedback arrow from Memory back to EventBus -->
-    <path d="M890,452 Q908,260 890,36" stroke="#10B981" stroke-width="1" stroke-dasharray="4 3" fill="none" marker-end="url(#arr-k)"/>
-    <text x="912" y="260" fill="#10B981" font-size="7" transform="rotate(90,912,260)">Feedback Loop</text>
-  </svg>
-  </div>
-
-  <!-- Confidence Gate 説明 -->
-  <div style="display:flex;gap:12px;margin:16px 0;flex-wrap:wrap;">
-    <div style="flex:1;min-width:200px;padding:12px 16px;background:rgba(49,139,247,.06);border:1px solid rgba(49,139,247,.2);border-radius:4px;">
-      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--accent);margin-bottom:6px;">✅ PASS（≥ 0.90）</div>
-      <div style="font-size:11px;color:var(--text);">次ステージへ通過。Tsune確認不要。</div>
+    <div style="display:grid;grid-template-columns:1fr auto auto;border-bottom:1px solid var(--rule2);background:var(--bg3);font-family:'JetBrains Mono',monospace;font-size:10px;">
+      <div style="padding:10px 16px;color:var(--text);font-weight:700;letter-spacing:.5px;">MAKI OS ／ OPERATION RECORD</div>
+      <div style="padding:10px 16px;border-left:1px solid var(--rule2);color:var(--muted);">図番 <span style="color:var(--text);">MOS-OPR-01</span></div>
+      <div style="padding:10px 16px;border-left:1px solid var(--rule2);color:var(--green);">実測値</div>
     </div>
-    <div style="flex:1;min-width:200px;padding:12px 16px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.3);border-radius:4px;">
-      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:#F59E0B;margin-bottom:6px;">⚠️ MTG TRIGGER（0.75–0.90）</div>
-      <div style="font-size:11px;color:var(--text);">council会議。ARARA提案→Tsune承認→手動起動。ARARA × GPT-4o × Tsune で判断。</div>
-    </div>
-    <div style="flex:1;min-width:200px;padding:12px 16px;background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.2);border-radius:4px;">
-      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:#F43F5E;margin-bottom:6px;">🚨 ESCALATE（＜ 0.75）</div>
-      <div style="font-size:11px;color:var(--text);">Tsuneへ直接エスカレ。LLM判断を停止。</div>
-      <div style="font-size:10px;color:#F59E0B;margin-top:4px;font-weight:600;">⚠️ スコア自動判定は未実装。手動運用。</div>
-    </div>
-  </div>
 
-  <!--実装ファイル一覧 -->
-  <div style="background:var(--bg2);border:1px solid var(--rule);border-radius:4px;padding:16px 20px;margin-top:16px;">
-    <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">▎ 実装ファイル — agents/council/</div>
-    <div style="display:grid;grid-template-columns:220px 120px 1fr;gap:6px;font-size:11px;">
-      <code style="color:var(--accent);">agents/council/schema.py</code>
-      <span style="color:var(--muted);">AgentOutput</span>
-      <span style="color:var(--text);">全エージェント共通出力スキーマ・EvalResult・ConfidenceGate</span>
-      <code style="color:#F59E0B;">agents/council/router.py</code>
-      <span style="color:var(--muted);">route_stage()</span>
-      <span style="color:var(--text);">Stage×モデル対応表・コンテキスト長・タスクタイプ・バジェット</span>
-      <code style="color:#F59E0B;">agents/council/judge.py</code>
-      <span style="color:var(--muted);">judge_output()</span>
-      <span style="color:var(--text);">Claude Haiku Judge・決定論的チェック先行・position bias対策</span>
-      <code style="color:#F43F5E;">agents/council/eval.py</code>
-      <span style="color:var(--muted);">SpanEval / TraceEval</span>
-      <span style="color:var(--text);">6失敗モード・Agent指標・軽量ルールベース評価</span>
-      <code style="color:#8B5CF6;">agents/council/event_bus.py</code>
-      <span style="color:var(--muted);">EventBus</span>
-      <span style="color:var(--text);">asyncio.Queue・Fan-out・importance閾値ゲーティング</span>
-      <code style="color:#10B981;">agents/personas/*.yaml</code>
-      <span style="color:var(--muted);">Persona定義</span>
-      <span style="color:var(--text);">ARARA・critic・researcher・engineer・finance・strategy・secretary</span>
-      <code style="color:#10B981;">agents/arara-skills/paper-scout/</code>
-      <span style="color:var(--muted);">新スキル</span>
-      <span style="color:var(--text);">論文×GitHub×Reddit横断リサーチ → MA System最適化提案</span>
-      <code style="color:var(--accent);font-weight:700;">ma_runtime.py v3</code>
-      <span style="color:var(--arara);">v3 新設</span>
-      <span style="color:var(--text);">Observer（監査ログ）/ benchmark+（freshness/diversity）/ policy-engine（FAIL診断）/ retry-engine / memory decay</span>
-      <code style="color:var(--accent);">agents/arara-skills/fail-safe-runtime/</code>
-      <span style="color:var(--green);">実装済み</span>
-      <span style="color:var(--text);">Safety interlock + automatic failover + cascade pipeline + legal latch — hardware safety topology applied to AI runtime</span>
-      <code style="color:var(--accent);">agents/arara-skills/ciie-trace/</code>
-      <span style="color:var(--green);">実装済み</span>
+    <!-- 監査記録 -->
+    <div style="padding:20px 24px 6px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">▎ 監査記録 — 誰が・何を・いつ・止めた理由</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <tr style="border-bottom:1px solid var(--rule2);">
+          <th style="text-align:left;padding:9px 8px;color:var(--muted);font-weight:600;font-size:11px;width:150px;">層</th>
+          <th style="text-align:left;padding:9px 8px;color:var(--muted);font-weight:600;font-size:11px;width:110px;">記録件数</th>
+          <th style="text-align:left;padding:9px 8px;color:var(--muted);font-weight:600;font-size:11px;width:190px;">期間</th>
+          <th style="text-align:left;padding:9px 8px;color:var(--muted);font-weight:600;font-size:11px;">内訳</th>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--arara);">カーネル</td>
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--text);">11,345</td>
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;color:var(--muted);">07-17 → 08-19（33日）</td>
+          <td style="padding:11px 8px;color:var(--text);">許可 <strong>4,328</strong> ／ 拒否 <strong style="color:#F43F5E;">4,028</strong></td>
+        </tr>
+        <tr>
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--accent);">制御層</td>
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--text);">5,016</td>
+          <td style="padding:11px 8px;font-family:'JetBrains Mono',monospace;color:var(--muted);">07-23 → 08-19（26日）</td>
+          <td style="padding:11px 8px;color:var(--text);">通過 <strong>3,676</strong> ／ 停止 <strong style="color:var(--gold);">763</strong></td>
+        </tr>
+      </table>
+      <div style="margin-top:10px;font-size:12px;color:var(--muted);">
+        拒否と停止を<strong style="color:var(--text);">列として持つ</strong>ので、後から数えられる。止まった回数が分からない仕組みは、止まっていないのと同じ。
+      </div>
+    </div>
+
+    <!-- 人の承認 -->
+    <div style="padding:14px 24px 6px;border-top:1px solid var(--rule);">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">▎ 人の承認 — 通らなければ待つ</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;">
+        <div style="border:1px solid var(--rule);border-radius:4px;padding:12px 14px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:900;color:var(--text);">175</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;">実行前に出した申請</div>
+        </div>
+        <div style="border:1px solid var(--rule);border-radius:4px;padding:12px 14px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:900;color:var(--green);">21</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;">人が承認した件数</div>
+        </div>
+        <div style="border:1px solid var(--rule);border-radius:4px;padding:12px 14px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:900;color:var(--gold);">763</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;">解除待ちで止めた回数</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 記憶と検証 -->
+    <div style="padding:14px 24px 22px;border-top:1px solid var(--rule);margin-top:14px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">▎ 記憶・検証・常駐</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:10px 8px;color:var(--text);font-weight:600;width:190px;">記憶</td>
+          <td style="padding:10px 8px;font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:700;width:110px;">6 表</td>
+          <td style="padding:10px 8px;color:var(--text);">DB 1本。ルール・記録・履歴・日報・作業ログを同じ場所に置く</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:10px 8px;color:var(--text);font-weight:600;">作業ログ</td>
+          <td style="padding:10px 8px;font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:700;">15,320</td>
+          <td style="padding:10px 8px;color:var(--text);">実行した命令と差分を、要約せず実物のまま保持（23.6 MB）</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:10px 8px;color:var(--text);font-weight:600;">検証</td>
+          <td style="padding:10px 8px;font-family:'JetBrains Mono',monospace;color:var(--green);font-weight:700;">462 件</td>
+          <td style="padding:10px 8px;color:var(--text);">全件通過（他5件は環境依存のため除外）。判断部分は入出力から切り離して試験する</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 8px;color:var(--text);font-weight:600;">常駐</td>
+          <td style="padding:10px 8px;font-family:'JetBrains Mono',monospace;color:var(--green);font-weight:700;">3 本</td>
+          <td style="padding:10px 8px;color:var(--text);">スリープ抑止・外部接続・生存監視。強制終了しても自動で復帰する</td>
+        </tr>
+      </table>
+
+      <div style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);">
+        ※ 判定そのものの構造は出願中のため記載しない。ここに出しているのは、外から数えられる結果のみ。
+      </div>
     </div>
   </div>
 </div>
 
-<!-- BOM -->
+<div class="sec" id="sec-research">
+  <div class="sec-chip">04 — リサーチ機能</div>
+  <div class="sec-title">調べ方を、目的で使い分ける</div>
+  <div class="sec-sub">検索は1つでは足りません。取りこぼす角度が、それぞれ違うためです。<br>
+    <span style="color:var(--muted);font-size:12px;">一次情報まで最短で降りることを目的に、4系統を用途で切り替えています。</span></div>
+
+  <div class="cli-wiring" style="margin-top:24px;">
+    <div class="cli-wiring-label">▎ 検索の使い分け</div>
+    <div style="padding:8px 4px;">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <tr style="border-bottom:1px solid var(--rule);">
+          <th style="text-align:left;padding:12px 10px;color:var(--muted);font-weight:600;font-size:11px;width:150px;">系統</th>
+          <th style="text-align:left;padding:12px 10px;color:var(--muted);font-weight:600;font-size:11px;width:180px;">得意なこと</th>
+          <th style="text-align:left;padding:12px 10px;color:var(--muted);font-weight:600;font-size:11px;">使いどころ</th>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:12px 10px;font-family:'JetBrains Mono',monospace;font-weight:600;color:#318BF7;">brave-search</td>
+          <td style="padding:12px 10px;color:var(--muted);">独立した検索エンジン</td>
+          <td style="padding:12px 10px;color:var(--muted);font-size:12px;">まず当たりを付ける。他社インデックスに依存しないため、結果が偏りにくい</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:12px 10px;font-family:'JetBrains Mono',monospace;font-weight:600;color:#318BF7;">tavily</td>
+          <td style="padding:12px 10px;color:var(--muted);">最新情報・並列処理</td>
+          <td style="padding:12px 10px;color:var(--muted);font-size:12px;">速さと件数が要るとき。クレジット制のため、必要な場面に絞って使う</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:12px 10px;font-family:'JetBrains Mono',monospace;font-weight:600;color:#8B5CF6;">firecrawl</td>
+          <td style="padding:12px 10px;color:var(--muted);">本文の抽出・全文取得</td>
+          <td style="padding:12px 10px;color:var(--muted);font-size:12px;">広告や案内を落とし、本文だけを取る。論文や仕様書のように、抜粋では判断できないものに使う</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule);">
+          <td style="padding:12px 10px;font-family:'JetBrains Mono',monospace;font-weight:600;color:#318BF7;">context7</td>
+          <td style="padding:12px 10px;color:var(--muted);">公式ドキュメント</td>
+          <td style="padding:12px 10px;color:var(--muted);font-size:12px;">ライブラリやAPIの仕様。検索結果ではなく、公式の記述そのものを引く</td>
+        </tr>
+        <tr>
+          <td style="padding:12px 10px;font-family:'JetBrains Mono',monospace;font-weight:600;color:#10B981;">playwright</td>
+          <td style="padding:12px 10px;color:var(--muted);">ブラウザ操作</td>
+          <td style="padding:12px 10px;color:var(--muted);font-size:12px;">ログインが要る画面、検索では出てこない管理画面。実際に開いて確かめる</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div style="margin-top:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;">
+    <div style="border:1px solid var(--rule);border-radius:4px;padding:16px 18px;">
+      <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px;">抜粋で判断しない</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.75;">検索結果の要約だけで結論を出すと、間違えます。論文や仕様は全文を取ってから判断します。</div>
+    </div>
+    <div style="border:1px solid var(--rule);border-radius:4px;padding:16px 18px;">
+      <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px;">複数の角度から引く</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.75;">1つの検索で出てこないものが必ずあります。エンジンを変え、公式を当たり、実際に画面を開く。</div>
+    </div>
+    <div style="border:1px solid var(--rule);border-radius:4px;padding:16px 18px;">
+      <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px;">画面で確かめる</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.75;">検索に出ない情報は、ログインして開けば分かります。ブラウザ操作を最後の手段として持っています。</div>
+    </div>
+  </div>
+</div>
+
 <div class="sec" id="sec-changelog" style="padding:40px 0 32px;">
-  <div class="sec-chip">08 — 成果物</div>
+  <div class="sec-chip">05 — 成果物</div>
   <div class="sec-title">公開している論文</div>
-  <div class="sec-sub">すべて Zenodo で DOI 付きで公開しています。<span style="color:var(--muted);">プレプリントであり、査読は受けていません。</span></div>
+  <div class="sec-sub">すべて Zenodo で DOI 付きで公開しています。<span style="color:var(--muted);">プレプリントです。</span></div>
 
   <div style="border:1px solid var(--rule);border-radius:4px;overflow:hidden;margin-top:24px;">
 
@@ -1649,14 +1448,6 @@ footer{
     </div>
 
     
-<div style="display:grid;grid-template-columns:104px 100px 1fr;padding:16px 24px;border-bottom:1px solid var(--rule);background:rgba(245,158,11,.04);">
-      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#F59E0B;">特許</div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);">2026-06</div>
-      <div style="font-size:11px;color:var(--text);line-height:1.75;">
-        <strong>国内特許 出願済</strong><br>
-        AIエージェントの実行制御に関する出願。<span style="color:var(--muted);">内容は未公開のため記載しません。審査は通っていません。</span>
-      </div>
-    </div>
 <div style="display:grid;grid-template-columns:104px 100px 1fr;padding:16px 24px;border-bottom:1px solid var(--rule);">
       <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--accent);">論文③</div>
       <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);">2026-05-31</div>
@@ -1709,13 +1500,12 @@ footer{
   </div>
 
   <div style="margin-top:20px;font-size:11px;color:var(--muted);line-height:1.8;">
-    実装は <a href="https://github.com/Tsune2034/ma-runtime" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;">GitHub — ma-runtime</a> で公開しています。<br>
-    このほかに <strong>Roution（Route + Motion）</strong>という別研究があり、そちらも DOI 付きで公開しています。MAKI OS とは独立した取り組みです。
+    <strong>Roution（Route + Motion）</strong>という別研究があります。MAKI OS とは独立した取り組みで、<span style="color:var(--gold);">別途開発中</span>です。 <a href="https://github.com/Tsune2034/roution" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;">GitHub — roution</a>
   </div>
 </div>
 
 <footer>
-  <div class="footer-l">MA System — ARARA × ARIS &nbsp;·&nbsp; CLI Intelligence Framework &nbsp;·&nbsp; <span style="font-family:'JetBrains Mono',monospace;color:var(--accent);">v2.0.00</span> &nbsp;·&nbsp; 2026</div>
+  <div class="footer-l">MA System &nbsp;·&nbsp; AIエージェント実行制御フレームワーク &nbsp;·&nbsp; <span style="font-family:'JetBrains Mono',monospace;color:var(--accent);">v2.0.00</span> &nbsp;·&nbsp; 2026</div>
   <div class="footer-r"></div>
 </footer>
 
@@ -1738,9 +1528,9 @@ function animateCount(el, target, suffix=''){
 
 window.addEventListener('load',()=>{
   setTimeout(()=>{
-    animateCount(document.getElementById('cnt-agents'),8);
-    animateCount(document.getElementById('cnt-layers'),5);
-    animateCount(document.getElementById('cnt-mcp'),14);
+    animateCount(document.getElementById('cnt-agents'),7);
+    animateCount(document.getElementById('cnt-layers'),3);
+    animateCount(document.getElementById('cnt-mcp'),16);
   },400);
 });
 
