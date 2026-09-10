@@ -280,8 +280,8 @@
         <strong>【AIエージェント研究・実装｜2026年5月–】</strong><br>
         現場で培った構造的トラブルシューティングの思考をAI領域へ応用し、<strong>AIエージェントカーネル「MAKI OS」</strong>を設計・実装。MAKI は MA Agent Kernel Intelligence の略で、MA は人間とAIの「間（ま）」を指す。人とAIの間に置き、AIの実行を制御するカーネル層にあたる。AIエージェントが自律的に判断・実行する際の状態管理と制御の仕組みについて、<strong>在学中に特許を国内出願（2026年6月）</strong>。カーネルの責務分離・階層化・停止制御・人間承認ゲートに関する研究成果を、<strong>DOI付き論文6件としてZenodoで公開</strong>。カーネル実装を実証エビデンス（実装ログ・プロセスレシピ実行・テスト実測）として整理し、<strong>MAKI OS V0.2 としてDOI付きで公開</strong>。
         <br><br>
-        <strong>【Roution（別研究）｜ブラックボックスのプロセス推論】</strong><br>
-        LLMの応答がプロンプト構造によってどう経路づけられるかを、モデル内部を開かず外部観測のみで検証する研究。複数モデル（Claude/GPT-4o/Gemini）の応答パターンを比較し、定量指標を用いて評価。装置トラブルの原因を切り分けて追い込む思考回路を、ブラックボックス問題へ応用したもの。<strong>DOI付き論文1件をZenodoで公開</strong>。MAKI OS とは独立した取り組み。
+        <strong>【Roution（別研究）｜LLM応答経路の外部計測】</strong><br>
+        モデル内部を開かず通常のAPIだけで、質問の1変数（主語の帰属・機能的定義・観察者フレーム）を変えたとき、応答分布がどこへ動くかを測る枠組み。Claude/GPT-4o/Gemini で、英語は「in you」を外すと境界宣言85%→0%・人間領域への転移0%→90%、日本語は機能的定義の追加で0/30→30/30へ動いた。否認応答も5つの終わり方に分解し、拒否率が同じでも中身の変化を検出できる。960応答の二言語行列として測定手順に凍結。感情や意識ではなく、出力経路の移動だけを扱う。<strong>DOI付き論文1件をZenodoで公開</strong>。MAKI OS とは独立した取り組み。
         <br><br>
         <strong>【学び直し｜2025年7月–2026年6月】</strong><br>
         海外渡航・自己研鑽を経て、IT職業訓練校（6ヶ月課程・2025年12月〜2026年6月）にて VBA/GAS・HTML/CSS・DB・Java/PHP・AI活用・プロジェクトマネジメントを履修。
@@ -297,8 +297,8 @@
         <strong>[AI Agent Research &amp; Implementation | May 2026–]</strong><br>
         Applied structured troubleshooting thinking developed in the field to the AI domain, designing and implementing <strong>MAKI OS, an AI agent kernel</strong>. MAKI stands for MA Agent Kernel Intelligence, where "MA" denotes the Japanese concept of <em>ma</em> — the interval between human and AI. The kernel sits in that interval and governs what the AI is permitted to execute. <strong>Filed a domestic patent application while still enrolled (Jun 2026)</strong> on state management and control mechanisms for autonomous AI agent decision-making and execution. Published <strong>6 DOI-registered papers on Zenodo</strong> covering kernel responsibility separation, layered architecture, halt control, and human-approval gating. Organized the kernel implementation as public evidence (implementation logs, process-recipe execution, test measurements) and <strong>published it with a DOI as MAKI OS V0.2</strong>.
         <br><br>
-        <strong>[Roution (Separate Research) | Black-Box Process Inference]</strong><br>
-        Research on how prompt structure routes LLM responses, verified purely through external observation without opening the model. Compared response patterns across multiple models (Claude/GPT-4o/Gemini) and evaluated them with quantitative metrics. Applies the same fault-isolation reasoning used for semiconductor equipment troubleshooting to the black-box problem. <strong>1 DOI-registered paper published on Zenodo</strong>. An independent effort, separate from MAKI OS.
+        <strong>[Roution (Separate Research) | External Measurement of LLM Response Routes]</strong><br>
+        A framework for measuring where an LLM response distribution moves when one variable in the question — subject attribution, functional definition, or observer frame — is changed, using ordinary APIs without access to weights or activations. Across Claude/GPT-4o/Gemini, removing "in you" moved boundary declarations from 85% to 0% and human-domain transfer from 0% to 90% in English, while adding a functional definition moved Japanese responses from 0/30 to 30/30. Denial responses are further separated into five closure states, so a change is detectable even when the refusal rate is unchanged. Frozen as a measurement protocol over a 960-response bilingual matrix. It measures output-route movement only, not emotion or consciousness. <strong>1 DOI-registered paper published on Zenodo</strong>. An independent effort, separate from MAKI OS.
         <br><br>
         <strong>[Reskilling | Jul 2025–Jun 2026]</strong><br>
         Following overseas travel and self-directed study, completed a 6-month IT vocational training program (Dec 2025–Jun 2026): VBA/GAS, HTML/CSS, databases, Java/PHP, AI utilization, and project management.
